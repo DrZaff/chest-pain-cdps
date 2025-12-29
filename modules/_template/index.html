@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#050810" />
+  <title>ClinicalToolsDEV Module</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-title">
+      <div class="app-badge">ClinicalToolsDEV</div>
+      <h1 id="appName">Module Template</h1>
+      <p id="appSubtitle" class="subtitle">Standalone pathway module (PWA offline-ready)</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Inputs</h2>
+
+      <div class="grid">
+        <label class="field">
+          <span class="field-label">Presentation type</span>
+          <select id="presentation_type" class="field-input">
+            <option value="acute">Acute</option>
+            <option value="stable">Stable</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Known CAD?</span>
+          <select id="known_cad" class="field-input">
+            <option value="false">No</option>
+            <option value="true">Yes</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Risk group</span>
+          <select id="risk_group" class="field-input">
+            <option value="low">Low</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="high">High</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="btnRun" class="btn primary">Run pathway</button>
+        <button id="btnReset" class="btn ghost">Reset</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Results</h2>
+      <div id="results" class="results">
+        <p class="muted">Enter inputs and click <b>Run pathway</b>.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Flags</h2>
+      <div id="flags" class="flags">
+        <p class="muted">No flags.</p>
+      </div>
+    </section>
+
+    <section class="card subtle">
+      <h2>Disclaimer</h2>
+      <p class="muted">
+        This tool is for educational and decision-support purposes only. It does not replace clinical judgment,
+        institutional guidelines, or specialist consultation.
+      </p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span class="muted">Offline-capable PWA module template</span>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+          .catch(err => console.error("Service worker registration failed:", err));
+      });
+    }
+  </script>
+</body>
+</html>
