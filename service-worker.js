@@ -1,13 +1,13 @@
-const CACHE = "chest-pain-pathways-cache-v1";
+const CACHE = "chest-pain-pathways-cache-v2";
 const ASSETS = [
   "/",
   "/index.html",
   "/style.css",
   "/script.js",
   "/manifest.json",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/icons/apple-touch-icon-180.png"
+  "/icons/heart_192.png",
+  "/icons/heart_512.png",
+  "/icons/heart_180.png"
 ];
 
 self.addEventListener("install", (event) => {
