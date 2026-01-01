@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chest Pain Pathways (2021 ACC/AHA)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#050810" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div>
+        <h1 class="app-title">Chest Pain Pathways</h1>
+        <p class="app-subtitle">Decision-support UI for 2021 ACC/AHA Chest Pain evaluation (acute + stable).</p>
+      </div>
+      <div class="app-meta">
+        <span class="app-badge">ClinicalToolsDEV</span>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <!-- HOME -->
+      <section id="view-home" class="card">
+        <h2 class="card-title">Start</h2>
+        <p class="muted">
+          Choose a pathway. The app will walk you through decision points one screen at a time.
+        </p>
+
+        <div class="btn-row">
+          <button id="btn-start-acute" class="btn-primary">Acute chest pain</button>
+          <button id="btn-start-stable" class="btn-primary">Stable chest pain</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <button id="btn-modalities" class="btn-secondary">Explore testing modalities</button>
+
+        <div class="footer-note">
+          <div class="flag-pill flag-pill--warning">
+            Not for patient-specific decisions. Use clinical judgment + institutional protocols.
+          </div>
+        </div>
+      </section>
+
+      <!-- PATHWAY RUNNER -->
+      <section id="view-runner" class="card hidden">
+        <div class="runner-top">
+          <div>
+            <h2 id="runner-title" class="card-title">Pathway</h2>
+            <p id="runner-breadcrumb" class="muted small"></p>
+          </div>
+          <div class="runner-controls">
+            <button id="btn-back" class="btn-tertiary">Back</button>
+            <button id="btn-reset" class="btn-tertiary">Reset</button>
+            <button id="btn-home" class="btn-tertiary">Home</button>
+          </div>
+        </div>
+
+        <div id="runner-body" class="runner-body"></div>
+
+        <div class="divider"></div>
+
+        <div class="app-footer">
+          <p class="disclaimer">
+            This tool is for educational and decision-support purposes only. It does not replace clinical judgment,
+            institutional guidelines, or specialist consultation.
+          </p>
+          <p class="disclaimer">
+            This tool was developed using the ClinicalToolsDEV framework.
+          </p>
+        </div>
+      </section>
+
+      <!-- MODALITIES VIEW -->
+      <section id="view-modalities" class="card hidden">
+        <div class="runner-top">
+          <div>
+            <h2 class="card-title">Explore testing modalities</h2>
+            <p class="muted small">Concise overview page (content placeholder — you will provide final text).</p>
+          </div>
+          <div class="runner-controls">
+            <button id="btn-modalities-home" class="btn-tertiary">Home</button>
+          </div>
+        </div>
+
+        <div class="modalities-content">
+          <div class="callout">
+            <h3 class="callout-title">Overview (placeholder)</h3>
+            <p class="muted">
+              Replace this block with your concise testing overview text when ready.
+            </p>
+          </div>
+
+          <h3 class="section-title">Modality sheets</h3>
+          <div id="modalities-grid" class="chip-grid"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="app-footer">
+          <p class="disclaimer">
+            This tool is for educational and decision-support purposes only.
+          </p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal card">
+      <div class="modal-header">
+        <h3 id="modal-title" class="card-title">Modality</h3>
+        <button id="modal-close" class="btn-tertiary">Close</button>
+      </div>
+      <div id="modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+          .catch(err => console.error("Service worker registration failed:", err));
+      });
+    }
+  </script>
+</body>
+</html>

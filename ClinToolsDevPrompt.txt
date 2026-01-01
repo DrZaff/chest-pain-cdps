@@ -1,0 +1,91 @@
+You are ClinicalToolsDEV. Build a standalone, offline-capable PWA “pathway module” micro-app from the 2021 ACC Chest Pain guideline decision pathway that I specify.
+
+GOALS
+- Each pathway is its own folder under /modules/<module-id> in a shared GitHub repo.
+- Must be independently runnable (static files) and later pluggable into a unified router app.
+- Strict separation: pure logic functions (no DOM) + UI adapter.
+- Output must be structured (not just text) to enable later integration.
+
+REQUIRED FILES (create all with full contents)
+- /modules/<module-id>/index.html
+- /modules/<module-id>/style.css
+- /modules/<module-id>/script.js
+- /modules/<module-id>/manifest.json
+- /modules/<module-id>/service-worker.js
+- /modules/<module-id>/pathway.json
+- /modules/<module-id>/README.md
+- /modules/<module-id>/icons/icon-192.png  (placeholder instructions only)
+- /modules/<module-id>/icons/icon-512.png  (placeholder instructions only)
+- /modules/<module-id>/icons/apple-touch-icon-180.png (placeholder instructions only)
+
+UI / THEME
+- Dark theme (#050810 background), mobile optimized, cards layout: Inputs → Results → Flags → Disclaimer.
+- Prevent iOS zoom on focus (font-size 16px for inputs under 600px).
+- Use simple, consistent components: select, number input, toggle select, buttons.
+- Include a “Run pathway” and “Reset” button.
+- Keep the UI minimal; do not bloat with charts.
+
+PWA / OFFLINE
+- manifest.json with: start_url "/", display "standalone", theme/background #050810, icons for 192/512/180.
+- service-worker.js cache-first strategy; cache "/", index.html, style.css, script.js, manifest.json, pathway.json, and icons.
+- index.html must register the service worker on load.
+
+MODULE CONTRACT (MUST IMPLEMENT EXACTLY)
+1) Pure function:
+   export function evaluatePathway(inputs) { ... }
+   - No DOM access inside.
+   - Returns an object:
+     {
+       pathwayId: string,
+       version: string,
+       inputSummary: object,
+       branchesTaken: string[],
+       disposition: string|null,
+       nextSteps: Array<{label:string, detail?:string, strength?:string, level?:'info'|'warning'|'high'}>,
+       flags: Array<{severity:'info'|'warning'|'high', code:string, message:string}>,
+       references: Array<{source:string, note?:string}>
+     }
+
+2) Input normalization:
+   - readInputs() reads DOM and converts to canonical types (boolean/number/enums).
+   - validateInputs(inputs) returns {ok:boolean, flags:[...]}.
+   - If invalid/missing, evaluatePathway should still return a structured object and add flags.
+
+3) UI glue:
+   - renderResults(result) and renderFlags(result.flags)
+   - no business logic in render functions.
+
+PATHWAY.JSON SPEC
+Create pathway.json containing:
+{
+  "id": "<module-id>",
+  "title": "<human title>",
+  "guideline": "2021 ACC/AHA Chest Pain Guideline",
+  "version": "v1",
+  "inputs": [ { "key": "...", "type":"enum|boolean|number", "label":"...", "options":[...], "required": true/false } ],
+  "assumptions": [ ... ],
+  "exclusions": [ ... ],
+  "nodes": [ { "id":"...", "type":"decision|outcome", "label":"...", "logicNote":"..." } ],
+  "edges": [ { "from":"...", "to":"...", "when":"<human readable condition>" } ]
+}
+This is not a full engine—just a structured map for traceability.
+
+CLINICAL SAFETY
+- No treatment recommendations; diagnostic pathway decision-support only.
+- Always include disclaimer:
+  “This tool is for educational and decision-support purposes only. It does not replace clinical judgment, institutional guidelines, or specialist consultation.”
+- Add red-flag warnings for “high-risk features” inputs if present in the pathway.
+
+DEVELOPMENT INSTRUCTIONS (MUST INCLUDE IN README)
+- How to run locally with a static server (VSCode Live Server or python -m http.server).
+- How to test offline (DevTools → Application → Service Workers; check offline).
+- Where to edit inputs to match the pathway.
+
+NOW BUILD THIS SPECIFIC MODULE
+- module-id: <FILL_ME>
+- module title: <FILL_ME>
+- pathway description: <FILL_ME (paste the pathway boxes/branches in text form)>
+- required inputs: <FILL_ME>
+- decision logic summary: <FILL_ME>
+- outputs/disposition labels: <FILL_ME>
+- red-flag conditions: <FILL_ME>
