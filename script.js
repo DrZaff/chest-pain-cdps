@@ -22,27 +22,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const viewModalities = document.getElementById("view-modalities");
 
   // Home buttons
-  document
-    .getElementById("btn-start-acute")
-    .addEventListener("click", () => startPathway("acute"));
-  document
-    .getElementById("btn-start-stable")
-    .addEventListener("click", () => startPathway("stable"));
-  document
-    .getElementById("btn-modalities")
-    .addEventListener("click", () => showModalities());
+  document.getElementById("btn-start-acute").addEventListener("click", () => startPathway("acute"));
+  document.getElementById("btn-start-stable").addEventListener("click", () => startPathway("stable"));
+  document.getElementById("btn-modalities").addEventListener("click", () => showModalities());
 
   // Runner controls
   document.getElementById("btn-home").addEventListener("click", () => goHome());
-  document
-    .getElementById("btn-reset")
-    .addEventListener("click", () => resetRunner());
+  document.getElementById("btn-reset").addEventListener("click", () => resetRunner());
   document.getElementById("btn-back").addEventListener("click", () => stepBack());
 
   // Modalities view
-  document
-    .getElementById("btn-modalities-home")
-    .addEventListener("click", () => goHome());
+  document.getElementById("btn-modalities-home").addEventListener("click", () => goHome());
 
   // Modal
   const modalOverlay = document.getElementById("modal-overlay");
@@ -128,10 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const crumbEl = document.getElementById("runner-breadcrumb");
     const bodyEl = document.getElementById("runner-body");
 
-    titleEl.textContent =
-      state.pathway === "acute"
-        ? "Acute chest pain pathway"
-        : "Stable chest pain pathway";
+    titleEl.textContent = state.pathway === "acute" ? "Acute chest pain pathway" : "Stable chest pain pathway";
     crumbEl.textContent = buildBreadcrumb(state);
 
     // Back disabled at start
@@ -143,16 +130,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const header = document.createElement("div");
     header.innerHTML = `
-      <h3 style="margin:0 0 .35rem; font-size:1.05rem;">${escapeHtml(
-        node.title
-      )}</h3>
-      ${
-        node.body
-          ? `<p class="muted" style="margin:.25rem 0 0;">${escapeHtml(
-              node.body
-            )}</p>`
-          : ``
-      }
+      <h3 style="margin:0 0 .35rem; font-size:1.05rem;">${escapeHtml(node.title)}</h3>
+      ${node.body ? `<p class="muted" style="margin:.25rem 0 0;">${escapeHtml(node.body)}</p>` : ``}
     `;
     bodyEl.appendChild(header);
 
@@ -160,9 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (node.flags && node.flags.length) {
       const flagsWrap = document.createElement("div");
       flagsWrap.style.marginTop = ".5rem";
-      flagsWrap.innerHTML = node.flags
-        .map((f) => pillHtml(f.level, f.text))
-        .join("");
+      flagsWrap.innerHTML = node.flags.map((f) => pillHtml(f.level, f.text)).join("");
       bodyEl.appendChild(flagsWrap);
     }
 
@@ -271,9 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ${m.summary ? `<p>${escapeHtml(m.summary)}</p>` : ``}
       ${
         m.bullets?.length
-          ? `<ul>${m.bullets
-              .map((x) => `<li>${escapeHtml(x)}</li>`)
-              .join("")}</ul>`
+          ? `<ul>${m.bullets.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>`
           : ``
       }
       ${
@@ -297,12 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function getNode(id) {
     const node = PATHWAYS[id];
     if (!node) {
-      return {
-        id,
-        type: "terminal",
-        title: "Missing node",
-        disposition: `Node '${id}' not found.`,
-      };
+      return { id, type: "terminal", title: "Missing node", disposition: `Node '${id}' not found.` };
     }
     return node;
   }
@@ -316,22 +286,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function pillHtml(level, text) {
     const cls =
-      level === "danger"
-        ? "flag-pill--danger"
-        : level === "warning"
-        ? "flag-pill--warning"
-        : "flag-pill--ok";
+      level === "danger" ? "flag-pill--danger" : level === "warning" ? "flag-pill--warning" : "flag-pill--ok";
     return `<span class="flag-pill ${cls}">${escapeHtml(text)}</span>`;
   }
 
   function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, (s) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;",
-    }[s]));
+    return String(str).replace(/[&<>"']/g, (s) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[s]));
   }
 
   // ======================================
@@ -349,12 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
       body:
         "Stable/outpatient pathways are maintained separately by your collaborator. " +
         "Use the button below to open the Stable module when it is added to this shared repo.",
-      flags: [
-        {
-          level: "warning",
-          text: "Stable pathway content intentionally not included in this build.",
-        },
-      ],
+      flags: [{ level: "warning", text: "Stable pathway content intentionally not included in this build." }],
       options: [
         {
           label: "Open Stable module",
@@ -390,21 +345,11 @@ document.addEventListener("DOMContentLoaded", () => {
       body: "Choose the branch that matches the current presentation.",
       options: [
         { label: "Obvious noncardiac cause", next: "A_TERM_NONCARDIAC" },
-        {
-          label: "Obvious nonischemic cardiac cause",
-          next: "A_TERM_NONISCHEMIC_CARDIAC",
-        },
+        { label: "Obvious nonischemic cardiac cause", next: "A_TERM_NONISCHEMIC_CARDIAC" },
         { label: "Possible ACS", next: "A2" },
       ],
     },
-    A2: {
-      id: "A2",
-      type: "step",
-      title: "Possible ACS",
-      body: "Obtain troponin.",
-      continueLabel: "Troponin obtained → continue",
-      next: "A3",
-    },
+    A2: { id: "A2", type: "step", title: "Possible ACS", body: "Obtain troponin.", continueLabel: "Troponin obtained → continue", next: "A3" },
     A3: {
       id: "A3",
       type: "step",
@@ -561,6 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
       body: "Select CCTA interpretation.",
       options: [
         { label: "Nonobstructive CAD (<50% stenosis)", next: "A_TERM_DISCHARGE" },
+        // Updated: allow “Decision to treat medically” alongside FFR-CT / stress
         { label: "Inconclusive stenosis", next: "A_INO_FFRCT_OR_STRESS_1" },
         { label: "Obstructive CAD (≥50% stenosis)", next: "A_INO_OBS_BRANCH" },
       ],
@@ -572,41 +518,35 @@ document.addEventListener("DOMContentLoaded", () => {
       body: "Select CCTA interpretation.",
       options: [
         { label: "Nonobstructive CAD (<50% stenosis)", next: "A_TERM_DISCHARGE" },
+        // Updated: allow “Decision to treat medically” alongside FFR-CT / stress
         { label: "Inconclusive stenosis", next: "A_INO_FFRCT_OR_STRESS_2" },
         { label: "Obstructive CAD (≥50% stenosis)", next: "A_INO_OBS_BRANCH" },
       ],
     },
 
+    // UPDATED: Inconclusive CCTA now offers FFR-CT, Stress testing, OR Decision to treat medically
     A_INO_FFRCT_OR_STRESS_1: {
       id: "A_INO_FFRCT_OR_STRESS_1",
       type: "decision",
       title: "Next step after inconclusive CCTA",
-      body: "Choose add-on test.",
-      flags: [
-        {
-          level: "warning",
-          text: "FFR-CT turnaround time may affect prompt care decisions.",
-        },
-      ],
+      body: "Choose add-on test or decide to treat medically.",
+      flags: [{ level: "warning", text: "FFR-CT turnaround time may affect prompt care decisions." }],
       options: [
         { label: "FFR-CT", next: "A_INO_FFRCT_THRESHOLD" },
         { label: "Stress testing", next: "A_INO_STRESS_THRESHOLD" },
+        { label: "Decision to treat medically", next: "A_INO_DECISION_TREAT_MED" },
       ],
     },
     A_INO_FFRCT_OR_STRESS_2: {
       id: "A_INO_FFRCT_OR_STRESS_2",
       type: "decision",
       title: "Next step after inconclusive CCTA",
-      body: "Choose add-on test.",
-      flags: [
-        {
-          level: "warning",
-          text: "FFR-CT turnaround time may affect prompt care decisions.",
-        },
-      ],
+      body: "Choose add-on test or decide to treat medically.",
+      flags: [{ level: "warning", text: "FFR-CT turnaround time may affect prompt care decisions." }],
       options: [
         { label: "FFR-CT", next: "A_INO_FFRCT_THRESHOLD" },
         { label: "Stress testing", next: "A_INO_STRESS_THRESHOLD" },
+        { label: "Decision to treat medically", next: "A_INO_DECISION_TREAT_MED" },
       ],
     },
 
@@ -627,18 +567,22 @@ document.addEventListener("DOMContentLoaded", () => {
       body: "Select the result category.",
       options: [
         { label: "Moderate–severe ischemia", next: "A_TERM_ICA" },
-        {
-          label: "Negative / mild ischemia / not moderate–severe",
-          next: "A_INO_GDMT_DISCHARGE",
-        },
+        { label: "Negative / mild ischemia / not moderate–severe", next: "A_INO_GDMT_DISCHARGE" },
       ],
     },
 
-    // ✅ UPDATED per your request:
-    // Obstructive CAD >=50% without high-risk/frequent angina should offer:
-    // - Treat medically (GDMT)
-    // - FFR-CT or stress testing (same add-on flow as inconclusive stenosis)
-    // - Proceed to ICA
+    // NEW: explicit “Decision to treat medically” step (requested wording)
+    A_INO_DECISION_TREAT_MED: {
+      id: "A_INO_DECISION_TREAT_MED",
+      type: "step",
+      title: "Decision to treat medically",
+      body: "Proceed with guideline-directed medical therapy (GDMT) per pathway figure.",
+      continueLabel: "Continue",
+      next: "A_INO_GDMT_DISCHARGE",
+    },
+
+    // UPDATED: Obstructive CAD >=50% without high-risk/frequent angina now offers:
+    // FFR-CT, Stress testing, OR Decision to treat medically (no direct ICA option here)
     A_INO_OBS_BRANCH: {
       id: "A_INO_OBS_BRANCH",
       type: "decision",
@@ -656,30 +600,9 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "Obstructive CAD (≥50%) without high-risk features",
       body: "Select next step (per pathway figure).",
       options: [
-        { label: "Treat medically (GDMT)", next: "A_INO_GDMT_DISCHARGE" },
-        {
-          label: "FFR-CT OR stress testing",
-          sub: "Uses the same add-on testing pathway as for inconclusive stenosis on CCTA.",
-          next: "A_INO_OBS_FFRCT_OR_STRESS",
-        },
-        { label: "Proceed to ICA", next: "A_TERM_ICA" },
-      ],
-    },
-
-    A_INO_OBS_FFRCT_OR_STRESS: {
-      id: "A_INO_OBS_FFRCT_OR_STRESS",
-      type: "decision",
-      title: "FFR-CT or stress testing",
-      body: "Choose add-on test.",
-      flags: [
-        {
-          level: "warning",
-          text: "FFR-CT turnaround time may affect prompt care decisions.",
-        },
-      ],
-      options: [
         { label: "FFR-CT", next: "A_INO_FFRCT_THRESHOLD" },
         { label: "Stress testing", next: "A_INO_STRESS_THRESHOLD" },
+        { label: "Decision to treat medically", next: "A_INO_DECISION_TREAT_MED" },
       ],
     },
 
@@ -699,8 +622,7 @@ document.addEventListener("DOMContentLoaded", () => {
       id: "A_INO_GDMT_DISCHARGE",
       type: "terminal",
       title: "GDMT → discharge",
-      disposition:
-        "Guideline-directed medical therapy (GDMT) → discharge (per pathway figure).",
+      disposition: "Guideline-directed medical therapy (GDMT) → discharge (per pathway figure).",
       flags: [{ level: "ok", text: "Terminal pathway" }],
     },
 
@@ -748,12 +670,7 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "decision",
       title: "Next test",
       body: "FFR-CT or stress testing (per pathway).",
-      flags: [
-        {
-          level: "warning",
-          text: "FFR-CT turnaround time may affect prompt care decisions.",
-        },
-      ],
+      flags: [{ level: "warning", text: "FFR-CT turnaround time may affect prompt care decisions." }],
       options: [
         { label: "FFR-CT", next: "A_INO_FFRCT_THRESHOLD" },
         { label: "Stress testing", next: "A_INO_STRESS_THRESHOLD" },
@@ -851,18 +768,13 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     SPECT: {
       name: "Stress SPECT MPI",
-      summary:
-        "Rest/stress SPECT myocardial perfusion imaging for perfusion abnormalities and LV function.",
-      bullets: [
-        "Average effective radiation dose reported ~10 mSv for Tc-99m SPECT.",
-        "Dual-isotope SPECT using thallium is not recommended.",
-      ],
+      summary: "Rest/stress SPECT myocardial perfusion imaging for perfusion abnormalities and LV function.",
+      bullets: ["Average effective radiation dose reported ~10 mSv for Tc-99m SPECT.", "Dual-isotope SPECT using thallium is not recommended."],
       notes: ["Contraindications are referenced in Table 5."],
     },
     CMR: {
       name: "Stress CMR",
-      summary:
-        "CMR assesses ventricular function; detects/localizes ischemia and infarction; evaluates viability.",
+      summary: "CMR assesses ventricular function; detects/localizes ischemia and infarction; evaluates viability.",
       bullets: [
         "CMR can detect myocardial edema and microvascular obstruction, helping differentiate acute vs chronic MI and other causes of acute chest pain (e.g., myocarditis).",
       ],
@@ -870,8 +782,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     CCTA: {
       name: "CCTA",
-      summary:
-        "Anatomic test to diagnose/exclude obstructive CAD and identify plaque; used across acute pathways.",
+      summary: "Anatomic test to diagnose/exclude obstructive CAD and identify plaque; used across acute pathways.",
       bullets: [
         "Guideline highlights use after stress testing to diagnose/exclude obstructive CAD and identify who may benefit from ICA referral.",
       ],
@@ -879,28 +790,19 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     FFRCT: {
       name: "FFR-CT",
-      summary:
-        "Functional assessment derived from CCTA data to guide vessel-specific ischemia assessment and revascularization decisions.",
-      bullets: [
-        "Used when stenosis is in the 40–90% range in a proximal/mid segment on CCTA (per guideline recommendations).",
-      ],
+      summary: "Functional assessment derived from CCTA data to guide vessel-specific ischemia assessment and revascularization decisions.",
+      bullets: ["Used when stenosis is in the 40–90% range in a proximal/mid segment on CCTA (per guideline recommendations)."],
       notes: ["Guideline notes: turnaround times may impact prompt clinical care decisions."],
     },
     ICA: {
       name: "Invasive coronary angiography (ICA)",
-      summary:
-        "Invasive anatomic test; used for high-risk presentations and specific intermediate/high-risk branches.",
-      bullets: [
-        "Guideline discusses ICA as effective for diagnosing obstructive CAD and guiding revascularization decisions.",
-      ],
+      summary: "Invasive anatomic test; used for high-risk presentations and specific intermediate/high-risk branches.",
+      bullets: ["Guideline discusses ICA as effective for diagnosing obstructive CAD and guiding revascularization decisions."],
     },
     CAC: {
       name: "Coronary artery calcium (CAC)",
-      summary:
-        "CAC can refine risk assessment and may help reduce diagnostic uncertainty / guide preventive management in selected stable patients.",
-      bullets: [
-        "CAC score of zero can identify a low-risk cohort who may not require additional diagnostic testing (stable chest pain context).",
-      ],
+      summary: "CAC can refine risk assessment and may help reduce diagnostic uncertainty / guide preventive management in selected stable patients.",
+      bullets: ["CAC score of zero can identify a low-risk cohort who may not require additional diagnostic testing (stable chest pain context)."],
     },
   };
 
