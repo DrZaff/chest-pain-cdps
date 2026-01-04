@@ -23,7 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Home buttons
   document.getElementById("btn-start-acute").addEventListener("click", () => startPathway("acute"));
-  document.getElementById("btn-start-stable").addEventListener("click", () => startPathway("stable"));
+  document.getElementById("btn-start-stable").addEventListener("click", () => {
+    window.location.href = "./stable/index.html";
+  });
   document.getElementById("btn-modalities").addEventListener("click", () => showModalities());
 
   // Runner controls
