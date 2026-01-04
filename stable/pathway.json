@@ -1,0 +1,50 @@
+{
+  "id": "stable-no-known-cad",
+  "title": "Stable Chest Pain + No Known CAD",
+  "guideline": "2021 ACC/AHA Chest Pain Guideline",
+  "version": "v1.0",
+  "inputs": [
+    { "key": "riskCat", "type": "enum", "label": "Clinical risk category", "options": ["low", "intermediate_high"], "required": true },
+    { "key": "lowRiskChoice", "type": "enum", "label": "Low risk strategy", "options": ["no_testing", "selected_cac_execg"], "required": false },
+    { "key": "indexTest", "type": "enum", "label": "Intermediate/high risk index test", "options": ["ccta", "stress"], "required": false },
+    { "key": "stressResult", "type": "enum", "label": "Stress testing result", "options": ["inconclusive", "mild", "modsev"], "required": false },
+    { "key": "persistentSymptoms", "type": "boolean", "label": "Persistent symptoms", "required": false },
+    { "key": "cctaResult", "type": "enum", "label": "CCTA result", "options": ["no_cad", "nonobstructive_lt50", "obstructive_ge50"], "required": false },
+    { "key": "stenosis4090", "type": "boolean", "label": "40–90% stenosis present", "required": false },
+    { "key": "highRiskCad", "type": "boolean", "label": "High-risk CAD or frequent angina", "required": false }
+  ],
+  "assumptions": [
+    "COR labels reflect the pathway figure provided; detailed guideline table text not embedded in this module.",
+    "This module provides pathway step labels (e.g., 'optimize preventive therapies') without prescribing medications."
+  ],
+  "nodes": [
+    { "id": "start", "type": "decision", "label": "Clinical risk assessment" },
+    { "id": "low_no_test", "type": "outcome", "label": "No testing recommended (COR 1)" },
+    { "id": "low_selected", "type": "outcome", "label": "CAC or exercise ECG in selected cases (COR 2a)" },
+    { "id": "ih_ccta", "type": "decision", "label": "CCTA (COR 1) → results" },
+    { "id": "ih_stress", "type": "decision", "label": "Stress testing (COR 1) → results" },
+    { "id": "stress_mild", "type": "outcome", "label": "Mild ischemia → optimize preventive (COR 1) ± CAC (COR 2a)" },
+    { "id": "stress_modsev", "type": "decision", "label": "Moderate–severe ischemia → optimize preventive (COR 1) → persistent symptoms?" },
+    { "id": "stress_inconclusive", "type": "outcome", "label": "Inconclusive → further evaluation (CCTA COR 2a; ICA COR 1 per figure)" },
+    { "id": "ica", "type": "outcome", "label": "Invasive coronary angiography (COR 1)" },
+    { "id": "continue_prev", "type": "outcome", "label": "Continue preventive therapies (COR 1)" },
+    { "id": "ccta_no_cad", "type": "outcome", "label": "No CAD → consider INOCA outpatient if persistent symptoms" },
+    { "id": "ccta_nonobs", "type": "outcome", "label": "Nonobstructive <50% → consider INOCA; if 40–90% consider FFR-CT or stress (COR 2a)" },
+    { "id": "ccta_obs", "type": "decision", "label": "Obstructive ≥50% → high-risk CAD or frequent angina?" }
+  ],
+  "edges": [
+    { "from": "start", "to": "low_no_test", "when": "riskCat=low AND lowRiskChoice=no_testing" },
+    { "from": "start", "to": "low_selected", "when": "riskCat=low AND lowRiskChoice=selected_cac_execg" },
+    { "from": "start", "to": "ih_ccta", "when": "riskCat=intermediate_high AND indexTest=ccta" },
+    { "from": "start", "to": "ih_stress", "when": "riskCat=intermediate_high AND indexTest=stress" },
+    { "from": "ih_stress", "to": "stress_inconclusive", "when": "stressResult=inconclusive" },
+    { "from": "ih_stress", "to": "stress_mild", "when": "stressResult=mild" },
+    { "from": "ih_stress", "to": "stress_modsev", "when": "stressResult=modsev" },
+    { "from": "stress_modsev", "to": "continue_prev", "when": "persistentSymptoms=false" },
+    { "from": "stress_modsev", "to": "ica", "when": "persistentSymptoms=true" },
+    { "from": "ih_ccta", "to": "ccta_no_cad", "when": "cctaResult=no_cad" },
+    { "from": "ih_ccta", "to": "ccta_nonobs", "when": "cctaResult=nonobstructive_lt50" },
+    { "from": "ih_ccta", "to": "ccta_obs", "when": "cctaResult=obstructive_ge50" },
+    { "from": "ccta_obs", "to": "ica", "when": "highRiskCad=true" }
+  ]
+}
