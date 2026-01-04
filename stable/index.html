@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Stable Chest Pain + No Known CAD – ClinicalToolsDEV</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#050810" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <h1 class="app-title">
+            Stable Chest Pain + No Known CAD
+            <span class="info-chip" data-modal="modal-stable" title="What is stable chest pain?">i</span>
+            <span class="info-chip info-chip--warn" data-modal="modal-redflags" title="Red flags / exclusions">!</span>
+          </h1>
+          <p class="app-subtitle">
+            Choose risk category and testing strategy. Optional info prompts support non-cardiologists.
+          </p>
+        </div>
+        <div class="app-meta">
+          <span class="app-badge">ClinicalToolsDEV</span>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <!-- Inputs -->
+        <section class="card card-inputs">
+          <h2 class="card-title">Inputs</h2>
+
+          <form id="tool-form" class="form-grid">
+            <div class="form-field">
+              <label class="field-label" for="riskCat">
+                <span>Clinical risk category</span>
+                <span class="info-chip info-chip--inline" data-modal="modal-risk" title="Risk help / CAD Consortium link">i</span>
+              </label>
+              <select id="riskCat" class="field-input">
+                <option value="">Select…</option>
+                <option value="low">Low risk</option>
+                <option value="intermediate_high">Intermediate / High risk</option>
+              </select>
+              <p class="micro-note">
+                If uncertain, use the info icon to open the CAD Consortium (PTP) link. Intermediate and high share the same branch in this pathway.
+              </p>
+            </div>
+
+            <!-- Low risk branch -->
+            <div class="form-field" id="lowRiskChoiceWrap" style="display:none;">
+              <label class="field-label" for="lowRiskChoice"><span>Low risk: testing strategy</span></label>
+              <select id="lowRiskChoice" class="field-input">
+                <option value="">Select…</option>
+                <option value="no_testing">No testing recommended (COR 1)</option>
+                <option value="selected_cac_execg">CAC or exercise ECG in selected cases (COR 2a)</option>
+              </select>
+            </div>
+
+            <!-- Intermediate/High risk branch -->
+            <div class="form-field" id="indexTestWrap" style="display:none;">
+              <label class="field-label" for="indexTest"><span>Intermediate/High risk: index test</span></label>
+              <select id="indexTest" class="field-input">
+                <option value="">Select…</option>
+                <option value="ccta">CCTA (COR 1)</option>
+                <option value="stress">Stress testing (COR 1)</option>
+              </select>
+            </div>
+
+            <!-- Layer 3 (abbreviated) — CCTA -->
+            <div class="form-field" id="cctaLayer3Wrap" style="display:none;">
+              <label class="field-label">
+                <span>Layer 3: CCTA practical screen</span>
+                <span class="info-chip info-chip--inline" data-modal="modal-contra-table" title="Full contraindications table">i</span>
+              </label>
+
+              <div class="callout">
+                <strong>Common limitations / contraindications (abbrev)</strong>
+                <ul>
+                  <li>Iodinated contrast allergy</li>
+                  <li>Renal impairment (per local protocol)</li>
+                  <li>Unable to cooperate with scan/breath-hold</li>
+                  <li>Clinical instability (eg, severe hypotension/unstable arrhythmia)</li>
+                  <li>HR variability/arrhythmia impacting image quality</li>
+                </ul>
+                <p class="micro-note">Use your discretion — if any apply, toggle “Yes” below.</p>
+              </div>
+
+              <label class="toggle-row" for="cctaAnyLimit">
+                <span>Any major limitation/contraindication applies?</span>
+                <select id="cctaAnyLimit" class="field-input field-input--compact">
+                  <option value="">Select…</option>
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </label>
+
+              <div class="form-field" style="margin-top:0.35rem;">
+                <label class="field-label" for="cctaNotes"><span>Optional note (what applies)</span></label>
+                <input id="cctaNotes" class="field-input" placeholder="e.g., contrast allergy; irregular AF; unable to breath-hold" />
+              </div>
+            </div>
+
+            <!-- Layer 3 — Stress modality + abbreviated screen -->
+            <div class="form-field" id="stressModalityWrap" style="display:none;">
+              <label class="field-label" for="stressModality">
+                <span>Layer 3: stress modality</span>
+                <span class="info-chip info-chip--inline" data-modal="modal-contra-table" title="Full contraindications table">i</span>
+              </label>
+              <select id="stressModality" class="field-input">
+                <option value="">Select…</option>
+                <option value="exercise_ecg">Exercise ECG</option>
+                <option value="stress_echo">Stress echocardiography</option>
+                <option value="stress_nuclear">Stress nuclear (PET/SPECT)</option>
+                <option value="stress_cmr">Stress CMR</option>
+              </select>
+              <p class="micro-note">
+                Pick the modality you’re considering. The screen below helps decide if it’s limited and suggests alternatives (without blocking).
+              </p>
+            </div>
+
+            <div class="form-field" id="stressLayer3Wrap" style="display:none;">
+              <label class="field-label"><span>Layer 3: selected modality screen</span></label>
+
+              <div class="callout" id="stressAbbrevList">
+                <strong>Abbreviated considerations will appear after selecting a modality.</strong>
+                <p class="micro-note">Use the info icon for the full list image.</p>
+              </div>
+
+              <label class="toggle-row" for="stressAnyLimit">
+                <span>Any major limitation/contraindication applies?</span>
+                <select id="stressAnyLimit" class="field-input field-input--compact">
+                  <option value="">Select…</option>
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </label>
+
+              <div class="form-field" style="margin-top:0.35rem;">
+                <label class="field-label" for="stressNotes"><span>Optional note (what applies)</span></label>
+                <input id="stressNotes" class="field-input" placeholder="e.g., baseline LBBB; COPD/poor windows; caffeine; MRI incompatible device" />
+              </div>
+            </div>
+
+            <!-- Stress testing results -->
+            <div class="form-field" id="stressResultWrap" style="display:none;">
+              <label class="field-label" for="stressResult"><span>Stress testing result</span></label>
+              <select id="stressResult" class="field-input">
+                <option value="">Select…</option>
+                <option value="inconclusive">Inconclusive</option>
+                <option value="mild">Mild ischemia</option>
+                <option value="modsev">Moderate–severe ischemia</option>
+              </select>
+            </div>
+
+            <div class="form-field" id="persistentSymptomsWrap" style="display:none;">
+              <label class="field-label" for="persistentSymptoms"><span>Persistent symptoms?</span></label>
+              <select id="persistentSymptoms" class="field-input">
+                <option value="">Select…</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+
+            <!-- CCTA results -->
+            <div class="form-field" id="cctaResultWrap" style="display:none;">
+              <label class="field-label" for="cctaResult"><span>CCTA result</span></label>
+              <select id="cctaResult" class="field-input">
+                <option value="">Select…</option>
+                <option value="no_cad">No CAD (no stenosis or plaque)</option>
+                <option value="nonobstructive_lt50">Nonobstructive CAD (&lt;50% stenosis)</option>
+                <option value="obstructive_ge50">Obstructive CAD (≥50% stenosis)</option>
+              </select>
+            </div>
+
+            <div class="form-field" id="stenosis4090Wrap" style="display:none;">
+              <label class="field-label" for="stenosis4090"><span>If nonobstructive: 40–90% stenosis present?</span></label>
+              <select id="stenosis4090" class="field-input">
+                <option value="">Select…</option>
+                <option value="no">No / not applicable</option>
+                <option value="yes">Yes (40–90% stenosis)</option>
+              </select>
+            </div>
+
+            <div class="form-field" id="highRiskCadWrap" style="display:none;">
+              <label class="field-label" for="highRiskCad"><span>High-risk CAD or frequent angina?</span></label>
+              <select id="highRiskCad" class="field-input">
+                <option value="">Select…</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-primary btn-primary--full">Run pathway</button>
+            <button type="button" id="resetBtn" class="btn-secondary btn-secondary--full">Reset</button>
+          </form>
+        </section>
+
+        <!-- Results -->
+        <section class="card card-results">
+          <h2 class="card-title">Results</h2>
+          <div id="results-container" class="results-body">
+            <p class="results-placeholder">Fill in inputs and tap “Run pathway” to see results.</p>
+          </div>
+        </section>
+
+        <!-- Flags -->
+        <section class="card card-warnings">
+          <h2 class="card-title">Flags &amp; notes</h2>
+          <div id="flags-container" class="flags-body">
+            <p class="results-placeholder">Warnings and suggested alternatives appear here after you run the pathway.</p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <p class="disclaimer">
+          This tool is for educational and decision-support purposes only. It does not replace clinical judgment,
+          institutional guidelines, or specialist consultation.
+        </p>
+      </footer>
+    </div>
+
+    <!-- Modal system -->
+    <div class="modal-backdrop" id="modal-backdrop" aria-hidden="true"></div>
+
+    <div class="modal" id="modal-stable" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Stable chest pain (definition)</h3>
+          <button class="modal-close" data-close="true">×</button>
+        </div>
+        <div class="modal-body">
+          <p>
+            This module is intended for stable chest pain evaluation (non-acute presentation). If symptoms suggest ACS/unstable features,
+            use an acute chest pain pathway and local emergency protocols.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="modal-redflags" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Red flags / exclusions</h3>
+          <button class="modal-close" data-close="true">×</button>
+        </div>
+        <div class="modal-body">
+          <ul>
+            <li>Concern for ACS, hemodynamic instability, or high-risk ECG changes</li>
+            <li>Severe respiratory distress or severe hypotension</li>
+            <li>These prompts do not replace local institutional protocols</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="modal-risk" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Risk help (optional)</h3>
+          <button class="modal-close" data-close="true">×</button>
+        </div>
+        <div class="modal-body">
+          <p>
+            For stable chest pain, “clinical risk assessment” is commonly based on pre-test probability (PTP) models such as CAD Consortium.
+            Intermediate and high risk follow the same branch in this pathway.
+          </p>
+          <div class="callout">
+            <a class="link-btn" href="https://qxmd.com/calculate/calculator_287/pre-test-probability-of-cad-cad-consortium" target="_blank" rel="noopener noreferrer">
+              Open CAD Consortium Score (QxMD)
+            </a>
+            <p class="micro-note" style="margin-top:0.5rem;">
+              Acute chest pain ED scores (HEART/EDACS/TIMI) can overestimate risk in stable chest pain.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="modal-contra-table" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Full contraindications table (reference)</h3>
+          <button class="modal-close" data-close="true">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="micro-note">Make sure this file exists in your repo: <code>assets/contraindications_table.jpg</code></p>
+          <img src="assets/contraindications_table.jpg" alt="Contraindications by modality table" style="width:100%; border-radius:10px; border:1px solid rgba(255,255,255,0.08);" />
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./service-worker.js").catch(console.error);
+        });
+      }
+    </script>
+  </body>
+</html>
