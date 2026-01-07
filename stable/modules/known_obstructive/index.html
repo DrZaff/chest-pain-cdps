@@ -1,1 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Stable CP – Known Obstructive CAD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
 
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div>
+        <h1 class="app-title">
+          Known CAD: Obstructive (≥50%)
+          <span class="info-chip info-chip--inline" data-modal="modal-scope" title="Scope / definitions">i</span>
+          <span class="info-chip info-chip--warn" data-modal="modal-redflags" title="Red flags / exclusions">!</span>
+        </h1>
+        <p class="app-subtitle">
+          Stable chest pain pathway module. Clinician-selected branches with non-blocking guidance.
+        </p>
+      </div>
+      <div class="app-meta">
+        <a class="btn-secondary" href="/stable/known-cad.html">← Back</a>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <!-- Inputs -->
+      <section class="card card-inputs">
+        <h2 class="card-title">Inputs</h2>
+
+        <form id="tool-form" class="form-grid">
+          <!-- CABG gate per your requirement -->
+          <div class="form-field">
+            <label class="field-label" for="priorCabg">
+              <span>Prior CABG history?</span>
+            </label>
+            <select id="priorCabg" class="field-input">
+              <option value="">Select…</option>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+            <p class="micro-note">If “Yes,” route to the Prior CABG module.</p>
+          </div>
+
+          <!-- GDMT adequacy (per figure text: evaluate adequacy of GDMT; intensify GDMT and option to defer testing) -->
+          <div class="form-field" id="gdmtWrap">
+            <label class="field-label" for="gdmtOptimized">
+              <span>GDMT optimized / adequate?</span>
+            </label>
+            <select id="gdmtOptimized" class="field-input">
+              <option value="">Select…</option>
+              <option value="no">No / uncertain</option>
+              <option value="yes">Yes</option>
+            </select>
+            <p class="micro-note">This does not block results; used to emphasize intensification first (COR 1).</p>
+          </div>
+
+          <!-- High-risk CAD / frequent angina decision node -->
+          <div class="form-field" id="highRiskWrap">
+            <label class="field-label" for="highRiskCad">
+              <span>High-risk CAD or frequent angina?</span>
+            </label>
+            <select id="highRiskCad" class="field-input">
+              <option value="">Select…</option>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+
+          <!-- If NO high-risk: choose stress testing and modality -->
+          <div class="form-field" id="stressModalityWrap" style="display:none;">
+            <label class="field-label" for="stressModality">
+              <span>Layer 2/3: Stress testing modality</span>
+              <span class="info-chip info-chip--inline" data-modal="modal-feas" title="Full feasibility reference (optional)">i</span>
+            </label>
+            <select id="stressModality" class="field-input">
+              <option value="">Select…</option>
+              <option value="exercise_ecg">Exercise ECG (selected cases) – COR 2a</option>
+              <option value="stress_echo">Stress echocardiography – COR 1</option>
+              <option value="stress_nuclear">Stress PET/SPECT – COR 1</option>
+              <option value="stress_cmr">Stress CMR – COR 1</option>
+            </select>
+            <p class="micro-note">Modality choice depends on patient factors and local availability.</p>
+          </div>
+
+          <!-- Layer 3 feasibility screen for stress modality -->
+          <div class="form-field" id="stressFeasWrap" style="display:none;">
+            <label class="field-label"><span>Layer 3: abbreviated feasibility (3)</span></label>
+
+            <div class="callout" id="stressAbbrevList">
+              <strong>Select a modality to view abbreviated considerations.</strong>
+            </div>
+
+            <label class="toggle-row" for="stressAnyLimit">
+              <span>Any major limitation applies?</span>
+              <select id="stressAnyLimit" class="field-input field-input--compact">
+                <option value="">Select…</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </label>
+
+            <div class="form-field" style="margin-top:0.35rem;">
+              <label class="field-label" for="stressNotes"><span>Optional note</span></label>
+              <input id="stressNotes" class="field-input" placeholder="e.g., uninterpretable ECG; poor echo windows; MRI device; caffeine" />
+            </div>
+          </div>
+
+          <!-- Stress result if NO high-risk (per figure: moderate/severe vs mild vs none) -->
+          <div class="form-field" id="stressResultWrap" style="display:none;">
+            <label class="field-label" for="stressResult"><span>Stress test result</span></label>
+            <select id="stressResult" class="field-input">
+              <option value="">Select…</option>
+              <option value="none">No ischemia</option>
+              <option value="mild">Mild ischemia</option>
+              <option value="modsev">Moderate–severe ischemia</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-primary btn-primary--full">Run pathway</button>
+          <button type="button" id="resetBtn" class="btn-secondary btn-secondary--full">Reset</button>
+        </form>
+      </section>
+
+      <!-- Results -->
+      <section class="card card-results">
+        <h2 class="card-title">Results</h2>
+        <div id="results-container" class="results-body">
+          <p class="results-placeholder">Complete selections and tap “Run pathway.”</p>
+        </div>
+      </section>
+
+      <!-- Flags -->
+      <section class="card card-warnings">
+        <h2 class="card-title">Flags &amp; notes</h2>
+        <div id="flags-container" class="flags-body">
+          <p class="results-placeholder">Non-blocking warnings and alternatives appear here.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p class="disclaimer">
+        This tool is for educational and decision-support purposes only. It does not replace clinical judgment,
+        institutional guidelines, or specialist consultation.
+      </p>
+    </footer>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal-backdrop" id="modal-backdrop" aria-hidden="true"></div>
+
+  <div class="modal" id="modal-scope" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Scope</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>Stable chest pain with known obstructive CAD (≥50%).</li>
+          <li>Emphasizes GDMT optimization and appropriate downstream testing.</li>
+          <li>Outputs mirror guideline pathway boxes; local protocols apply.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-redflags" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Red flags / exclusions</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>Concern for ACS / unstable features</li>
+          <li>Hemodynamic instability or severe arrhythmia</li>
+          <li>Severe respiratory distress</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-feas" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Feasibility reference (optional)</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="micro-note">
+          Optional reference. This module uses abbreviated 3-bullet feasibility screens to reduce cognitive load.
+          You can add full table images later in <code>assets/</code> and display them here.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./script.js"></script>
+</body>
+</html>
