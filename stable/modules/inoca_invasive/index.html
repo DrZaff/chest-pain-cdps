@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Stable CP – Suspected INOCA (Chooser)</title>
+  <title>INOCA – Pathway Chooser</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="/stable/style.css" />
 </head>
 
 <body>
@@ -12,99 +12,67 @@
     <header class="app-header">
       <div>
         <h1 class="app-title">
-          Suspected INOCA (Stable)
+          INOCA Pathways
           <span class="info-chip info-chip--inline" data-modal="modal-scope" title="Scope">i</span>
           <span class="info-chip info-chip--warn" data-modal="modal-redflags" title="Red flags / exclusions">!</span>
         </h1>
         <p class="app-subtitle">
-          Choose an INOCA diagnostic pathway. Optional prompts only; does not block.
+          Choose an INOCA diagnostic strategy. Optional reading only; does not block.
         </p>
       </div>
       <div class="app-meta">
-        <a class="btn-secondary" href="/stable/">← Stable home</a>
+        <a class="btn-secondary" href="/stable/index.html">← Stable home</a>
       </div>
     </header>
 
     <main class="app-main">
-      <!-- Inputs -->
       <section class="card card-inputs">
-        <h2 class="card-title">Inputs</h2>
+        <h2 class="card-title">Start</h2>
 
-        <form id="tool-form" class="form-grid">
-          <!-- Layer 1: high-level context -->
+        <div class="form-grid">
           <div class="callout">
-            <strong>Start here</strong>
-            <p class="micro-note" style="margin-top:0.35rem;">
-              INOCA is considered when symptoms persist and obstructive CAD does not explain symptoms.
-              <span class="info-chip info-chip--inline" data-modal="modal-suspicion" title="When to suspect INOCA">i</span>
-            </p>
+            <strong>When to suspect INOCA (optional)</strong>
+            <ul>
+              <li>Persistent/recurrent angina with nonobstructive findings.</li>
+              <li>Symptoms disproportionate to anatomic disease burden.</li>
+              <li>Testing does not explain symptoms or is non-diagnostic.</li>
+            </ul>
           </div>
 
-          <!-- Layer 2: clinician selects pathway directly -->
-          <div class="form-field">
-            <label class="field-label" for="pathChoice">
-              <span>Choose diagnostic pathway</span>
-            </label>
-            <select id="pathChoice" class="field-input">
-              <option value="">Select…</option>
-              <option value="invasive">Invasive coronary function testing (COR 2a)</option>
-              <option value="pet_cmr">Stress PET or stress CMR with MBFR (COR 2a)</option>
-              <option value="echo_cfvr">Stress echo with CFVR (COR 2b)</option>
-            </select>
-            <p class="micro-note">
-              This selection is clinician-directed. Optional feasibility prompts appear below.
-            </p>
+          <!-- NEW: Noninvasive chooser -->
+          <a class="btn-primary btn-primary--full" href="/stable/modules/inoca_noninvasive/index.html">
+            Noninvasive INOCA testing
+          </a>
+
+          <!-- Direct links (kept for power users) -->
+          <a class="btn-secondary btn-secondary--full" href="/stable/modules/inoca_pet_cmr/index.html">
+            Stress PET / Stress CMR (MBFR) — COR 2a
+          </a>
+
+          <a class="btn-secondary btn-secondary--full" href="/stable/modules/inoca_echo_cfvr/index.html">
+            Stress echo (CFVR) — COR 2b
+          </a>
+
+          <a class="btn-secondary btn-secondary--full" href="/stable/modules/inoca_invasive_testing/index.html">
+            Invasive coronary function testing — COR 2a
+          </a>
+
+          <div class="callout" style="margin-top:0.75rem;">
+            <strong>Notes</strong>
+            <ul>
+              <li>These modules summarize pathway buckets; they do not calculate numeric thresholds.</li>
+              <li>Use local protocols and specialist input for testing selection and management.</li>
+            </ul>
           </div>
-
-          <!-- Layer 3: feasibility toggle (single binary to reduce checkbox overload) -->
-          <div class="form-field" id="layer3Wrap" style="display:none;">
-            <label class="field-label">
-              <span>Layer 3: feasibility screen (abbrev)</span>
-              <span class="info-chip info-chip--inline" data-modal="modal-feas" title="Full reference (optional)">i</span>
-            </label>
-
-            <div class="callout" id="feasAbbrev">
-              <strong>Abbreviated considerations (3)</strong>
-              <ul>
-                <li>Local availability/experience varies by modality</li>
-                <li>Patient factors may limit test feasibility</li>
-                <li>If limited, consider an alternative INOCA pathway</li>
-              </ul>
-            </div>
-
-            <label class="toggle-row" for="anyLimit">
-              <span>Any major limitation applies?</span>
-              <select id="anyLimit" class="field-input field-input--compact">
-                <option value="">Select…</option>
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
-            </label>
-
-            <div class="form-field" style="margin-top:0.35rem;">
-              <label class="field-label" for="limitNotes"><span>Optional note</span></label>
-              <input id="limitNotes" class="field-input" placeholder="e.g., no PET; MRI device; cath lab access; echo windows" />
-            </div>
-          </div>
-
-          <button type="submit" class="btn-primary btn-primary--full">Run pathway</button>
-          <button type="button" id="resetBtn" class="btn-secondary btn-secondary--full">Reset</button>
-        </form>
-      </section>
-
-      <!-- Results -->
-      <section class="card card-results">
-        <h2 class="card-title">Results</h2>
-        <div id="results-container" class="results-body">
-          <p class="results-placeholder">Choose a pathway and tap “Run pathway.”</p>
         </div>
       </section>
 
-      <!-- Flags -->
-      <section class="card card-warnings">
-        <h2 class="card-title">Flags &amp; notes</h2>
-        <div id="flags-container" class="flags-body">
-          <p class="results-placeholder">Non-blocking notes and alternatives appear here.</p>
+      <section class="card card-results">
+        <h2 class="card-title">Navigation</h2>
+        <div class="results-body">
+          <p class="results-placeholder">
+            Use “Noninvasive INOCA testing” for the guided path, or open a specific module directly.
+          </p>
         </div>
       </section>
     </main>
@@ -128,9 +96,9 @@
       </div>
       <div class="modal-body">
         <ul>
-          <li>Stable chest pain + suspected INOCA decision-support module.</li>
-          <li>Routes to invasive vs noninvasive diagnostic strategies.</li>
-          <li>Optional prompts only; local pathways apply.</li>
+          <li>Stable chest pain + suspected INOCA chooser.</li>
+          <li>Routes to noninvasive testing (PET/CMR MBFR, Echo CFVR) and invasive phenotyping.</li>
+          <li>Does not replace clinical judgment or institutional protocols.</li>
         </ul>
       </div>
     </div>
@@ -152,41 +120,39 @@
     </div>
   </div>
 
-  <div class="modal" id="modal-suspicion" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>When to suspect INOCA (optional)</h3>
-        <button class="modal-close" data-close="true">×</button>
-      </div>
-      <div class="modal-body">
-        <ul>
-          <li>Persistent/recurrent angina with nonobstructive findings.</li>
-          <li>Symptoms disproportionate to anatomic disease burden.</li>
-          <li>Testing does not explain symptoms or is non-diagnostic.</li>
-        </ul>
-        <p class="micro-note">
-          Diagnostic criteria tables (microvascular vs vasospastic angina) will be available as optional info in the downstream INOCA modules.
-        </p>
-      </div>
-    </div>
-  </div>
+  <script>
+    // Modal wiring (kept lightweight; no external dependencies)
+    document.addEventListener("DOMContentLoaded", () => {
+      const backdrop = document.getElementById("modal-backdrop");
+      const triggers = document.querySelectorAll("[data-modal]");
+      const closeBtns = document.querySelectorAll("[data-close='true']");
 
-  <div class="modal" id="modal-feas" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>Reference (optional)</h3>
-        <button class="modal-close" data-close="true">×</button>
-      </div>
-      <div class="modal-body">
-        <p class="micro-note">
-          Optional reference placeholder. If you later want to display full tables/images here, place them in:
-          <code>stable/modules/inoca_invasive/assets/</code>
-          and update this modal.
-        </p>
-      </div>
-    </div>
-  </div>
+      function openModal(id) {
+        const modal = document.getElementById(id);
+        if (!modal) return;
+        modal.classList.add("is-open");
+        backdrop.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+        backdrop.setAttribute("aria-hidden", "false");
+      }
 
-  <script type="module" src="./script.js"></script>
+      function closeAll() {
+        document.querySelectorAll(".modal.is-open").forEach((m) => {
+          m.classList.remove("is-open");
+          m.setAttribute("aria-hidden", "true");
+        });
+        backdrop.classList.remove("is-open");
+        backdrop.setAttribute("aria-hidden", "true");
+      }
+
+      triggers.forEach((t) => t.addEventListener("click", () => openModal(t.getAttribute("data-modal"))));
+      closeBtns.forEach((b) => b.addEventListener("click", closeAll));
+      backdrop && backdrop.addEventListener("click", closeAll);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeAll();
+      });
+    });
+  </script>
 </body>
 </html>
