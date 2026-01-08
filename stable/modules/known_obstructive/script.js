@@ -8,142 +8,125 @@ export function evaluateKnownObstructive(inputs) {
 
   const flags = [];
   const nextSteps = [];
-
   const pushFlag = (severity, code, message) => flags.push({ severity, code, message });
   const step = (label, detail, strength = null, level = "info", link = null) => ({ label, detail, strength, level, link });
 
   pushFlag("info", "SCOPE", "Stable chest pain + known obstructive CAD module. Decision-support only.");
 
-  // CABG gate (your requirement)
-  if (inputs.priorCabg === true) {
-    values.branchesTaken.push("priorCABG=yes");
-    nextSteps.push(step("Prior CABG pathway", "Prior CABG history selected → use the dedicated Prior CABG module.", null, "info", "/stable/modules/prior_cabg/index.html"));
+  // Validation
+  if (inputs.priorRevasc === null) pushFlag("warning", "REQ_PRIOR_REVASC", "Select whether prior revascularization (CABG/PCI ≥3.0 mm) is present.");
+  if (inputs.highRisk === null) pushFlag("warning", "REQ_HIGH_RISK", "Select whether high-risk CAD or frequent angina despite GDMT is present.");
+
+  // Layer 3 soft guidance (does not block)
+  if (inputs.anyLimit === true) {
+    pushFlag("warning", "FEAS_LIMIT", formatNote("Feasibility/contraindication considerations noted.", inputs.limitNotes));
+    nextSteps.push(
+      step(
+        "Suggested alternatives (non-blocking)",
+        "Consider a different stress modality based on feasibility and local availability; exercise ECG is for selected cases only.",
+        null,
+        "info"
+      )
+    );
+  }
+
+  // If missing required items, return early
+  if (inputs.priorRevasc === null || inputs.highRisk === null) {
     return finalize(values, flags, {
-      disposition: "Route to Prior CABG module",
-      summary: "Known obstructive CAD with prior CABG: open Prior CABG module for appropriate testing strategy.",
+      disposition: "Incomplete",
+      summary: "Missing required selections.",
       nextSteps,
     });
   }
 
-  if (inputs.priorCabg === null) {
-    pushFlag("warning", "REQ_CABG", "Select whether prior CABG history is present.");
-    return finalize(values, flags, { disposition: "Incomplete", summary: "Missing prior CABG selection.", nextSteps });
+  values.branchesTaken.push(`priorRevasc=${inputs.priorRevasc ? "yes" : "no"}`);
+  values.branchesTaken.push(`highRisk=${inputs.highRisk ? "yes" : "no"}`);
+
+  // Prior revascularization note (COR 2a) - non-blocking
+  if (inputs.priorRevasc === true) {
+    nextSteps.push(
+      step(
+        "CCTA for selected prior revascularization",
+        "CCTA is reasonable to evaluate bypass graft or stent patency (for stents ≥3 mm).",
+        "COR 2a",
+        "info"
+      )
+    );
   }
 
-  values.branchesTaken.push("priorCABG=no");
-
-  // GDMT emphasis (COR 1)
-  nextSteps.push(step("Evaluate adequacy of GDMT", "Assess symptom control and optimization of guideline-directed medical therapy.", "COR 1", "info"));
-  if (inputs.gdmtOptimized === false) {
-    values.branchesTaken.push("gdmtOptimized=no");
-    pushFlag("info", "GDMT_NOT_OPTIMIZED", "GDMT not optimized/uncertain → emphasize intensification and option to defer testing.");
-    nextSteps.push(step("Intensify GDMT ± defer testing", "Intensify preventive/antianginal therapies; deferring testing may be reasonable while optimizing.", "COR 1", "info"));
-  } else if (inputs.gdmtOptimized === true) {
-    values.branchesTaken.push("gdmtOptimized=yes");
-    nextSteps.push(step("GDMT optimized", "Proceed with downstream decision-making based on symptoms and risk features.", null, "info"));
-  } else {
-    // not selected
-    pushFlag("warning", "REQ_GDMT", "Select whether GDMT is optimized/adequate (or choose 'No/uncertain').");
-  }
-
-  // High-risk CAD / frequent angina node
-  if (inputs.highRiskCad === true) {
-    values.branchesTaken.push("highRiskCad=yes");
-    nextSteps.push(step("Invasive coronary angiography with FFR/iFR", "High-risk CAD or frequent angina → ICA with physiologic assessment.", "COR 1", "warning"));
-    nextSteps.push(step("CCTA for selected prior revascularization", "CCTA may be reasonable for selected prior revascularization evaluation.", "COR 2a", "info"));
+  // High-risk CAD / frequent angina → ICA (COR 1)
+  if (inputs.highRisk === true) {
+    nextSteps.unshift(step("Invasive coronary angiography with FFR/iFR", "High-risk CAD or frequent angina despite GDMT.", "COR 1", "warning"));
     return finalize(values, flags, {
-      disposition: "Refer for ICA with FFR/iFR",
-      summary: "Known obstructive CAD + high-risk features/frequent angina → ICA with FFR/iFR (COR 1).",
+      disposition: "Refer for invasive coronary angiography",
+      summary: "High-risk CAD/frequent angina despite GDMT → ICA with FFR/iFR (COR 1).",
       nextSteps,
     });
   }
 
-  if (inputs.highRiskCad === false) {
-    values.branchesTaken.push("highRiskCad=no");
+  // Not high risk → stress testing branch
+  nextSteps.unshift(
+    step(
+      "Stress testing",
+      "Stress imaging (PET/SPECT/CMR/echo) recommended; exercise ECG may be used in selected cases.",
+      "Stress imaging COR 1; Exercise ECG COR 2a",
+      "info"
+    )
+  );
 
-    // Layer 3 soft guidance: stress feasibility + alternatives
-    addStressFeasibilityGuidance(inputs, pushFlag, nextSteps);
-
-    // Stress testing pathway (COR 1 for imaging; exercise ECG COR 2a)
-    if (!inputs.stressResult) {
-      pushFlag("warning", "REQ_STRESS_RESULT", "Select the stress testing result to complete the branch.");
-      nextSteps.unshift(step("Stress testing", "Proceed with stress testing when not high-risk/frequent angina.", "COR 1 (imaging); Exercise ECG COR 2a", "info"));
-      return finalize(values, flags, {
-        disposition: "Stress testing",
-        summary: "Not high-risk/frequent angina → stress testing; awaiting result selection.",
-        nextSteps,
-      });
-    }
-
-    values.branchesTaken.push(`stressResult=${inputs.stressResult}`);
-
-    if (inputs.stressResult === "modsev") {
-      nextSteps.unshift(step("Stress testing", "Moderate–severe ischemia branch.", "COR 1 (imaging)", "warning"));
-      nextSteps.push(step("ICA with FFR/iFR consideration", "Moderate–severe ischemia supports escalation to invasive evaluation in symptomatic obstructive CAD.", "COR 1", "warning"));
-      nextSteps.push(step("GDMT according to SIHD guideline", "Continue/optimize GDMT alongside invasive evaluation considerations.", null, "info"));
-      return finalize(values, flags, {
-        disposition: "Moderate–severe ischemia",
-        summary: "Stress testing shows moderate–severe ischemia → consider invasive evaluation; continue GDMT per SIHD guidance.",
-        nextSteps,
-      });
-    }
-
-    if (inputs.stressResult === "mild") {
-      nextSteps.unshift(step("Stress testing", "Mild ischemia branch.", "COR 1 (imaging)", "info"));
-      nextSteps.push(step("GDMT according to SIHD guideline", "Mild ischemia → optimize GDMT; follow symptoms over time.", null, "info"));
-      return finalize(values, flags, {
-        disposition: "Mild ischemia",
-        summary: "Mild ischemia → GDMT per SIHD guideline; follow symptom burden.",
-        nextSteps,
-      });
-    }
-
-    // none
-    nextSteps.unshift(step("Stress testing", "No ischemia branch.", "COR 1 (imaging)", "info"));
-    nextSteps.push(step("GDMT according to SIHD guideline", "No ischemia → continue GDMT and reassess as needed.", null, "info"));
+  if (!inputs.stressResult) {
+    pushFlag("warning", "REQ_STRESS_RESULT", "Select the stress test result to continue.");
     return finalize(values, flags, {
-      disposition: "No ischemia",
-      summary: "No ischemia → continue GDMT per SIHD guideline.",
+      disposition: "Stress testing selected",
+      summary: "Awaiting stress test result selection.",
       nextSteps,
     });
   }
 
-  pushFlag("warning", "REQ_HIGH_RISK", "Select whether high-risk CAD or frequent angina is present.");
-  return finalize(values, flags, { disposition: "Incomplete", summary: "Missing high-risk/frequent angina selection.", nextSteps });
-}
+  values.branchesTaken.push(`stressResult=${inputs.stressResult}`);
+  if (inputs.stressModality) values.branchesTaken.push(`stressModality=${inputs.stressModality}`);
 
-function addStressFeasibilityGuidance(inputs, pushFlag, nextSteps) {
-  if (inputs.layer3?.stressAnyLimit === true && inputs.stressModality) {
-    pushFlag("warning", "STRESS_LIMITED", formatNote(`Selected stress modality may be limited (${prettyMod(inputs.stressModality)}).`, inputs.layer3?.stressNotes));
-    nextSteps.push({
-      label: "Suggested alternatives (non-blocking)",
-      detail: "Consider a different stress imaging modality when feasibility is limited; choose based on contraindications and local availability.",
-      strength: null,
-      level: "info",
+  if (inputs.stressResult === "modsev") {
+    nextSteps.push(step("Invasive coronary angiography with FFR/iFR", "Moderate/severe ischemia despite GDMT.", "COR 1", "warning"));
+    return finalize(values, flags, {
+      disposition: "Refer for invasive coronary angiography",
+      summary: "Moderate/severe ischemia → ICA to guide decision-making (COR 1).",
+      nextSteps,
     });
   }
-}
 
-function validate(inputs) {
-  const flags = [];
-  const warn = (code, message) => flags.push({ severity: "warning", code, message });
-
-  if (inputs.priorCabg === null) warn("REQ_CABG", "Prior CABG selection is required.");
-
-  // if no CABG, need high-risk selection
-  if (inputs.priorCabg === false) {
-    if (inputs.highRiskCad === null) warn("REQ_HIGH_RISK", "High-risk CAD/frequent angina selection is required.");
-    // GDMT is advisory but still should be selected
-    if (inputs.gdmtOptimized === null) warn("REQ_GDMT", "GDMT optimization selection is required (or choose 'No/uncertain').");
-
-    // if not high risk, stress result should be chosen to complete branch
-    if (inputs.highRiskCad === false) {
-      if (!inputs.stressModality) warn("REQ_STRESS_MODALITY", "Select a stress modality (even if for documentation only).");
-      if (!inputs.stressResult) warn("REQ_STRESS_RESULT", "Stress test result selection is required.");
-    }
+  if (inputs.stressResult === "mild") {
+    nextSteps.push(step("GDMT according to SIHD guideline", "Mild ischemia branch.", null, "info"));
+    return finalize(values, flags, {
+      disposition: "Continue/optimize GDMT per SIHD",
+      summary: "Mild ischemia → GDMT per SIHD guideline; follow-up guided by symptoms and shared decision-making.",
+      nextSteps,
+    });
   }
 
-  return { ok: flags.length === 0, flags };
+  if (inputs.stressResult === "none") {
+    nextSteps.push(step("GDMT according to SIHD guideline", "No ischemia branch.", null, "info"));
+    return finalize(values, flags, {
+      disposition: "Continue GDMT per SIHD",
+      summary: "No ischemia → GDMT per SIHD guideline; follow-up guided by symptoms and shared decision-making.",
+      nextSteps,
+    });
+  }
+
+  // Inconclusive: return guidance, non-blocking
+  nextSteps.push(
+    step(
+      "Inconclusive stress test",
+      "Consider repeat testing with an alternate modality or ICA depending on symptoms and risk, using local protocols.",
+      null,
+      "warning"
+    )
+  );
+  return finalize(values, flags, {
+    disposition: "Inconclusive stress test",
+    summary: "Inconclusive/non-diagnostic stress test → consider alternate testing strategy based on clinical context.",
+    nextSteps,
+  });
 }
 
 function finalize(values, flags, interpretation) {
@@ -163,15 +146,16 @@ function formatNote(prefix, note) {
 }
 
 function prettyMod(mod) {
-  return mod
-    .replace("exercise_ecg", "Exercise ECG")
+  return (mod || "")
+    .replace("stress_pet", "Stress PET")
+    .replace("stress_spect", "Stress SPECT")
+    .replace("stress_cmr", "Stress CMR")
     .replace("stress_echo", "Stress echocardiography")
-    .replace("stress_nuclear", "Stress nuclear (PET/SPECT)")
-    .replace("stress_cmr", "Stress CMR");
+    .replace("exercise_ecg", "Exercise ECG");
 }
 
 // ------------------------------
-// UI glue
+// UI glue (matches your established pattern)
 // ------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("tool-form");
@@ -179,82 +163,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultsContainer = document.getElementById("results-container");
   const flagsContainer = document.getElementById("flags-container");
 
-  const priorCabg = document.getElementById("priorCabg");
-  const highRiskCad = document.getElementById("highRiskCad");
-
-  const stressModalityWrap = document.getElementById("stressModalityWrap");
-  const stressModality = document.getElementById("stressModality");
-  const stressFeasWrap = document.getElementById("stressFeasWrap");
-  const stressAbbrevList = document.getElementById("stressAbbrevList");
-  const stressResultWrap = document.getElementById("stressResultWrap");
+  const highRisk = document.getElementById("highRisk");
+  const stressBlock = document.getElementById("stressBlock");
 
   function setDisplay(el, show) {
     if (!el) return;
     el.style.display = show ? "" : "none";
   }
 
-  function setStressAbbrev(mod) {
-    const content = {
-      exercise_ecg: `
-        <strong>Exercise ECG (abbrev)</strong>
-        <ul>
-          <li>Interpretable baseline ECG</li>
-          <li>Adequate exercise capacity</li>
-          <li>Consider arrhythmias/AS/HTN limitations</li>
-        </ul>`,
-      stress_echo: `
-        <strong>Stress echo (abbrev)</strong>
-        <ul>
-          <li>Image quality / acoustic windows</li>
-          <li>Dobutamine limitations when used</li>
-          <li>Arrhythmias may reduce feasibility</li>
-        </ul>`,
-      stress_nuclear: `
-        <strong>PET/SPECT (abbrev)</strong>
-        <ul>
-          <li>Caffeine/theophylline may interfere</li>
-          <li>Bronchospasm can limit vasodilators</li>
-          <li>Consider hypotension/instability</li>
-        </ul>`,
-      stress_cmr: `
-        <strong>Stress CMR (abbrev)</strong>
-        <ul>
-          <li>MRI-unsafe devices/claustrophobia</li>
-          <li>Low GFR constraints (local protocol)</li>
-          <li>Caffeine may interfere with vasodilator</li>
-        </ul>`,
-    };
-    stressAbbrevList.innerHTML = content[mod] || `<strong>Select a modality to view abbreviated considerations.</strong>`;
-  }
-
   function normalize() {
-    const cabg = priorCabg.value || "";
-    const cabgNo = cabg === "no";
-    const cabgYes = cabg === "yes";
-
-    // If CABG yes, we don't need stress fields
-    if (cabgYes) {
-      setDisplay(stressModalityWrap, false);
-      setDisplay(stressFeasWrap, false);
-      setDisplay(stressResultWrap, false);
-      return;
-    }
-
-    // Only show stress pathway when cabg=no AND highRisk=no
-    const hr = highRiskCad.value || "";
-    const showStress = cabgNo && hr === "no";
-
-    setDisplay(stressModalityWrap, showStress);
-    setDisplay(stressFeasWrap, showStress && !!(stressModality?.value));
-    setDisplay(stressResultWrap, showStress);
-
-    setStressAbbrev(stressModality?.value || "");
+    const hr = highRisk?.value || "";
+    // Show stress block only when highRisk is explicitly "no"
+    setDisplay(stressBlock, hr === "no");
   }
 
-  priorCabg.addEventListener("change", normalize);
-  highRiskCad.addEventListener("change", normalize);
-  stressModality?.addEventListener("change", normalize);
-
+  highRisk?.addEventListener("change", normalize);
   normalize();
   setupModals();
 
@@ -279,21 +202,18 @@ function readInputs() {
   const getText = (id) => (document.getElementById(id)?.value ?? "").trim();
 
   return {
-    priorCabg: yesNoToBool(get("priorCabg")),
-    gdmtOptimized: yesNoToBool(get("gdmtOptimized")),
-    highRiskCad: yesNoToBool(get("highRiskCad")),
+    priorRevasc: yesNoToBool(get("priorRevasc")),
+    highRisk: yesNoToBool(get("highRisk")),
 
     stressModality: get("stressModality") || null,
     stressResult: get("stressResult") || null,
 
-    layer3: {
-      stressAnyLimit: yesNoToBool(get("stressAnyLimit")),
-      stressNotes: getText("stressNotes"),
-    },
+    anyLimit: yesNoToBool(get("anyLimit")),
+    limitNotes: getText("limitNotes"),
   };
 }
 
-// Modals
+// Modal system
 function setupModals() {
   const backdrop = document.getElementById("modal-backdrop");
   const triggers = document.querySelectorAll("[data-modal]");
@@ -326,7 +246,7 @@ function setupModals() {
   });
 }
 
-// Rendering (supports step.link)
+// Rendering (supports optional step.link)
 function renderResults(container, result) {
   if (!container) return;
 
