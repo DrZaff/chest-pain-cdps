@@ -1,1 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Known CAD: Obstructive (≥50%)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
 
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div>
+        <h1 class="app-title">
+          Known CAD: Obstructive (≥50%)
+          <span class="info-chip info-chip--inline" data-modal="modal-scope" title="Scope">i</span>
+          <span class="info-chip info-chip--warn" data-modal="modal-redflags" title="Red flags / exclusions">!</span>
+          <span class="info-chip info-chip--inline" data-modal="modal-figure" title="Guideline figure (optional)">📈</span>
+          <span class="info-chip info-chip--inline" data-modal="modal-cor" title="COR table (optional)">📚</span>
+        </h1>
+        <p class="app-subtitle">
+          Stable chest pain pathway module. Clinician-selected branches with non-blocking guidance.
+        </p>
+      </div>
+      <div class="app-meta">
+        <a class="btn-secondary" href="/stable/known-cad.html">← Known CAD hub</a>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <section class="card card-inputs">
+        <h2 class="card-title">Inputs</h2>
+
+        <form id="tool-form" class="form-grid">
+          <div class="callout">
+            <strong>Start point</strong>
+            <ul>
+              <li>Stable chest pain + known obstructive CAD (≥50%).</li>
+              <li>Evaluate adequacy of GDMT; intensify and consider deferring testing when appropriate.</li>
+            </ul>
+          </div>
+
+          <!-- Prior revascularization / CABG gate -->
+          <div class="form-field">
+            <label class="field-label" for="priorRevasc">
+              <span>Prior revascularization?</span>
+              <span class="micro-note">CABG or PCI (for stents ≥3.0 mm) affects CCTA option (COR 2a).</span>
+            </label>
+            <select id="priorRevasc" class="field-input">
+              <option value="">Select…</option>
+              <option value="no">No</option>
+              <option value="yes">Yes (CABG or PCI / stents ≥3.0 mm)</option>
+            </select>
+          </div>
+
+          <!-- High-risk CAD / frequent angina -->
+          <div class="form-field">
+            <label class="field-label" for="highRisk">
+              <span>High-risk CAD or frequent angina despite GDMT?</span>
+              <span class="micro-note">If “Yes” → ICA with FFR/iFR (COR 1) without needing stress testing.</span>
+            </label>
+            <select id="highRisk" class="field-input">
+              <option value="">Select…</option>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+
+          <!-- Stress testing branch -->
+          <div id="stressBlock" class="form-field" style="display:none;">
+            <label class="field-label" for="stressModality">
+              <span>Stress testing modality (optional)</span>
+              <span class="micro-note">Used for practical considerations only; does not change branch logic.</span>
+            </label>
+            <select id="stressModality" class="field-input">
+              <option value="">Select…</option>
+              <option value="stress_pet">Stress PET</option>
+              <option value="stress_spect">Stress SPECT</option>
+              <option value="stress_cmr">Stress CMR</option>
+              <option value="stress_echo">Stress echocardiography</option>
+              <option value="exercise_ecg">Exercise ECG (selected cases)</option>
+            </select>
+
+            <div class="form-field" style="margin-top:0.8rem;">
+              <label class="field-label" for="stressResult">
+                <span>Stress test result</span>
+              </label>
+              <select id="stressResult" class="field-input">
+                <option value="">Select…</option>
+                <option value="modsev">Moderate / severe ischemia</option>
+                <option value="mild">Mild ischemia</option>
+                <option value="none">No ischemia</option>
+                <option value="inconclusive">Inconclusive / nondiagnostic</option>
+              </select>
+            </div>
+
+            <!-- Layer 3: single binary + 3 bullets -->
+            <div class="form-field" style="margin-top:0.8rem;">
+              <label class="field-label">
+                <span>Layer 3: feasibility screen</span>
+                <span class="info-chip info-chip--inline" data-modal="modal-feas" title="Full contraindications table (optional)">i</span>
+              </label>
+
+              <div class="callout">
+                <strong>Abbreviated stress testing limitations (3)</strong>
+                <ul>
+                  <li>Exercise ECG requires interpretable baseline ECG + adequate exercise capacity.</li>
+                  <li>Vasodilator stress (PET/SPECT/CMR) may be limited by caffeine use and bronchospasm risk.</li>
+                  <li>Modality selection depends on local availability, body habitus, rhythm, and imaging quality.</li>
+                </ul>
+              </div>
+
+              <label class="toggle-row" for="anyLimit">
+                <span>Any major limitation applies?</span>
+                <select id="anyLimit" class="field-input field-input--compact">
+                  <option value="">Select…</option>
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </label>
+
+              <div class="form-field" style="margin-top:0.35rem;">
+                <label class="field-label" for="limitNotes"><span>Optional note</span></label>
+                <input id="limitNotes" class="field-input" placeholder="e.g., COPD/bronchospasm; cannot exercise; poor windows; local protocol limits" />
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary btn-primary--full">Run pathway</button>
+          <button type="button" id="resetBtn" class="btn-secondary btn-secondary--full">Reset</button>
+        </form>
+      </section>
+
+      <section class="card card-results">
+        <h2 class="card-title">Results</h2>
+        <div id="results-container" class="results-body">
+          <p class="results-placeholder">Complete selections and tap “Run pathway.”</p>
+        </div>
+      </section>
+
+      <section class="card card-warnings">
+        <h2 class="card-title">Flags &amp; notes</h2>
+        <div id="flags-container" class="flags-body">
+          <p class="results-placeholder">Non-blocking warnings and alternatives appear here.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p class="disclaimer">
+        This tool is for educational and decision-support purposes only. It does not replace clinical judgment,
+        institutional guidelines, or specialist consultation.
+      </p>
+    </footer>
+  </div>
+
+  <!-- Modal system -->
+  <div class="modal-backdrop" id="modal-backdrop" aria-hidden="true"></div>
+
+  <div class="modal" id="modal-scope" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Scope</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>Stable chest pain + known obstructive CAD module.</li>
+          <li>Guides selection between ICA vs stress testing branch per pathway figure.</li>
+          <li>Does not provide treatment instructions; local SIHD guidance applies.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-redflags" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Red flags / exclusions</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>Concern for ACS / unstable features</li>
+          <li>Hemodynamic instability or severe arrhythmia</li>
+          <li>Severe respiratory distress</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Optional: embed images later as JPEGs in /assets/ -->
+  <div class="modal" id="modal-figure" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Guideline figure (optional)</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="micro-note">
+          Add the figure image here when ready: place a JPEG at
+          <code>stable/modules/known_obstructive/assets/figure_known_cad.jpg</code>.
+        </p>
+        <img class="criteria-img" src="./assets/figure_known_cad.jpg" alt="Stable chest pain + known CAD pathway figure" loading="lazy" />
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-cor" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>COR / LOE table (optional)</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="micro-note">
+          Add the COR table image here when ready: place a JPEG at
+          <code>stable/modules/known_obstructive/assets/cor_obstructive.jpg</code>.
+        </p>
+        <img class="criteria-img" src="./assets/cor_obstructive.jpg" alt="COR/LOE table for obstructive CAD stable chest pain" loading="lazy" />
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-feas" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Full feasibility / contraindications (optional)</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="micro-note">
+          Optional reference table. If you want, place a JPEG at:
+          <code>stable/modules/known_obstructive/assets/contraindications.jpg</code>
+        </p>
+        <img class="criteria-img" src="./assets/contraindications.jpg" alt="Contraindications table" loading="lazy" />
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./script.js"></script>
+</body>
+</html>
