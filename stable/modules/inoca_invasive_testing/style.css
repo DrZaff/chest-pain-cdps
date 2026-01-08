@@ -7,3 +7,12 @@
   border: 1px solid rgba(255,255,255,0.12);
   text-decoration: none;
 }
+
+.criteria-img{
+  width:100%;
+  height:auto;
+  display:block;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  margin-top: 0.55rem;
+}
