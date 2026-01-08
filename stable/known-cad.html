@@ -11,60 +11,64 @@
   <div class="app-shell">
     <header class="app-header">
       <div>
-        <h1 class="app-title">Known CAD</h1>
+        <h1 class="app-title">Stable Chest Pain: Known CAD</h1>
         <p class="app-subtitle">
-          Stepwise selector: nonobstructive vs obstructive, then prior CABG if obstructive.
+          Choose a known CAD pathway. Decision-support only; does not replace clinical judgment.
         </p>
       </div>
       <div class="app-meta">
-        <a class="btn-secondary" href="/stable/">← Back</a>
+        <a class="btn-secondary" href="/stable/index.html">← Stable home</a>
       </div>
     </header>
 
     <main class="app-main">
       <section class="card card-inputs">
-        <h2 class="card-title">Step 1</h2>
+        <h2 class="card-title">Known CAD pathways</h2>
 
         <div class="form-grid">
+          <!-- Nonobstructive CAD -->
           <a class="btn-primary btn-primary--full" href="/stable/modules/known_nonobstructive/index.html">
             Nonobstructive CAD (&lt;50%)
           </a>
 
-          <button class="btn-secondary btn-secondary--full" id="btnObstructive" type="button">
+          <!-- Obstructive CAD -->
+          <a class="btn-primary btn-primary--full" href="/stable/modules/known_obstructive/index.html">
             Obstructive CAD (≥50%)
-          </button>
+          </a>
 
-          <div id="cabgGate" class="callout" style="display:none; margin-top:0.75rem;">
-            <strong>Step 2 (Obstructive CAD)</strong>
-            <p class="micro-note" style="margin-top:0.35rem;">
-              Prior CABG changes the recommended testing pathway.
-            </p>
+          <div class="divider"></div>
 
-            <div class="form-grid" style="margin-top:0.6rem;">
-              <a class="btn-primary btn-primary--full" href="/stable/modules/prior_cabg/index.html">
-                Yes — Prior CABG
-              </a>
+          <!-- INOCA hub (chooser) -->
+          <a class="btn-secondary btn-secondary--full" href="/stable/modules/inoca_invasive/index.html">
+            INOCA (chooser)
+          </a>
 
-              <a class="btn-secondary btn-secondary--full" href="/stable/modules/known_obstructive/index.html">
-                No — No prior CABG
-              </a>
-            </div>
-          </div>
+          <!-- Noninvasive INOCA chooser -->
+          <a class="btn-secondary btn-secondary--full" href="/stable/modules/inoca_noninvasive/index.html">
+            Noninvasive INOCA testing
+          </a>
+
+          <!-- Invasive INOCA testing -->
+          <a class="btn-secondary btn-secondary--full" href="/stable/modules/inoca_invasive_testing/index.html">
+            Invasive coronary function testing (INOCA)
+          </a>
 
           <div class="callout" style="margin-top:0.75rem;">
-            <strong>Where INOCA fits</strong>
-            <p class="micro-note" style="margin-top:0.35rem;">
-              The INOCA pathway will branch from the known nonobstructive CAD module when persistent symptoms and nonobstructive findings suggest INOCA.
-            </p>
+            <strong>Notes</strong>
+            <ul>
+              <li>Known CAD includes prior MI, prior revascularization, obstructive or nonobstructive CAD.</li>
+              <li>Testing selection should reflect symptoms, feasibility, and local availability.</li>
+              <li>INOCA links are provided for persistent symptoms with nonobstructive findings.</li>
+            </ul>
           </div>
         </div>
       </section>
 
       <section class="card card-results">
-        <h2 class="card-title">Next</h2>
+        <h2 class="card-title">Tip</h2>
         <div class="results-body">
           <p class="results-placeholder">
-            Choose a branch to open the corresponding module. If a module isn’t built yet, you’ll see a placeholder until we add it.
+            If you are unsure whether the patient fits “obstructive” vs “nonobstructive,” use your best available prior imaging/angiography summary.
           </p>
         </div>
       </section>
@@ -77,16 +81,5 @@
       </p>
     </footer>
   </div>
-
-  <script>
-    const btn = document.getElementById("btnObstructive");
-    const gate = document.getElementById("cabgGate");
-    btn.addEventListener("click", () => {
-      gate.style.display = gate.style.display === "none" ? "" : "none";
-      btn.textContent = gate.style.display === "none"
-        ? "Obstructive CAD (≥50%)"
-        : "Obstructive CAD (≥50%) — choose CABG history below";
-    });
-  </script>
 </body>
 </html>
