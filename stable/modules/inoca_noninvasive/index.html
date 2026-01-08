@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>INOCA – Noninvasive Testing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div>
+        <h1 class="app-title">
+          INOCA: Noninvasive testing
+          <span class="info-chip info-chip--inline" data-modal="modal-scope" title="Scope">i</span>
+          <span class="info-chip info-chip--warn" data-modal="modal-redflags" title="Red flags / exclusions">!</span>
+        </h1>
+        <p class="app-subtitle">
+          Choose a noninvasive strategy. Optional prompts only; does not block.
+        </p>
+      </div>
+      <div class="app-meta">
+        <a class="btn-secondary" href="/stable/modules/inoca_invasive/index.html">← INOCA main chooser</a>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <section class="card card-inputs">
+        <h2 class="card-title">Start</h2>
+
+        <div class="form-grid">
+          <div class="callout">
+            <strong>When to suspect INOCA (optional)</strong>
+            <ul>
+              <li>Persistent/recurrent angina with nonobstructive findings.</li>
+              <li>Symptoms disproportionate to anatomic disease burden.</li>
+              <li>Testing does not explain symptoms or is non-diagnostic.</li>
+            </ul>
+          </div>
+
+          <a class="btn-primary btn-primary--full" href="/stable/modules/inoca_pet_cmr/index.html">
+            Stress PET / Stress CMR (MBFR) — COR 2a
+          </a>
+
+          <a class="btn-secondary btn-secondary--full" href="/stable/modules/inoca_echo_cfvr/index.html">
+            Stress echo (CFVR) — COR 2b
+          </a>
+
+          <div class="callout" style="margin-top:0.75rem;">
+            <strong>Notes</strong>
+            <ul>
+              <li>These modules summarize interpretation buckets; they do not assign MBFR/CFVR numeric thresholds.</li>
+              <li>If noninvasive testing is not feasible, consider invasive coronary function testing (COR 2a).</li>
+            </ul>
+
+            <div style="margin-top:0.6rem;">
+              <a class="link-btn" href="/stable/modules/inoca_invasive_testing/index.html">
+                Open invasive coronary function testing module
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card card-results">
+        <h2 class="card-title">Navigation</h2>
+        <div class="results-body">
+          <p class="results-placeholder">
+            Choose PET/CMR (MBFR) or Echo (CFVR) above to open the corresponding INOCA noninvasive module.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p class="disclaimer">
+        This tool is for educational and decision-support purposes only. It does not replace clinical judgment,
+        institutional guidelines, or specialist consultation.
+      </p>
+    </footer>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal-backdrop" id="modal-backdrop" aria-hidden="true"></div>
+
+  <div class="modal" id="modal-scope" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Scope</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>Stable chest pain + suspected INOCA.</li>
+          <li>Noninvasive evaluation options: PET/CMR (MBFR) and Echo (CFVR).</li>
+          <li>Outputs mirror pathway bucket logic; local thresholds/protocols apply.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-redflags" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Red flags / exclusions</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>Concern for ACS / unstable features</li>
+          <li>Hemodynamic instability or severe arrhythmia</li>
+          <li>Severe respiratory distress</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./script.js"></script>
+</body>
+</html>
