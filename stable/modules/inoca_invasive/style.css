@@ -1,0 +1,11 @@
+@import url("/stable/style.css");
+
+.micro-note code { opacity: 0.9; }
+
+.link-btn {
+  display: inline-block;
+  padding: 0.55rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  text-decoration: none;
+}
