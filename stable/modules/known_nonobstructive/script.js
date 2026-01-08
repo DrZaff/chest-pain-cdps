@@ -1,7 +1,7 @@
 export function evaluateKnownNonobstructive(inputs) {
   const values = {
     pathwayId: "stable-known-nonobstructive",
-    version: "v1.0",
+    version: "v1.0.1",
     inputSummary: { ...inputs },
     branchesTaken: [],
   };
@@ -28,6 +28,9 @@ export function evaluateKnownNonobstructive(inputs) {
     nextSteps.push(step("Optimize preventive therapies", "Assess adequacy of GDMT; intensify preventive strategies.", "COR 1", "info"));
     nextSteps.push(step("May defer further testing", "If symptoms are not persistent/frequent, deferring testing is reasonable per pathway.", "COR 1", "info"));
 
+    // Optional INOCA link (non-blocking) — if clinician toggled yes
+    addInocaLinkIfAppropriate(inputs, nextSteps);
+
     return finalize(values, flags, {
       disposition: "Preventive optimization; testing may be deferred",
       summary: "Known nonobstructive CAD with no persistent/frequent symptoms: optimize preventive therapies; may defer testing (COR 1).",
@@ -41,6 +44,9 @@ export function evaluateKnownNonobstructive(inputs) {
 
     if (!inputs.testStrategy) {
       pushFlag("warning", "MISSING_STRATEGY", "Select a testing strategy (CCTA±FFR-CT vs stress testing).");
+      // Optional INOCA link (non-blocking)
+      addInocaLinkIfAppropriate(inputs, nextSteps);
+
       return finalize(values, flags, {
         disposition: "Incomplete",
         summary: "Persistent symptoms: choose a testing strategy to continue.",
@@ -58,6 +64,9 @@ export function evaluateKnownNonobstructive(inputs) {
         if (inputs.ffrctLow === true) {
           values.branchesTaken.push("ffrct<=0.80=yes");
           nextSteps.push(step("Invasive coronary angiography", "FFR-CT ≤ 0.80 suggests hemodynamically significant disease.", "COR 1", "warning"));
+
+          // ✅ FIX: still show INOCA pathway link (non-blocking) when clinician suspects INOCA
+          addInocaLinkIfAppropriate(inputs, nextSteps);
 
           return finalize(values, flags, {
             disposition: "Refer for invasive coronary angiography",
@@ -79,6 +88,10 @@ export function evaluateKnownNonobstructive(inputs) {
         }
 
         pushFlag("warning", "MISSING_FFRCT", "If 40–90% stenosis is present, indicate whether FFR-CT ≤ 0.80.");
+
+        // Optional INOCA link (non-blocking)
+        addInocaLinkIfAppropriate(inputs, nextSteps);
+
         return finalize(values, flags, {
           disposition: "Incomplete",
           summary: "Awaiting FFR-CT selection.",
@@ -99,6 +112,10 @@ export function evaluateKnownNonobstructive(inputs) {
       }
 
       pushFlag("warning", "MISSING_STENOSIS", "Indicate whether 40–90% stenosis is present on CCTA.");
+
+      // Optional INOCA link (non-blocking)
+      addInocaLinkIfAppropriate(inputs, nextSteps);
+
       return finalize(values, flags, { disposition: "Incomplete", summary: "Awaiting stenosis selection.", nextSteps });
     }
 
@@ -108,6 +125,10 @@ export function evaluateKnownNonobstructive(inputs) {
 
       if (!inputs.stressResult) {
         pushFlag("warning", "MISSING_STRESS_RESULT", "Select the stress test result to continue.");
+
+        // Optional INOCA link (non-blocking)
+        addInocaLinkIfAppropriate(inputs, nextSteps);
+
         return finalize(values, flags, {
           disposition: "Incomplete",
           summary: "Awaiting stress test result selection.",
@@ -118,6 +139,9 @@ export function evaluateKnownNonobstructive(inputs) {
       if (inputs.stressResult === "modsev") {
         values.branchesTaken.push("stressResult=modsev");
         nextSteps.push(step("Invasive coronary angiography", "Moderate–severe ischemia suggests higher-risk disease.", "COR 1", "warning"));
+
+        // ✅ FIX: still show INOCA pathway link (non-blocking) when clinician suspects INOCA
+        addInocaLinkIfAppropriate(inputs, nextSteps);
 
         return finalize(values, flags, {
           disposition: "Refer for invasive coronary angiography",
@@ -140,11 +164,18 @@ export function evaluateKnownNonobstructive(inputs) {
   }
 
   pushFlag("warning", "MISSING_SYMPTOMS", "Select whether symptoms are persistent/frequent.");
+
+  // Optional INOCA link (non-blocking)
+  addInocaLinkIfAppropriate(inputs, nextSteps);
+
   return finalize(values, flags, { disposition: "Incomplete", summary: "Missing symptom status.", nextSteps });
 }
 
 function addInocaLinkIfAppropriate(inputs, nextSteps) {
-  // Option A: clinician-selected toggle (non-blocking)
+  // Current behavior:
+  // - If clinician selected "Suspected INOCA = Yes", show a stronger link
+  // - Otherwise show an "INOCA (optional)" link (still non-blocking)
+
   if (inputs.suspectInoca === true) {
     nextSteps.push({
       label: "Consider INOCA pathway",
@@ -154,7 +185,6 @@ function addInocaLinkIfAppropriate(inputs, nextSteps) {
       link: "/stable/modules/inoca_invasive/index.html",
     });
   } else {
-    // If not selected, still gently prompt if persistent symptoms
     nextSteps.push({
       label: "INOCA (optional)",
       detail: "If clinical suspicion is high and symptoms persist despite nonobstructive findings, consider INOCA evaluation.",
@@ -371,7 +401,7 @@ function readInputs() {
   };
 }
 
-// Modals (same pattern as your other module)
+// Modals
 function setupModals() {
   const backdrop = document.getElementById("modal-backdrop");
   const triggers = document.querySelectorAll("[data-modal]");
@@ -404,7 +434,7 @@ function setupModals() {
   });
 }
 
-// Rendering (adds support for optional step.link)
+// Rendering (supports optional step.link)
 function renderResults(container, result) {
   if (!container) return;
 
