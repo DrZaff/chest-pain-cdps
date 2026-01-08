@@ -1,1 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>INOCA – PET/CMR (MBFR)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
 
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div>
+        <h1 class="app-title">
+          INOCA: Stress PET / Stress CMR (MBFR)
+          <span class="info-chip info-chip--inline" data-modal="modal-scope" title="Scope">i</span>
+          <span class="info-chip info-chip--warn" data-modal="modal-redflags" title="Red flags / exclusions">!</span>
+        </h1>
+        <p class="app-subtitle">Noninvasive INOCA evaluation with MBFR. Optional prompts only; does not block.</p>
+      </div>
+      <div class="app-meta">
+        <a class="btn-secondary" href="/stable/modules/inoca_invasive/index.html">← INOCA chooser</a>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <section class="card card-inputs">
+        <h2 class="card-title">Inputs</h2>
+
+        <form id="tool-form" class="form-grid">
+          <div class="callout">
+            <strong>When to use (optional)</strong>
+            <p class="micro-note" style="margin-top:0.35rem;">
+              Consider when symptoms persist and obstructive CAD does not explain symptoms.
+              <span class="info-chip info-chip--inline" data-modal="modal-suspicion" title="When to suspect INOCA">i</span>
+            </p>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label" for="modality">
+              <span>Choose modality</span>
+            </label>
+            <select id="modality" class="field-input">
+              <option value="">Select…</option>
+              <option value="pet">Stress PET with MBFR (COR 2a)</option>
+              <option value="cmr">Stress CMR with MBFR (COR 2a)</option>
+            </select>
+          </div>
+
+          <div class="form-field" id="layer3Wrap" style="display:none;">
+            <label class="field-label">
+              <span>Layer 3: feasibility screen (abbrev)</span>
+              <span class="info-chip info-chip--inline" data-modal="modal-feas" title="Reference (optional)">i</span>
+            </label>
+
+            <div class="callout" id="abbrevBox">
+              <strong>Abbreviated considerations (3)</strong>
+              <ul>
+                <li>Requires MBFR-capable workflow</li>
+                <li>Caffeine may interfere with vasodilator stress</li>
+                <li>CMR may be limited by devices/claustrophobia</li>
+              </ul>
+            </div>
+
+            <label class="toggle-row" for="anyLimit">
+              <span>Any major limitation applies?</span>
+              <select id="anyLimit" class="field-input field-input--compact">
+                <option value="">Select…</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </label>
+
+            <div class="form-field" style="margin-top:0.35rem;">
+              <label class="field-label" for="limitNotes"><span>Optional note</span></label>
+              <input id="limitNotes" class="field-input" placeholder="e.g., no PET; MRI device; caffeine; claustrophobia; access" />
+            </div>
+          </div>
+
+          <div class="form-field" id="resultWrap" style="display:none;">
+            <label class="field-label" for="resultBucket"><span>Result category</span></label>
+            <select id="resultBucket" class="field-input">
+              <option value="">Select…</option>
+              <option value="no_ischemia_normal_mbfr">No ischemia + normal MBFR</option>
+              <option value="ischemia_normal_mbfr">Ischemia + normal MBFR</option>
+              <option value="ischemia_reduced_mbfr">Ischemia + reduced MBFR</option>
+              <option value="no_ischemia_reduced_mbfr">No ischemia + reduced MBFR</option>
+            </select>
+            <p class="micro-note">Buckets mirror the INOCA figure. This tool summarizes interpretation; it does not assign thresholds.</p>
+          </div>
+
+          <button type="submit" class="btn-primary btn-primary--full">Run pathway</button>
+          <button type="button" id="resetBtn" class="btn-secondary btn-secondary--full">Reset</button>
+        </form>
+      </section>
+
+      <section class="card card-results">
+        <h2 class="card-title">Results</h2>
+        <div id="results-container" class="results-body">
+          <p class="results-placeholder">Select modality and result bucket, then tap “Run pathway.”</p>
+        </div>
+      </section>
+
+      <section class="card card-warnings">
+        <h2 class="card-title">Flags &amp; notes</h2>
+        <div id="flags-container" class="flags-body">
+          <p class="results-placeholder">Non-blocking notes and alternatives appear here.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p class="disclaimer">
+        This tool is for educational and decision-support purposes only. It does not replace clinical judgment,
+        institutional guidelines, or specialist consultation.
+      </p>
+    </footer>
+  </div>
+
+  <div class="modal-backdrop" id="modal-backdrop" aria-hidden="true"></div>
+
+  <div class="modal" id="modal-scope" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Scope</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>Stable chest pain + suspected INOCA module.</li>
+          <li>Noninvasive PET/CMR pathway using MBFR.</li>
+          <li>Outputs mirror figure buckets; thresholds are site-specific.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-redflags" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Red flags / exclusions</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>Concern for ACS / unstable features</li>
+          <li>Hemodynamic instability or severe arrhythmia</li>
+          <li>Severe respiratory distress</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-suspicion" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>When to suspect INOCA (optional)</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>Persistent/recurrent angina with nonobstructive findings.</li>
+          <li>Symptoms disproportionate to anatomic disease burden.</li>
+          <li>Testing does not explain symptoms or is non-diagnostic.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-feas" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Reference (optional)</h3>
+        <button class="modal-close" data-close="true">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="micro-note">
+          Optional reference placeholder (tables/images). If you later want, store images in:
+          <code>stable/modules/inoca_pet_cmr/assets/</code>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./script.js"></script>
+</body>
+</html>
