@@ -40,29 +40,25 @@
             <div class="home-card">
               <h3 class="home-card-title">Choose presentation</h3>
               <p class="muted">
-                Select which pathway to use. Definitions below are included to guide selection.
+                Select which pathway to use. Definitions are included inside each button.
               </p>
 
-              <div class="definition-box">
-                <div class="definition-item">
-                  <div class="definition-title">Acute chest pain</div>
-                  <div class="definition-body">
-                    New-onset or worsening chest pain symptoms requiring urgent evaluation (typically
-                    minutes to hours; often ED/urgent setting).
-                  </div>
-                </div>
-                <div class="definition-item">
-                  <div class="definition-title">Stable chest pain</div>
-                  <div class="definition-body">
+              <div class="btn-stack">
+                <button id="btn-start-acute" class="choice-btn">
+                  <div>Acute chest pain</div>
+                  <span class="choice-sub">
+                    New-onset or worsening chest pain symptoms requiring urgent evaluation
+                    (typically minutes to hours; often ED/urgent setting).
+                  </span>
+                </button>
+
+                <button id="btn-start-stable" class="choice-btn">
+                  <div>Stable chest pain</div>
+                  <span class="choice-sub">
                     Chronic or recurrent chest pain symptoms without features requiring emergent
                     evaluation (often outpatient setting; not rapidly changing).
-                  </div>
-                </div>
-              </div>
-
-              <div class="btn-stack">
-                <button id="btn-start-acute" class="choice-btn">Acute chest pain</button>
-                <button id="btn-start-stable" class="choice-btn">Stable chest pain</button>
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -74,10 +70,14 @@
                 <button id="btn-evidence" class="choice-btn">
                   ACC/AHA Recommendations / Evidence Summary
                 </button>
+
                 <button id="btn-contra" class="choice-btn">
                   Contraindications to cardiac testing modalities
                 </button>
-                <button id="btnExploreModalities" class="choice-btn">Explore testing modalities</button>
+
+                <button id="btnExploreModalities" class="choice-btn">
+                  Explore testing modalities
+                </button>
               </div>
             </div>
           </div>
@@ -133,7 +133,7 @@
           </div>
         </section>
 
-        <!-- EVIDENCE VIEW -->
+        <!-- RECOMMENDATIONS VIEW -->
         <section id="view-evidence" class="card view hidden">
           <div class="runner-header">
             <div>
@@ -146,7 +146,12 @@
           </div>
 
           <div class="search-row">
-            <input id="evidence-search" class="field-input" type="text" placeholder="Search (e.g., Class 2a, LOE, harm)..." />
+            <input
+              id="evidence-search"
+              class="field-input"
+              type="text"
+              placeholder="Search (e.g., troponin, COR 1, CCTA, ICA, harm)..."
+            />
           </div>
 
           <div id="evidence-content" class="accordion"></div>
@@ -158,7 +163,7 @@
           </div>
         </section>
 
-        <!-- CONTRA VIEW -->
+        <!-- CONTRAINDICATIONS VIEW -->
         <section id="view-contra" class="card view hidden">
           <div class="runner-header">
             <div>
@@ -182,11 +187,20 @@
     </div>
 
     <!-- MODAL: Modality detail -->
-    <div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
+    <div
+      id="modalOverlay"
+      class="modal-overlay hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+      aria-describedby="modalBody"
+    >
       <div class="modal-panel">
         <div class="modal-header">
           <h3 id="modalTitle" class="modal-title">Testing modality</h3>
-          <button id="modalClose" class="btn-ghost btn-ghost--small" aria-label="Close">Close</button>
+          <button id="modalClose" class="btn-ghost btn-ghost--small" aria-label="Close">
+            Close
+          </button>
         </div>
         <div id="modalBody" class="modal-body"></div>
       </div>
