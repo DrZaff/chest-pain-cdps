@@ -1,7 +1,12 @@
 /* ClinicalToolsDEV: Chest Pain Pathways (Guideline-based, decision-tree UX)
  * NOTE: Stable pathway content has been intentionally removed to allow partner ownership.
  * - Acute pathway remains fully implemented.
- * - Stable pathway button launches a stub that can open an external/internal stable module.
+ * - Stable pathway button now immediately opens the stable module.
+ *
+ * UPDATE (Page IDs):
+ * - Every pathway screen/node is assigned a deterministic unique Page ID (e.g., A-012).
+ * - Page IDs are stable across runs as long as PATHWAYS object insertion order is stable.
+ * - Displayed in breadcrumb and header so you can reference them when requesting edits.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -11,8 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /**
    * Stable module entrypoint.
-   * Option A (recommended for shared repo): partner adds files at /stable/index.html
-   * Option B (GitHub Pages): set to "https://<username>.github.io/<repo>/" or specific stable entry URL
+   * Partner files expected at /stable/index.html
    */
   const STABLE_MODULE_URL = "./stable/index.html";
 
@@ -24,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Home buttons
   document.getElementById("btn-start-acute").addEventListener("click", () => startPathway("acute"));
   document.getElementById("btn-start-stable").addEventListener("click", () => {
-    window.location.href = "./stable/index.html";
+    window.location.href = STABLE_MODULE_URL;
   });
   document.getElementById("btn-modalities").addEventListener("click", () => showModalities());
 
@@ -52,250 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
     history: [], // stack of previous nodeIds
   };
 
-  // ---------- Public Actions ----------
-
-  function startPathway(kind) {
-    state = {
-      active: true,
-      pathway: kind,
-      nodeId: kind === "acute" ? "A0" : "STABLE_LAUNCH",
-      history: [],
-    };
-    showRunner();
-    renderRunner();
-  }
-
-  function showModalities() {
-    viewHome.classList.add("hidden");
-    viewRunner.classList.add("hidden");
-    viewModalities.classList.remove("hidden");
-    renderModalitiesGrid();
-  }
-
-  function goHome() {
-    state = { active: false, pathway: null, nodeId: null, history: [] };
-    viewHome.classList.remove("hidden");
-    viewRunner.classList.add("hidden");
-    viewModalities.classList.add("hidden");
-    closeModal();
-  }
-
-  function showRunner() {
-    viewHome.classList.add("hidden");
-    viewModalities.classList.add("hidden");
-    viewRunner.classList.remove("hidden");
-  }
-
-  function resetRunner() {
-    if (!state.active) return;
-    state.history = [];
-    state.nodeId = state.pathway === "acute" ? "A0" : "STABLE_LAUNCH";
-    renderRunner();
-  }
-
-  function stepBack() {
-    if (!state.active) return;
-    const prev = state.history.pop();
-    if (!prev) return; // already at start
-    state.nodeId = prev;
-    renderRunner();
-  }
-
-  function choose(nextId) {
-    state.history.push(state.nodeId);
-    state.nodeId = nextId;
-    renderRunner();
-  }
-
-  function openUrl(url) {
-    // Allows stable module to be maintained separately
-    window.location.href = url;
-  }
-
-  // ---------- Rendering ----------
-
-  function renderRunner() {
-    const node = getNode(state.nodeId);
-    const titleEl = document.getElementById("runner-title");
-    const crumbEl = document.getElementById("runner-breadcrumb");
-    const bodyEl = document.getElementById("runner-body");
-
-    titleEl.textContent = state.pathway === "acute" ? "Acute chest pain pathway" : "Stable chest pain pathway";
-    crumbEl.textContent = buildBreadcrumb(state);
-
-    // Back disabled at start
-    const backBtn = document.getElementById("btn-back");
-    backBtn.disabled = state.history.length === 0;
-    backBtn.style.opacity = backBtn.disabled ? 0.55 : 1;
-
-    bodyEl.innerHTML = "";
-
-    const header = document.createElement("div");
-    header.innerHTML = `
-      <h3 style="margin:0 0 .35rem; font-size:1.05rem;">${escapeHtml(node.title)}</h3>
-      ${node.body ? `<p class="muted" style="margin:.25rem 0 0;">${escapeHtml(node.body)}</p>` : ``}
-    `;
-    bodyEl.appendChild(header);
-
-    // Flags / notes
-    if (node.flags && node.flags.length) {
-      const flagsWrap = document.createElement("div");
-      flagsWrap.style.marginTop = ".5rem";
-      flagsWrap.innerHTML = node.flags.map((f) => pillHtml(f.level, f.text)).join("");
-      bodyEl.appendChild(flagsWrap);
-    }
-
-    // Terminal: show actions + modality chips
-    if (node.type === "terminal") {
-      const terminal = document.createElement("div");
-      terminal.style.marginTop = ".85rem";
-      terminal.innerHTML = `
-        ${
-          node.disposition
-            ? `<div class="callout"><h3 class="callout-title">Terminal state</h3><p class="muted">${escapeHtml(
-                node.disposition
-              )}</p></div>`
-            : ``
-        }
-        ${
-          node.recommendedTests?.length
-            ? `<h3 class="section-title">Testing links</h3><p class="muted small">Tap a test to open its “nuances” sheet.</p>`
-            : ``
-        }
-        <div class="chip-grid" id="terminal-chips"></div>
-      `;
-      bodyEl.appendChild(terminal);
-
-      const chipGrid = document.getElementById("terminal-chips");
-      (node.recommendedTests || []).forEach((key) => {
-        const btn = document.createElement("button");
-        btn.className = "chip";
-        btn.textContent = MODALITIES[key]?.name || key;
-        btn.addEventListener("click", () => openModality(key));
-        chipGrid.appendChild(btn);
-      });
-
-      return;
-    }
-
-    // Step: show Continue
-    if (node.type === "step") {
-      const cta = document.createElement("div");
-      cta.className = "btn-row";
-      const btn = document.createElement("button");
-      btn.className = "btn-primary";
-      btn.textContent = node.continueLabel || "Continue";
-      btn.addEventListener("click", () => {
-        if (node.action?.type === "OPEN_URL") {
-          openUrl(node.action.url);
-          return;
-        }
-        choose(node.next);
-      });
-      cta.appendChild(btn);
-      bodyEl.appendChild(cta);
-      return;
-    }
-
-    // Decision: show choices (2–5)
-    if (node.type === "decision") {
-      const grid = document.createElement("div");
-      grid.className = "choice-grid";
-      node.options.forEach((opt) => {
-        const b = document.createElement("button");
-        b.className = "choice-btn";
-        b.innerHTML = `
-          <p class="choice-title">${escapeHtml(opt.label)}</p>
-          ${opt.sub ? `<p class="choice-sub">${escapeHtml(opt.sub)}</p>` : ``}
-        `;
-        b.addEventListener("click", () => {
-          if (opt.action?.type === "OPEN_URL") {
-            openUrl(opt.action.url);
-            return;
-          }
-          choose(opt.next);
-        });
-        grid.appendChild(b);
-      });
-      bodyEl.appendChild(grid);
-      return;
-    }
-
-    // Fallback
-    bodyEl.appendChild(document.createTextNode("Unknown node type."));
-  }
-
-  function renderModalitiesGrid() {
-    const grid = document.getElementById("modalities-grid");
-    grid.innerHTML = "";
-    Object.keys(MODALITIES).forEach((key) => {
-      const btn = document.createElement("button");
-      btn.className = "chip";
-      btn.textContent = MODALITIES[key].name;
-      btn.addEventListener("click", () => openModality(key));
-      grid.appendChild(btn);
-    });
-  }
-
-  // ---------- Modalities Modal ----------
-
-  function openModality(key) {
-    const m = MODALITIES[key];
-    if (!m) return;
-
-    document.getElementById("modal-title").textContent = m.name;
-
-    const body = document.getElementById("modal-body");
-    body.innerHTML = `
-      ${m.summary ? `<p>${escapeHtml(m.summary)}</p>` : ``}
-      ${
-        m.bullets?.length
-          ? `<ul>${m.bullets.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>`
-          : ``
-      }
-      ${
-        m.notes?.length
-          ? `<div class="callout"><h3 class="callout-title">Notes</h3><ul>${m.notes
-              .map((x) => `<li>${escapeHtml(x)}</li>`)
-              .join("")}</ul></div>`
-          : ``
-      }
-    `;
-
-    modalOverlay.classList.remove("hidden");
-  }
-
-  function closeModal() {
-    modalOverlay.classList.add("hidden");
-  }
-
-  // ---------- Pure Logic ----------
-
-  function getNode(id) {
-    const node = PATHWAYS[id];
-    if (!node) {
-      return { id, type: "terminal", title: "Missing node", disposition: `Node '${id}' not found.` };
-    }
-    return node;
-  }
-
-  function buildBreadcrumb(s) {
-    const parts = [];
-    parts.push(s.pathway === "acute" ? "Acute" : "Stable");
-    parts.push(`Step ${s.history.length + 1}`);
-    return parts.join(" • ");
-  }
-
-  function pillHtml(level, text) {
-    const cls =
-      level === "danger" ? "flag-pill--danger" : level === "warning" ? "flag-pill--warning" : "flag-pill--ok";
-    return `<span class="flag-pill ${cls}">${escapeHtml(text)}</span>`;
-  }
-
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, (s) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[s]));
-  }
-
   // ======================================
   // CONTENT (Pathways)
   // - Acute implemented
@@ -304,6 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const PATHWAYS = {
     // ---------------- STABLE LAUNCH STUB ----------------
+    // (Kept for backwards compatibility; stable button now goes straight to STABLE_MODULE_URL)
     STABLE_LAUNCH: {
       id: "STABLE_LAUNCH",
       type: "decision",
@@ -351,7 +112,14 @@ document.addEventListener("DOMContentLoaded", () => {
         { label: "Possible ACS", next: "A2" },
       ],
     },
-    A2: { id: "A2", type: "step", title: "Possible ACS", body: "Obtain troponin.", continueLabel: "Troponin obtained → continue", next: "A3" },
+    A2: {
+      id: "A2",
+      type: "step",
+      title: "Possible ACS",
+      body: "Obtain troponin.",
+      continueLabel: "Troponin obtained → continue",
+      next: "A3",
+    },
     A3: {
       id: "A3",
       type: "step",
@@ -508,7 +276,6 @@ document.addEventListener("DOMContentLoaded", () => {
       body: "Select CCTA interpretation.",
       options: [
         { label: "Nonobstructive CAD (<50% stenosis)", next: "A_TERM_DISCHARGE" },
-        // Updated: allow “Decision to treat medically” alongside FFR-CT / stress
         { label: "Inconclusive stenosis", next: "A_INO_FFRCT_OR_STRESS_1" },
         { label: "Obstructive CAD (≥50% stenosis)", next: "A_INO_OBS_BRANCH" },
       ],
@@ -520,13 +287,11 @@ document.addEventListener("DOMContentLoaded", () => {
       body: "Select CCTA interpretation.",
       options: [
         { label: "Nonobstructive CAD (<50% stenosis)", next: "A_TERM_DISCHARGE" },
-        // Updated: allow “Decision to treat medically” alongside FFR-CT / stress
         { label: "Inconclusive stenosis", next: "A_INO_FFRCT_OR_STRESS_2" },
         { label: "Obstructive CAD (≥50% stenosis)", next: "A_INO_OBS_BRANCH" },
       ],
     },
 
-    // UPDATED: Inconclusive CCTA now offers FFR-CT, Stress testing, OR Decision to treat medically
     A_INO_FFRCT_OR_STRESS_1: {
       id: "A_INO_FFRCT_OR_STRESS_1",
       type: "decision",
@@ -573,7 +338,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ],
     },
 
-    // NEW: explicit “Decision to treat medically” step (requested wording)
     A_INO_DECISION_TREAT_MED: {
       id: "A_INO_DECISION_TREAT_MED",
       type: "step",
@@ -583,8 +347,6 @@ document.addEventListener("DOMContentLoaded", () => {
       next: "A_INO_GDMT_DISCHARGE",
     },
 
-    // UPDATED: Obstructive CAD >=50% without high-risk/frequent angina now offers:
-    // FFR-CT, Stress testing, OR Decision to treat medically (no direct ICA option here)
     A_INO_OBS_BRANCH: {
       id: "A_INO_OBS_BRANCH",
       type: "decision",
@@ -608,7 +370,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ],
     },
 
-    // Kept (safe to keep even if not used by main path)
     A_INO_TREAT_MED_DECISION: {
       id: "A_INO_TREAT_MED_DECISION",
       type: "decision",
@@ -735,6 +496,306 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
+  // ======================================================
+  // Page ID Indexing (unique, deterministic, human-friendly)
+  // ======================================================
+
+  /**
+   * Creates a stable Page ID per node.
+   * - Acute nodes: A-001, A-002, ...
+   * - Stable stub nodes (if ever used): S-001, ...
+   *
+   * Uses PATHWAYS insertion order to assign numeric indexes.
+   * If you add new nodes, they’ll get new IDs at the end (unless inserted earlier).
+   */
+  const PAGE_IDS = buildPageIdIndex(PATHWAYS);
+
+  function buildPageIdIndex(pathwaysObj) {
+    const ids = {};
+    let acuteN = 0;
+    let stableN = 0;
+    const keys = Object.keys(pathwaysObj); // preserves insertion order
+
+    keys.forEach((nodeId) => {
+      const isAcute = nodeId.startsWith("A");
+      const isStable = nodeId.startsWith("STABLE");
+
+      if (isAcute) {
+        acuteN += 1;
+        ids[nodeId] = `A-${String(acuteN).padStart(3, "0")}`;
+        return;
+      }
+      if (isStable) {
+        stableN += 1;
+        ids[nodeId] = `S-${String(stableN).padStart(3, "0")}`;
+        return;
+      }
+      // fallback bucket
+      ids[nodeId] = `X-${nodeId}`;
+    });
+
+    return ids;
+  }
+
+  function getPageId(nodeId) {
+    return PAGE_IDS[nodeId] || `X-${nodeId}`;
+  }
+
+  // ---------- Public Actions ----------
+
+  function startPathway(kind) {
+    state = {
+      active: true,
+      pathway: kind,
+      nodeId: kind === "acute" ? "A0" : "STABLE_LAUNCH",
+      history: [],
+    };
+    showRunner();
+    renderRunner();
+  }
+
+  function showModalities() {
+    viewHome.classList.add("hidden");
+    viewRunner.classList.add("hidden");
+    viewModalities.classList.remove("hidden");
+    renderModalitiesGrid();
+  }
+
+  function goHome() {
+    state = { active: false, pathway: null, nodeId: null, history: [] };
+    viewHome.classList.remove("hidden");
+    viewRunner.classList.add("hidden");
+    viewModalities.classList.add("hidden");
+    closeModal();
+  }
+
+  function showRunner() {
+    viewHome.classList.add("hidden");
+    viewModalities.classList.add("hidden");
+    viewRunner.classList.remove("hidden");
+  }
+
+  function resetRunner() {
+    if (!state.active) return;
+    state.history = [];
+    state.nodeId = state.pathway === "acute" ? "A0" : "STABLE_LAUNCH";
+    renderRunner();
+  }
+
+  function stepBack() {
+    if (!state.active) return;
+    const prev = state.history.pop();
+    if (!prev) return;
+    state.nodeId = prev;
+    renderRunner();
+  }
+
+  function choose(nextId) {
+    state.history.push(state.nodeId);
+    state.nodeId = nextId;
+    renderRunner();
+  }
+
+  function openUrl(url) {
+    window.location.href = url;
+  }
+
+  // ---------- Rendering ----------
+
+  function renderRunner() {
+    const node = getNode(state.nodeId);
+    const titleEl = document.getElementById("runner-title");
+    const crumbEl = document.getElementById("runner-breadcrumb");
+    const bodyEl = document.getElementById("runner-body");
+
+    titleEl.textContent = state.pathway === "acute" ? "Acute chest pain pathway" : "Stable chest pain pathway";
+
+    const pageId = getPageId(state.nodeId);
+    crumbEl.textContent = buildBreadcrumb(state, pageId);
+
+    // Back disabled at start
+    const backBtn = document.getElementById("btn-back");
+    backBtn.disabled = state.history.length === 0;
+    backBtn.style.opacity = backBtn.disabled ? 0.55 : 1;
+
+    bodyEl.innerHTML = "";
+
+    // Header with visible Page ID pill
+    const header = document.createElement("div");
+    header.innerHTML = `
+      <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+        <h3 style="margin:0; font-size:1.05rem;">${escapeHtml(node.title)}</h3>
+        <span class="flag-pill flag-pill--ok" title="Unique page reference">${escapeHtml(pageId)}</span>
+      </div>
+      ${node.body ? `<p class="muted" style="margin:.35rem 0 0;">${escapeHtml(node.body)}</p>` : ``}
+    `;
+    bodyEl.appendChild(header);
+
+    // Flags / notes
+    if (node.flags && node.flags.length) {
+      const flagsWrap = document.createElement("div");
+      flagsWrap.style.marginTop = ".5rem";
+      flagsWrap.innerHTML = node.flags.map((f) => pillHtml(f.level, f.text)).join("");
+      bodyEl.appendChild(flagsWrap);
+    }
+
+    // Terminal
+    if (node.type === "terminal") {
+      const terminal = document.createElement("div");
+      terminal.style.marginTop = ".85rem";
+      terminal.innerHTML = `
+        ${
+          node.disposition
+            ? `<div class="callout"><h3 class="callout-title">Terminal state</h3><p class="muted">${escapeHtml(
+                node.disposition
+              )}</p></div>`
+            : ``
+        }
+        ${
+          node.recommendedTests?.length
+            ? `<h3 class="section-title">Testing links</h3><p class="muted small">Tap a test to open its “nuances” sheet.</p>`
+            : ``
+        }
+        <div class="chip-grid" id="terminal-chips"></div>
+      `;
+      bodyEl.appendChild(terminal);
+
+      const chipGrid = document.getElementById("terminal-chips");
+      (node.recommendedTests || []).forEach((key) => {
+        const btn = document.createElement("button");
+        btn.className = "chip";
+        btn.textContent = MODALITIES[key]?.name || key;
+        btn.addEventListener("click", () => openModality(key));
+        chipGrid.appendChild(btn);
+      });
+
+      return;
+    }
+
+    // Step
+    if (node.type === "step") {
+      const cta = document.createElement("div");
+      cta.className = "btn-row";
+      const btn = document.createElement("button");
+      btn.className = "btn-primary";
+      btn.textContent = node.continueLabel || "Continue";
+      btn.addEventListener("click", () => {
+        if (node.action?.type === "OPEN_URL") {
+          openUrl(node.action.url);
+          return;
+        }
+        choose(node.next);
+      });
+      cta.appendChild(btn);
+      bodyEl.appendChild(cta);
+      return;
+    }
+
+    // Decision
+    if (node.type === "decision") {
+      const grid = document.createElement("div");
+      grid.className = "choice-grid";
+      node.options.forEach((opt) => {
+        const b = document.createElement("button");
+        b.className = "choice-btn";
+        b.innerHTML = `
+          <p class="choice-title">${escapeHtml(opt.label)}</p>
+          ${opt.sub ? `<p class="choice-sub">${escapeHtml(opt.sub)}</p>` : ``}
+        `;
+        b.addEventListener("click", () => {
+          if (opt.action?.type === "OPEN_URL") {
+            openUrl(opt.action.url);
+            return;
+          }
+          choose(opt.next);
+        });
+        grid.appendChild(b);
+      });
+      bodyEl.appendChild(grid);
+      return;
+    }
+
+    bodyEl.appendChild(document.createTextNode("Unknown node type."));
+  }
+
+  function renderModalitiesGrid() {
+    const grid = document.getElementById("modalities-grid");
+    grid.innerHTML = "";
+    Object.keys(MODALITIES).forEach((key) => {
+      const btn = document.createElement("button");
+      btn.className = "chip";
+      btn.textContent = MODALITIES[key].name;
+      btn.addEventListener("click", () => openModality(key));
+      grid.appendChild(btn);
+    });
+  }
+
+  // ---------- Modalities Modal ----------
+
+  function openModality(key) {
+    const m = MODALITIES[key];
+    if (!m) return;
+
+    document.getElementById("modal-title").textContent = m.name;
+
+    const body = document.getElementById("modal-body");
+    body.innerHTML = `
+      ${m.summary ? `<p>${escapeHtml(m.summary)}</p>` : ``}
+      ${
+        m.bullets?.length
+          ? `<ul>${m.bullets.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>`
+          : ``
+      }
+      ${
+        m.notes?.length
+          ? `<div class="callout"><h3 class="callout-title">Notes</h3><ul>${m.notes
+              .map((x) => `<li>${escapeHtml(x)}</li>`)
+              .join("")}</ul></div>`
+          : ``
+      }
+    `;
+
+    modalOverlay.classList.remove("hidden");
+  }
+
+  function closeModal() {
+    modalOverlay.classList.add("hidden");
+  }
+
+  // ---------- Helpers ----------
+
+  function getNode(id) {
+    const node = PATHWAYS[id];
+    if (!node) {
+      return { id, type: "terminal", title: "Missing node", disposition: `Node '${id}' not found.` };
+    }
+    return node;
+  }
+
+  function buildBreadcrumb(s, pageId) {
+    const parts = [];
+    parts.push(s.pathway === "acute" ? "Acute" : "Stable");
+    parts.push(`Page ${pageId}`);
+    parts.push(`Step ${s.history.length + 1}`);
+    return parts.join(" • ");
+  }
+
+  function pillHtml(level, text) {
+    const cls =
+      level === "danger" ? "flag-pill--danger" : level === "warning" ? "flag-pill--warning" : "flag-pill--ok";
+    return `<span class="flag-pill ${cls}">${escapeHtml(text)}</span>`;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (s) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+    }[s]));
+  }
+
   // ---------- Modality “nuances” (unchanged) ----------
   const MODALITIES = {
     EX_ECG: {
@@ -764,7 +825,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "Average effective radiation dose reported ~3 mSv for rest/stress PET with Rb-82.",
       ],
       notes: [
-        "Contraindications are referenced in Table 5.",
+        "Contraindications are referenced in the guideline’s Table 5.",
         "Guideline notes PET is reasonable in preference to SPECT (if available) to improve accuracy and reduce nondiagnostic results.",
       ],
     },
@@ -772,7 +833,7 @@ document.addEventListener("DOMContentLoaded", () => {
       name: "Stress SPECT MPI",
       summary: "Rest/stress SPECT myocardial perfusion imaging for perfusion abnormalities and LV function.",
       bullets: ["Average effective radiation dose reported ~10 mSv for Tc-99m SPECT.", "Dual-isotope SPECT using thallium is not recommended."],
-      notes: ["Contraindications are referenced in Table 5."],
+      notes: ["Contraindications are referenced in the guideline’s Table 5."],
     },
     CMR: {
       name: "Stress CMR",
@@ -780,7 +841,7 @@ document.addEventListener("DOMContentLoaded", () => {
       bullets: [
         "CMR can detect myocardial edema and microvascular obstruction, helping differentiate acute vs chronic MI and other causes of acute chest pain (e.g., myocarditis).",
       ],
-      notes: ["CMR contraindications are referenced in Table 5."],
+      notes: ["CMR contraindications are referenced in the guideline’s Table 5."],
     },
     CCTA: {
       name: "CCTA",
