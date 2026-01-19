@@ -287,7 +287,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const stressFeasWrap = document.getElementById("stressFeasWrap");
   const stressAbbrevList = document.getElementById("stressAbbrevList");
   const stressResultWrap = document.getElementById("stressResultWrap");
-
+const backBtn = document.getElementById("backBtn");
+backBtn?.addEventListener("click", () => window.history.back());
   function setDisplay(el, show) {
     if (!el) return;
     el.style.display = show ? "" : "none";
