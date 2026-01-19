@@ -1,10 +1,11 @@
-const CACHE = "ctdev-cache-v7";
+const CACHE = "ctdev-cache-v8";
 
 const ASSETS = [
   "/",
   "/index.html",
   "/style.css",
   "/script.js",
+  "/acute-pathway.js",
   "/manifest.json",
   "/icons/heart_192.png",
   "/icons/heart_512.png",
@@ -18,11 +19,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((k) => {
-          if (k !== CACHE) return caches.delete(k);
-        })
-      )
+      Promise.all(keys.map((k) => (k !== CACHE ? caches.delete(k) : null)))
     )
   );
 });

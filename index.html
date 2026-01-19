@@ -1,220 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Chest Pain Pathways</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#050810" />
+<head>
+  <meta charset="UTF-8" />
+  <title>Chest Pain Pathways (2021 ACC/AHA)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#050810" />
 
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json" />
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/heart_192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="icons/heart_512.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="icons/heart_180.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/heart_192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/heart_512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/heart_180.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
-    <link rel="stylesheet" href="style.css" />
-  </head>
+  <link rel="stylesheet" href="style.css" />
+</head>
 
-  <body>
-    <div class="app-shell">
-      <header class="app-header">
-        <div>
-          <h1 class="app-title">Chest Pain Pathways</h1>
-          <p class="app-subtitle">
-            Decision-support UI for 2021 ACC/AHA Chest Pain evaluation (acute + stable).
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div>
+        <h1 class="app-title">Chest Pain Pathways</h1>
+        <p class="app-subtitle">Decision-support UI for 2021 ACC/AHA chest pain evaluation (acute + stable).</p>
+      </div>
+      <div class="app-meta">
+        <span class="app-badge">ClinicalToolsDEV</span>
+      </div>
+    </header>
+
+    <main class="app-main">
+
+      <!-- HOME VIEW -->
+      <section id="view-home" class="view">
+        <div class="grid-home">
+          <div class="home-card">
+            <h3 class="home-card-title">Start</h3>
+            <p class="muted">
+              Choose a pathway. The app will walk you through decision points one screen at a time.
+              <br /><br />
+              Definitions are included inside each button.
+            </p>
+
+            <div class="btn-stack">
+              <button id="btn-start-acute" class="choice-btn">
+                <div>Acute chest pain</div>
+                <span class="choice-sub">
+                  New-onset or worsening chest pain symptoms requiring urgent evaluation
+                  (typically minutes to hours; often ED/urgent setting).
+                </span>
+              </button>
+
+              <button id="btn-start-stable" class="choice-btn">
+                <div>Stable chest pain</div>
+                <span class="choice-sub">
+                  Chronic or recurrent chest pain symptoms without features requiring emergent
+                  evaluation (often outpatient setting; not rapidly changing).
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div class="home-card">
+            <h3 class="home-card-title">References</h3>
+            <p class="muted">Quick-access reference pages for mobile use.</p>
+
+            <div class="btn-stack">
+              <button id="btn-evidence" class="choice-btn">
+                ACC/AHA Recommendations / Evidence Summary
+              </button>
+
+              <button id="btn-contra" class="choice-btn">
+                Contraindications to cardiac testing modalities
+              </button>
+
+              <button id="btnExploreModalities" class="choice-btn">
+                Explore testing modalities
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          <p class="disclaimer">
+            This tool is for educational and decision-support purposes only. It does not replace
+            clinical judgment, institutional guidelines, or specialist consultation.
+          </p>
+          <p class="disclaimer">
+            This tool was developed using the ClinicalToolsDEV framework.
           </p>
         </div>
-        <div class="app-meta">
-          <span class="app-badge">ClinicalToolsDEV</span>
+      </section>
+
+      <!-- RUNNER VIEW -->
+      <section id="view-runner" class="card view hidden">
+        <div class="runner-header">
+          <div>
+            <h2 id="runner-title" class="card-title">Pathway</h2>
+            <div id="runner-step" class="runner-step">—</div>
+          </div>
+          <div class="runner-actions">
+            <button id="btn-back" class="btn-ghost">Back</button>
+            <button id="btn-reset" class="btn-ghost">Reset</button>
+            <button id="btn-home" class="btn-ghost">Home</button>
+          </div>
         </div>
-      </header>
 
-      <main class="app-main">
-        <!-- HOME VIEW -->
-        <section id="view-home" class="card view">
-          <h2 class="card-title">Start</h2>
+        <div id="runner-subactions" class="runner-subactions"></div>
 
-          <div class="home-grid">
-            <div class="home-card">
-              <h3 class="home-card-title">Choose presentation</h3>
-              <p class="muted">
-                Select which pathway to use. Definitions are included inside each button.
-              </p>
+        <div class="runner-body">
+          <h3 id="node-title" class="node-title">—</h3>
+          <p id="node-body" class="node-body muted">—</p>
 
-              <div class="btn-stack">
-                <button id="btn-start-acute" class="choice-btn">
-                  <div>Acute chest pain</div>
-                  <span class="choice-sub">
-                    New-onset or worsening chest pain symptoms requiring urgent evaluation
-                    (typically minutes to hours; often ED/urgent setting).
-                  </span>
-                </button>
+          <div id="node-flags" class="node-flags"></div>
 
-                <button id="btn-start-stable" class="choice-btn">
-                  <div>Stable chest pain</div>
-                  <span class="choice-sub">
-                    Chronic or recurrent chest pain symptoms without features requiring emergent
-                    evaluation (often outpatient setting; not rapidly changing).
-                  </span>
-                </button>
-              </div>
-            </div>
+          <div id="node-resources" class="node-resources hidden"></div>
 
-            <div class="home-card">
-              <h3 class="home-card-title">References</h3>
-              <p class="muted">Quick-access reference pages for mobile use.</p>
+          <div id="node-options" class="node-options"></div>
 
-              <div class="btn-stack">
-                <button id="btn-evidence" class="choice-btn">
-                  ACC/AHA Recommendations / Evidence Summary
-                </button>
-
-                <button id="btn-contra" class="choice-btn">
-                  Contraindications to cardiac testing modalities
-                </button>
-
-                <button id="btnExploreModalities" class="choice-btn">
-                  Explore testing modalities
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="footer-note">
-            <p class="disclaimer">
-              This tool is for educational and decision-support purposes only. It does not replace
-              clinical judgment, institutional guidelines, or specialist consultation.
-            </p>
-            <p class="disclaimer">
-              This tool was developed using the ClinicalToolsDEV framework.
-            </p>
-          </div>
-        </section>
-
-        <!-- RUNNER VIEW -->
-        <section id="view-runner" class="card view hidden">
-          <div class="runner-header">
-            <div>
-              <h2 id="runner-title" class="card-title">Pathway</h2>
-              <div id="runner-step" class="runner-step">—</div>
-            </div>
-            <div class="runner-actions">
-              <button id="btn-back" class="btn-ghost">Back</button>
-              <button id="btn-reset" class="btn-ghost">Reset</button>
-              <button id="btn-home" class="btn-ghost">Home</button>
-            </div>
-          </div>
-
-          <div id="runner-subactions" class="runner-subactions"></div>
-
-          <div class="runner-body">
-            <h3 id="node-title" class="node-title">—</h3>
-            <p id="node-body" class="node-body muted">—</p>
-
-            <div id="node-flags" class="node-flags"></div>
-
-            <div id="node-resources" class="node-resources hidden"></div>
-
-            <div id="node-options" class="node-options"></div>
-
-            <div id="node-terminal" class="node-terminal hidden"></div>
-          </div>
-
-          <div class="footer-note">
-            <p class="disclaimer">
-              This tool is for educational and decision-support purposes only. It does not replace
-              clinical judgment, institutional guidelines, or specialist consultation.
-            </p>
-            <p class="disclaimer">
-              This tool was developed using the ClinicalToolsDEV framework.
-            </p>
-          </div>
-        </section>
-
-        <!-- RECOMMENDATIONS VIEW -->
-        <section id="view-evidence" class="card view hidden">
-          <div class="runner-header">
-            <div>
-              <h2 class="card-title">ACC/AHA Recommendations / Evidence Summary</h2>
-              <div class="runner-step">Search + dropdown sections (mobile-friendly)</div>
-            </div>
-            <div class="runner-actions">
-              <button id="btn-evidence-home" class="btn-ghost">Home</button>
-            </div>
-          </div>
-
-          <div class="search-row">
-            <input
-              id="evidence-search"
-              class="field-input"
-              type="text"
-              placeholder="Search (e.g., troponin, COR 1, CCTA, ICA, harm)..."
-            />
-          </div>
-
-          <div id="evidence-content" class="accordion"></div>
-
-          <div class="footer-note">
-            <p class="disclaimer">
-              Source: 2021 ACC/AHA Chest Pain Guideline. DOI: 10.1161/CIR.0000000000001029
-            </p>
-          </div>
-        </section>
-
-        <!-- CONTRAINDICATIONS VIEW -->
-        <section id="view-contra" class="card view hidden">
-          <div class="runner-header">
-            <div>
-              <h2 class="card-title">Contraindications to cardiac testing modalities</h2>
-              <div class="runner-step">Dropdown sections (mobile-friendly)</div>
-            </div>
-            <div class="runner-actions">
-              <button id="btn-contra-home" class="btn-ghost">Home</button>
-            </div>
-          </div>
-
-          <div id="contra-content" class="accordion"></div>
-
-          <div class="footer-note">
-            <p class="disclaimer">
-              Source: 2021 ACC/AHA Chest Pain Guideline. DOI: 10.1161/CIR.0000000000001029
-            </p>
-          </div>
-        </section>
-      </main>
-    </div>
-
-    <!-- MODAL: Modality detail -->
-    <div
-      id="modalOverlay"
-      class="modal-overlay hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modalTitle"
-      aria-describedby="modalBody"
-    >
-      <div class="modal-panel">
-        <div class="modal-header">
-          <h3 id="modalTitle" class="modal-title">Testing modality</h3>
-          <button id="modalClose" class="btn-ghost btn-ghost--small" aria-label="Close">
-            Close
-          </button>
+          <div id="node-terminal" class="node-terminal hidden"></div>
         </div>
-        <div id="modalBody" class="modal-body"></div>
+      </section>
+
+      <!-- EVIDENCE VIEW -->
+      <section id="view-evidence" class="card view hidden">
+        <div class="runner-header">
+          <div>
+            <h2 class="card-title">ACC/AHA Recommendations / Evidence Summary</h2>
+            <p class="muted small">Search + collapsible sections for mobile use.</p>
+          </div>
+          <div class="runner-actions">
+            <button id="btn-evidence-home" class="btn-ghost">Home</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <input id="evidence-search" class="field-input" type="text" placeholder="Search recommendations..." />
+
+        <div id="evidence-content" class="accordion"></div>
+      </section>
+
+      <!-- CONTRA VIEW -->
+      <section id="view-contra" class="card view hidden">
+        <div class="runner-header">
+          <div>
+            <h2 class="card-title">Contraindications to cardiac testing modalities</h2>
+            <p class="muted small">Collapsible sections for mobile use.</p>
+          </div>
+          <div class="runner-actions">
+            <button id="btn-contra-home" class="btn-ghost">Home</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="contra-content" class="accordion"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal card">
+      <div class="modal-header">
+        <h3 id="modalTitle" class="card-title">Testing modality</h3>
+        <button id="modalClose" class="btn-ghost">Close</button>
       </div>
+      <div id="modalBody" class="modal-body"></div>
     </div>
+  </div>
 
-    <script src="script.js"></script>
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("./service-worker.js")
-            .catch((err) => console.error("Service worker registration failed:", err));
-        });
-      }
-    </script>
-  </body>
+  <!-- IMPORTANT: acute-pathway.js must load BEFORE script.js -->
+  <script src="acute-pathway.js"></script>
+  <script src="script.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+          .catch(err => console.error("Service worker registration failed:", err));
+      });
+    }
+  </script>
+</body>
 </html>

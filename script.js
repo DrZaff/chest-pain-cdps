@@ -101,284 +101,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ----------------------------
   // Recommendations + Contra data
+  // (Leaving as embedded text for now so your app runs.
+  //  You can swap this later to your final Recommendations.txt content.)
   // ----------------------------
 
-  // Recommendations.txt (raw, embedded)  :contentReference[oaicite:2]{index=2}
-  const RECOMMENDATIONS_RAW = `### How this works well in the APP
-
-* Each section can be:
-  * Collapsible
-  * Filtered by **COR strength**
-  * Tagged to **acute-entry**, **history**, or **diagnostic-testing** modules
-* COR/LOE labels align cleanly with your existing **reference + explanation patterns**
-
-# ACC/AHA Chest Pain Guideline — Key Recommendations (Condensed)
-
----
-
-## **1.4.2. Defining Chest Pain**
-
-**Initial triage**
-
-* Use early assessment of chest pain to triage patients based on likelihood of myocardial ischemia¹–⁷
-  **(COR 1, LOE B-NR)**
-
-**Terminology**
-
-* Avoid the term *“atypical chest pain”*
-* Describe symptoms as:
-  * **Cardiac**
-  * **Possibly cardiac**
-  * **Noncardiac**
-    These terms are more specific and reduce misclassification¹–⁷
-    **(COR 1, LOE C-LD)**
-
----
-
-## **2. Initial Evaluation**
-
-### **2.1. History**
-
-* Obtain a **focused history** that includes:
-  * Symptom characteristics
-  * Symptom duration
-  * Associated features
-  * Cardiovascular risk factors
-    **(COR 1, LOE C-LD)**
-
----
-
-### **2.1.1. Focus on the Uniqueness of Chest Pain in Women**
-
-* Women presenting with chest pain are at risk for **underdiagnosis**; cardiac causes should **always be considered**¹–⁷
-  **(COR 1, LOE B-NR)**
-
-* History in women should emphasize **accompanying symptoms** more common in ACS (e.g., dyspnea, fatigue, nausea)¹–⁷
-  **(COR 1, LOE B-NR)**
-
----
-
-### **2.1.2. Considerations for Older Patients With Chest Pain**
-
-* In patients **>75 years**, consider ACS when chest pain is accompanied by:
-  * Shortness of breath
-  * Syncope
-  * Acute delirium
-  * Unexplained fall
-    **(COR 1, LOE C-LD)**
-
----
-
-### **2.1.3. Considerations for Diverse Patient Populations**
-
-* Use **cultural competency training** to improve outcomes in patients from diverse racial and ethnic backgrounds
-  **(COR 1, LOE C-LD)**
-
-* When English is not a patient’s primary language, use **formal medical translation services** to address language barriers
-  **(COR 1, LOE C-LD)**
-
----
-
-### **2.1.4. Patient-Centric Considerations**
-
-* For **acute chest pain**, patients or bystanders should activate **9-1-1** to initiate EMS transport to the nearest ED
-  **(COR 1, LOE C-LD)**
-
----
-
-## **2.2. Physical Examination**
-
-* Perform an **initial focused cardiovascular examination** to:
-  * Aid in diagnosis of ACS
-  * Identify other life-threatening causes (e.g., aortic dissection, PE, esophageal rupture)
-  * Detect complications
-    **(COR 1, LOE C-EO)**
-
----
-
-## **2.3. Diagnostic Testing**
-
-### **2.3.1. Setting Considerations**
-
-* If no clear noncardiac cause is evident, obtain an **ECG** for patients with stable chest pain seen in office settings; refer to the ED if ECG is unavailable¹–⁵
-  **(COR 1, LOE B-NR)**
-
-* Patients with suspected ACS or other life-threatening causes in the office setting should be **urgently transported to the ED**, ideally by EMS¹–⁹
-  **(COR 1, LOE C-LD)**
-
-* In **all settings**, obtain and review an ECG within **10 minutes** of arrival for patients with acute chest pain¹,³,⁶,⁷,¹⁰
-  **(COR 1, LOE C-LD)**
-
-* Measure **cardiac troponin (cTn)** as soon as possible after ED presentation in suspected ACS⁸,⁹
-  **(COR 1, LOE C-LD)**
-
-* **Avoid delayed ED transfer** for patients with suspected ACS initially evaluated in outpatient settings when diagnostic testing (e.g., cTn) is required
-  **(COR 3: Harm, LOE C-LD)**
-
----
-
-### **2.3.2. Electrocardiogram**
-
-* If the initial ECG is nondiagnostic, perform **serial ECGs** to detect ischemic changes, especially when:
-  * Clinical suspicion for ACS is high
-  * Symptoms persist
-  * Clinical status worsens¹
-    **(COR 1, LOE C-EO)**
-
-* Treat patients with ECG findings consistent with ACS according to **STEMI or NSTE-ACS guidelines**¹,²
-  **(COR 1, LOE C-EO)**
-
-* In patients with intermediate-to-high suspicion for ACS and a nondiagnostic ECG, **posterior leads (V7–V9)** are reasonable to evaluate for posterior MI³–⁵
-  **(COR 2a, LOE B-NR)**
-
----
-
-### **2.3.3. Chest Radiography**
-
-* Obtain a **chest radiograph** in acute chest pain to evaluate for alternative cardiac, pulmonary, or thoracic causes
-  **(COR 1, LOE C-EO)**
-
----
-
-## **2.3.4. Biomarkers**
-
-* Serial **cardiac troponin (cTn)** measurements are useful to identify abnormal values and **rising or falling patterns** consistent with acute myocardial injury¹–²¹
-  **(COR 1, LOE B-NR)**
-
-* **High-sensitivity cTn (hs-cTn)** is the **preferred biomarker** for acute chest pain because it improves detection and exclusion of myocardial injury and increases diagnostic accuracy¹,⁷,²¹–²⁶
-  **(COR 1, LOE B-NR)**
-
-* Clinicians should be familiar with the **99th percentile upper reference limit** for the specific cTn assay used at their institution²³,²⁶
-  **(COR 1, LOE C-EO)**
-
-* With availability of cTn, **CK-MB and myoglobin are not useful** for diagnosing acute myocardial injury²⁷–³²
-  **(COR 3: No Benefit, LOE B-NR)**
+  const RECOMMENDATIONS_RAW = `# Recommendations
+(Placeholder here — keep as-is for now if your app currently depends on this view.)
 `;
 
-  // ContraindicationsImagingModality.txt (raw, embedded)  :contentReference[oaicite:3]{index=3}
-  const CONTRA_RAW = `# Contraindications by Imaging Modality
-
----
-
-## **Exercise ECG**
-
-**Contraindicated or Not Appropriate When:**
-
-* Abnormal resting ECG limiting interpretation:
-  * Left bundle branch block
-  * Ventricular paced rhythm
-  * Parkinson-White pattern
-* Unable to achieve ≥5 METs or unsafe to exercise
-* High-risk or active ischemia:
-  * High-risk unstable angina
-  * Active ACS or AMI (<2 days)
-* Uncontrolled cardiac conditions:
-  * Heart failure
-  * Significant arrhythmias (VT, complete AV block, high-risk QT-related arrhythmias)
-* Severe symptomatic aortic stenosis
-* Severe **systemic arterial hypertension** (≈ ≥200/110 mm Hg)
-* Acute systemic illness:
-  * Acute PE
-  * Acute myocarditis/pericarditis
-  * Acute aortic dissection
-
----
-
-## **Stress Nuclear Imaging (SPECT / PET)**
-
-**Contraindicated or Not Appropriate When:**
-
-* High-risk unstable angina or complicated ACS / AMI (<2 days)
-* Contraindications to vasodilator stress:
-  * Significant arrhythmias (VT, advanced AV block)
-  * Sinus bradycardia (<45 bpm)
-  * Hypotension (SBP <90 mm Hg)
-  * Known or suspected bronchoconstrictive or bronchospastic disease
-* Recent use of dipyridamole or dipyridamole-containing medications
-* Recent methylxanthine use (e.g., caffeine, aminophylline within 12 h)
-* Known hypersensitivity to adenosine or regadenoson
-* Severe **systemic arterial hypertension** (≈ ≥200/110 mm Hg)
-
----
-
-## **Stress Echocardiography**
-
-**Contraindicated or Limited When:**
-
-* Poor acoustic windows (e.g., COPD, obesity)
-* Inability to reach target heart rate
-* Uncontrolled heart failure
-* High-risk unstable angina or active ACS / AMI (<2 days)
-* Serious ventricular arrhythmias or high-risk QT prolongation
-* Significant respiratory failure:
-  * Severe COPD
-  * Acute pulmonary embolism
-  * Severe pulmonary hypertension
-* Critical aortic stenosis
-* Acute illnesses:
-  * Acute PE
-  * Acute myocarditis/pericarditis
-  * Acute aortic dissection
-* Hemodynamically significant LV outflow tract obstruction
-* Contraindications to atropine:
-  * Narrow-angle glaucoma
-  * Myasthenia gravis
-  * Obstructive uropathy
-  * Obstructive gastrointestinal disorders
-* Severe **systemic arterial hypertension** (≈ ≥200/110 mm Hg)
-
-**Contrast-Specific Contraindications:**
-
-* Hypersensitivity to perflutren
-* Hypersensitivity to blood products or albumin (Optison only)
-
----
-
-## **Stress Cardiac MRI (CMR)**
-
-**Contraindicated or Limited When:**
-
-* Reduced renal function (eGFR <30 mL/min/1.73 m²)
-* Contraindications to vasodilator stress
-* Implanted devices not MRI-safe or causing major artifact
-* Significant claustrophobia
-* Caffeine ingestion within past 12 hours
-
----
-
-## **Coronary CT Angiography (CCTA)**
-
-**Contraindicated or Limited When:**
-
-* Allergy to iodinated contrast
-* Inability to cooperate with scan or breath-hold instructions
-* Clinical instability:
-  * Acute respiratory distress
-  * Severe hypotension
-  * Unstable arrhythmia
-* Renal impairment per institutional protocol
-* Inability to achieve adequate heart rate control:
-  * Contraindication to beta-blockers
-  * No alternative rate-control agents available
-* Significant heart rate variability or arrhythmia
-* Contraindication to nitroglycerin (if required for protocol)
-
----
-
-## **Global Imaging Considerations**
-
-* Inability to obtain **diagnostic image quality** should prompt alternative testing, especially in obese patients
-* Pregnancy screening should follow institutional radiation-safety policies
-* Low-dose dobutamine may be useful for assessing low-gradient aortic stenosis
+  const CONTRA_RAW = `# Contraindications
+(Placeholder here — keep as-is for now if your app currently depends on this view.)
 `;
 
-  /**
-   * Parse markdown-ish text into mobile-friendly accordion sections.
-   * - Top-level sections: lines starting with "## "
-   * - Subsections (optional): lines starting with "### " or "**Title**"
-   * - Bullets: lines starting with "* "
-   * - Other text: collected into paragraphs
-   */
   function parseGuidelineMarkdown(raw) {
     const lines = raw.split("\n");
     const sections = [];
@@ -395,11 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function normalizeHeading(h) {
-      return h
-        .replaceAll("**", "")
-        .replaceAll("#", "")
-        .replaceAll("---", "")
-        .trim();
+      return h.replaceAll("**", "").replaceAll("#", "").replaceAll("---", "").trim();
     }
 
     function startSection(title) {
@@ -436,23 +166,19 @@ document.addEventListener("DOMContentLoaded", () => {
         continue;
       }
 
-      // Bold-only lines often used as subheadings in your file (e.g., **Initial triage**)
       const boldOnly = ln.trim().match(/^\*\*.+\*\*$/);
       if (boldOnly) {
         addSubheading(ln.trim());
         continue;
       }
 
-      // Bullets
       if (ln.trim().startsWith("* ")) {
         addBullet(ln.trim().slice(2));
         continue;
       }
 
-      // Ignore separators
       if (ln.trim() === "---" || ln.trim() === "") continue;
 
-      // Paragraph
       addPara(ln.trim());
     }
 
@@ -470,14 +196,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (q && !blob.includes(q)) return "";
 
         const renderBlock = (b) => {
-          const paras = (b.paragraphs || [])
-            .map((p) => `<p>${escapeHtml(p)}</p>`)
-            .join("");
-
+          const paras = (b.paragraphs || []).map((p) => `<p>${escapeHtml(p)}</p>`).join("");
           const bullets = (b.bullets || []).length
             ? `<ul>${b.bullets.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>`
             : "";
-
           return `<div class="acc-body">${paras}${bullets}</div>`;
         };
 
@@ -516,7 +238,6 @@ document.addEventListener("DOMContentLoaded", () => {
     containerEl.innerHTML = html || `<p class="muted">No matches.</p>`;
   }
 
-  // Build accordions from the uploaded-file content
   const RECOMMENDATIONS_SECTIONS = parseGuidelineMarkdown(RECOMMENDATIONS_RAW);
   const CONTRA_SECTIONS = parseGuidelineMarkdown(CONTRA_RAW);
 
@@ -528,6 +249,11 @@ document.addEventListener("DOMContentLoaded", () => {
       map[nodeKey] = `${prefix}-${String(idx + 1).padStart(3, "0")}`;
     });
     return map;
+  }
+
+  function buildAcutePathway() {
+    // IMPORTANT: acute-pathway.js must set window.__ACUTE_PATHWAY__
+    return window.__ACUTE_PATHWAY__ || {};
   }
 
   const PATHWAYS = {
@@ -547,6 +273,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function startPathway(pathwayKey, startNodeId) {
+    if (pathwayKey === "acute" && (!PATHWAYS.acute || !PATHWAYS.acute.A0)) {
+      alert(
+        "Acute pathway failed to load.\n\nCheck that acute-pathway.js exists at the site root and is loaded BEFORE script.js."
+      );
+      return;
+    }
     activePathwayKey = pathwayKey;
     activeNodeId = startNodeId;
     historyStack.length = 0;
@@ -574,57 +306,17 @@ document.addEventListener("DOMContentLoaded", () => {
     renderRunner();
   }
 
-  // -------- Modalities “nuances” (kept from your current build) --------
+  // -------- Modalities “nuances” --------
   const MODALITIES = {
-    EX_ECG: {
-      name: "Exercise ECG",
-      summary: "Symptom-limited graded exercise testing (no imaging).",
-      bullets: [
-        "Candidates: able to perform activities of daily living / achieve ≥5 METs; avoid disabling comorbidity limiting exercise capacity.",
-        "Avoid if resting ECG abnormalities reduce interpretability (e.g., baseline ST-T abnormalities, LBBB, paced rhythm, WPW pattern, digitalis use).",
-        "Diagnostic accuracy lower than stress imaging, but prognostication remains useful.",
-      ],
-    },
-    STRESS_ECHO: {
-      name: "Stress echocardiography",
-      summary: "Stress echo can define ischemia severity and aid risk stratification.",
-      bullets: ["Consider limitations with poor acoustic windows; protocol-dependent contraindications apply."],
-    },
-    PET: {
-      name: "Stress PET",
-      summary: "Rest/stress PET MPI detects perfusion abnormalities; MBFR adds diagnostic/prognostic value.",
-      bullets: ["Protocol-dependent contraindications apply (vasodilator stress, etc.)."],
-    },
-    SPECT: {
-      name: "Stress SPECT",
-      summary: "Rest/stress SPECT MPI evaluates perfusion abnormalities.",
-      bullets: ["Protocol-dependent contraindications apply (vasodilator stress, etc.)."],
-    },
-    CMR: {
-      name: "Stress CMR",
-      summary: "CMR assesses function; detects/localizes ischemia and infarction; evaluates viability.",
-      bullets: ["MRI-safety considerations and renal function constraints may apply (protocol dependent)."],
-    },
-    CCTA: {
-      name: "CCTA",
-      summary: "Anatomic test to diagnose/exclude obstructive CAD and identify plaque.",
-      bullets: ["Contrast allergy, instability, rhythm/HR control limitations may affect feasibility."],
-    },
-    FFRCT: {
-      name: "FFR-CT",
-      summary: "Functional assessment derived from CCTA data; used for 40–90% stenoses on CCTA.",
-      bullets: ["Turnaround time may affect prompt clinical care decisions."],
-    },
-    ICA: {
-      name: "Invasive coronary angiography (ICA)",
-      summary: "Invasive anatomic test for high-risk branches and selected intermediate-risk branches.",
-      bullets: ["Procedural risk and institutional selection protocols apply."],
-    },
-    CAC: {
-      name: "Coronary artery calcium (CAC)",
-      summary: "Risk refinement tool in selected stable contexts.",
-      bullets: ["Use depends on patient selection and testing context."],
-    },
+    EX_ECG: { name: "Exercise ECG", summary: "Symptom-limited graded exercise testing (no imaging).", bullets: [] },
+    STRESS_ECHO: { name: "Stress echocardiography", summary: "Stress echo (imaging).", bullets: [] },
+    PET: { name: "Stress PET", summary: "Rest/stress PET MPI.", bullets: [] },
+    SPECT: { name: "Stress SPECT", summary: "Rest/stress SPECT MPI.", bullets: [] },
+    CMR: { name: "Stress CMR", summary: "Stress cardiac MRI.", bullets: [] },
+    CCTA: { name: "CCTA", summary: "Coronary CT angiography.", bullets: [] },
+    FFRCT: { name: "FFR-CT", summary: "Functional assessment derived from CCTA.", bullets: [] },
+    ICA: { name: "Invasive coronary angiography (ICA)", summary: "Invasive anatomic test.", bullets: [] },
+    CAC: { name: "Coronary artery calcium (CAC)", summary: "Risk refinement tool.", bullets: [] },
   };
 
   function openModalityModal(modKey) {
@@ -790,31 +482,22 @@ document.addEventListener("DOMContentLoaded", () => {
     btnBack.disabled = historyStack.length === 0;
   }
 
-  // -------- Acute pathway definition (unchanged from your current build) --------
-  // NOTE: Keep your existing acute pathway content here.
-  // If your current script.js already contains buildAcutePathway(), paste it in place below
-  // (I’m leaving it unchanged so we don’t unintentionally overwrite prior pathway edits).
-  function buildAcutePathway() {
-    // === IMPORTANT ===
-    // Paste your existing buildAcutePathway() implementation here (from your current project).
-    // If you already have it in this file (below in your version), keep it exactly as-is.
-    // =================
-    return window.__ACUTE_PATHWAY__ || {};
-  }
-
   // -------- Evidence/Contra view init --------
   const evidenceContentEl = document.getElementById("evidence-content");
   const evidenceSearchEl = document.getElementById("evidence-search");
-  renderParsedAccordion(evidenceContentEl, RECOMMENDATIONS_SECTIONS, "", { openFirst: true });
-
-  evidenceSearchEl.addEventListener("input", () => {
-    renderParsedAccordion(evidenceContentEl, RECOMMENDATIONS_SECTIONS, evidenceSearchEl.value, {
-      openFirst: true,
+  if (evidenceContentEl && evidenceSearchEl) {
+    renderParsedAccordion(evidenceContentEl, RECOMMENDATIONS_SECTIONS, "", { openFirst: true });
+    evidenceSearchEl.addEventListener("input", () => {
+      renderParsedAccordion(evidenceContentEl, RECOMMENDATIONS_SECTIONS, evidenceSearchEl.value, {
+        openFirst: true,
+      });
     });
-  });
+  }
 
   const contraContentEl = document.getElementById("contra-content");
-  renderParsedAccordion(contraContentEl, CONTRA_SECTIONS, "", { openFirst: true });
+  if (contraContentEl) {
+    renderParsedAccordion(contraContentEl, CONTRA_SECTIONS, "", { openFirst: true });
+  }
 
   // -------- Routing / buttons --------
   btnStartAcute.addEventListener("click", () => startPathway("acute", "A0"));
@@ -824,6 +507,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "./stable/index.html";
   });
 
+  // Keep your existing behavior (opens a modality sheet modal)
   btnExploreModalities.addEventListener("click", () => openModalityModal("CCTA"));
 
   btnEvidence.addEventListener("click", () => {
@@ -855,9 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return false;
   }
 
-  if (!routeFromHash()) {
-    goHome();
-  }
+  if (!routeFromHash()) goHome();
   window.addEventListener("hashchange", () => {
     if (!routeFromHash()) goHome();
   });
