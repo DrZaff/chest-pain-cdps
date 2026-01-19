@@ -1,0 +1,51 @@
+### **Chest Pain: Scope and Clinical Importance**
+
+* Chest pain is the **second most common ED presentation** in U.S. adults, accounting for **>6.5 million ED visits annually** (4.7% of all ED visits)¹.
+* It also results in **nearly 4 million outpatient visits per year** in the United States².
+* Despite often being **noncardiac**, chest pain requires careful evaluation due to the prevalence and severity of coronary disease.
+
+---
+
+### **Coronary Disease Context**
+
+* **Coronary artery disease (CAD)** affects **>18.2 million U.S. adults** and remains the **leading cause of death** in both men and women, with **>365,000 deaths annually**³.
+* Chest pain is the **most common presenting symptom of CAD** in both sexes.
+
+---
+
+### **Diagnostic Challenge**
+
+* Lifetime prevalence of chest pain in the U.S. is **20–40%**⁴.
+* **Women experience chest pain more frequently than men**⁵.
+* Among ED patients presenting with chest pain:
+
+  * Only **~5.1%** are diagnosed with **acute coronary syndrome (ACS)**⁶.
+  * **>50%** ultimately have a **noncardiac cause**⁶.
+
+---
+
+### **Clinical Implication**
+
+* Differentiating **serious cardiac causes** from **benign etiologies** is essential, given the **low ACS prevalence** but **high mortality burden** of CAD¹–⁶.
+
+---
+
+
+1. Rui P, Kang K. National Hospital Ambulatory Medical Care Survey: 2017 
+emergency department summary tables. National Center for Health Sta
+tistics. Available at: https://www.cdc.gov/nchs/data/nhamcs/web_ta
+bles/2017_ed_web_tables-508.pdf. Accessed February 12, 2021.
+2. Rui P, Okeyode T. National Ambulatory Medical Care Survey: 2016 national 
+summary tables. 2016 Available at: https://www.cdc.gov/nchs/data/ahcd/
+namcs_summary/2016_namcs_web_tables.pdf. Accessed February 12, 
+2021.
+3. Virani SS, Alonso A, Benjamin EJ, et al. Heart disease and stroke statis
+tics-2020 update: a report from the American Heart Association. Circulation. 
+2020;141:e139–e596.
+4. Ruigomez A, Rodriguez LA, Wallander MA, et al. Chest pain in general prac
+tice: incidence, comorbidity and mortality. Fam Pract. 2006;23:167–174.
+5. Bosner S, Becker A, Haasenritter J, et al. Chest pain in primary care: epide
+miology and pre-work-up probabilities. Eur J Gen Pract. 2009;15:141–146.
+6. Hsia RY, Hale Z, Tabas JA. A national study of the prevalence of life
+threatening diagnoses in patients with chest pain. JAMA Intern Med. 
+2016;176:1029–1032.

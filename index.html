@@ -66,16 +66,16 @@
             <p class="muted">Quick-access reference pages for mobile use.</p>
 
             <div class="btn-stack">
+              <button id="btn-background" class="choice-btn">
+                Chest pain background
+              </button>
+
               <button id="btn-evidence" class="choice-btn">
                 ACC/AHA Recommendations / Evidence Summary
               </button>
 
               <button id="btn-contra" class="choice-btn">
                 Contraindications to cardiac testing modalities
-              </button>
-
-              <button id="btnExploreModalities" class="choice-btn">
-                Explore testing modalities
               </button>
             </div>
           </div>
@@ -122,6 +122,23 @@
         </div>
       </section>
 
+      <!-- BACKGROUND VIEW -->
+      <section id="view-background" class="card view hidden">
+        <div class="runner-header">
+          <div>
+            <h2 class="card-title">Chest pain background</h2>
+            <p class="muted small">Guideline background summary (2021 ACC/AHA).</p>
+          </div>
+          <div class="runner-actions">
+            <button id="btn-background-home" class="btn-ghost">Home</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="background-content" class="background-content"></div>
+      </section>
+
       <!-- EVIDENCE VIEW -->
       <section id="view-evidence" class="card view hidden">
         <div class="runner-header">
@@ -166,7 +183,7 @@
   <div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal card">
       <div class="modal-header">
-        <h3 id="modalTitle" class="card-title">Testing modality</h3>
+        <h3 id="modalTitle" class="card-title">Reference</h3>
         <button id="modalClose" class="btn-ghost">Close</button>
       </div>
       <div id="modalBody" class="modal-body"></div>
@@ -187,4 +204,3 @@
   </script>
 </body>
 </html>
-

@@ -519,3 +519,53 @@ body {
   display: block;
   border-radius: 12px;
 }
+
+/* End-of-pathway pill: red, compact */
+.end-pill {
+  display: inline-flex;
+  align-items: center;
+  margin-left: .6rem;
+  padding: .18rem .55rem;
+  border-radius: 999px;
+  font-size: .75rem;
+  border: 1px solid rgba(255, 80, 80, 0.45);
+  background: rgba(255, 80, 80, 0.12);
+  color: #ff5050;
+}
+
+/* Compact resources variant (used for Acute • A-002) */
+.node-resources--compact .resources-title {
+  display: none;
+}
+.node-resources--compact .resources-grid {
+  gap: .35rem;
+}
+.node-resources--compact .resource-btn {
+  padding: .35rem .55rem;
+  font-size: .82rem;
+  opacity: .92;
+}
+
+/* Background view: clean non-dropdown layout */
+.background-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.bg-block {
+  padding: .9rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.bg-h {
+  margin: 0 0 .5rem 0;
+  font-size: 1.05rem;
+}
+.bg-p {
+  margin: .4rem 0;
+  line-height: 1.45;
+}
+.bg-ul {
+  margin: .55rem 0 0 1.1rem;
+}

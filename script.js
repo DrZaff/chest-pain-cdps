@@ -1,110 +1,22 @@
-/* script.js
- * Chest Pain Pathways (2021 ACC/AHA) — runner + references pages
- * Surgical: preserves acute pathway runner behavior + adds Recommendations/Contra rendering.
- * IMPORTANT: acute-pathway.js loads before this file and sets window.__ACUTE_PATHWAY__.
- */
-
-(() => {
-  "use strict";
-
+document.addEventListener("DOMContentLoaded", () => {
   // ----------------------------
-  // DOM helpers
+  // Views
   // ----------------------------
-  const $ = (id) => document.getElementById(id);
-
-  function escapeHtml(str) {
-    return String(str ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-  // ----------------------------
-  // Views (match your index.html IDs)
-  // ----------------------------
-  const views = {
-    home: $("view-home"),
-    runner: $("view-runner"),
-    evidence: $("view-evidence"),
-    contra: $("view-contra"),
+  const VIEWS = {
+    home: document.getElementById("view-home"),
+    runner: document.getElementById("view-runner"),
+    background: document.getElementById("view-background"),
+    evidence: document.getElementById("view-evidence"),
+    contra: document.getElementById("view-contra"),
   };
 
   function showView(key) {
-    Object.entries(views).forEach(([k, el]) => {
-      if (!el) return;
-      el.classList.toggle("hidden", k !== key);
-    });
+    Object.values(VIEWS).forEach((el) => el && el.classList.add("hidden"));
+    if (VIEWS[key]) VIEWS[key].classList.remove("hidden");
   }
 
   // ----------------------------
-  // Modal (for PDFs/images/resources)
-  // ----------------------------
-  const modalOverlay = $("modalOverlay");
-  const modalTitle = $("modalTitle");
-  const modalBody = $("modalBody");
-  const modalClose = $("modalClose");
-  let lastFocusedEl = null;
-
-  function isPdf(url) {
-    return /\.pdf(\?|#|$)/i.test(url || "");
-  }
-  function isImage(url) {
-    return /\.(png|jpg|jpeg|gif|webp)(\?|#|$)/i.test(url || "");
-  }
-
-  function openDocModal(title, url) {
-    if (!modalOverlay || !modalBody || !modalTitle) return;
-    if (!url) return;
-
-    lastFocusedEl = document.activeElement;
-    modalTitle.textContent = title || "Reference";
-
-    if (isPdf(url)) {
-      modalBody.innerHTML = `
-        <div class="doc-frame">
-          <iframe src="${url}" title="${escapeHtml(title || "PDF")}"></iframe>
-        </div>
-      `;
-    } else if (isImage(url)) {
-      modalBody.innerHTML = `
-        <div class="img-frame">
-          <img src="${url}" alt="${escapeHtml(title || "Image")}" />
-        </div>
-      `;
-    } else {
-      modalBody.innerHTML = `
-        <p><a href="${url}" target="_blank" rel="noopener noreferrer">Open resource</a></p>
-      `;
-    }
-
-    modalOverlay.classList.remove("hidden");
-    modalClose?.focus();
-  }
-
-  function closeModal() {
-    modalOverlay?.classList.add("hidden");
-    if (modalBody) modalBody.innerHTML = "";
-    if (lastFocusedEl && typeof lastFocusedEl.focus === "function") lastFocusedEl.focus();
-    lastFocusedEl = null;
-  }
-
-  modalClose?.addEventListener("click", closeModal);
-  modalOverlay?.addEventListener("click", (e) => {
-    if (e.target === modalOverlay) closeModal();
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && modalOverlay && !modalOverlay.classList.contains("hidden")) {
-      closeModal();
-    }
-  });
-
-  // ----------------------------
-  // Pathway normalization
-  // Supports:
-  //  - acute-pathway.js: window.__ACUTE_PATHWAY__ is a node-map {A0:{...}, A1:{...}}
-  //  - stable module: may be {start:"S0", nodes:{...}} or similar
+  // Pathways
   // ----------------------------
   function normalizePathway(pw) {
     if (!pw) return null;
@@ -135,54 +47,148 @@
     stable: STABLE ? buildPageIndex(STABLE.nodes, "S") : {},
   };
 
-  // ----------------------------
-  // Runner elements (match your index.html)
-  // ----------------------------
-  const runnerTitleEl = $("runner-title");
-  const runnerStepEl = $("runner-step");
-  const runnerSubactionsEl = $("runner-subactions");
+  // Reverse map for safe reroutes by A-### page ID
+  function invertMap(obj) {
+    const out = {};
+    Object.entries(obj || {}).forEach(([k, v]) => (out[v] = k));
+    return out;
+  }
+  const ACUTE_BY_PAGE = invertMap(PAGE_IDS.acute);
 
-  const nodeTitleEl = $("node-title");
-  const nodeBodyEl = $("node-body");
-  const nodeFlagsEl = $("node-flags");
-  const nodeResourcesEl = $("node-resources");
-  const nodeOptionsEl = $("node-options");
-  const nodeTerminalEl = $("node-terminal"); // kept but we intentionally avoid big terminal boxes
+  // ----------------------------
+  // Runner state
+  // ----------------------------
+  let activePathwayKey = null;
+  let activeNodeId = null;
+  let historyStack = [];
 
-  const btnBack = $("btn-back");
-  const btnReset = $("btn-reset");
-  const btnHome = $("btn-home");
+  // ----------------------------
+  // Runner DOM
+  // ----------------------------
+  const runnerTitleEl = document.getElementById("runner-title");
+  const runnerStepEl = document.getElementById("runner-step");
+  const runnerSubactionsEl = document.getElementById("runner-subactions");
+
+  const nodeTitleEl = document.getElementById("node-title");
+  const nodeBodyEl = document.getElementById("node-body");
+  const nodeFlagsEl = document.getElementById("node-flags");
+  const nodeResourcesEl = document.getElementById("node-resources");
+  const nodeOptionsEl = document.getElementById("node-options");
+  const nodeTerminalEl = document.getElementById("node-terminal");
+
+  const btnBack = document.getElementById("btn-back");
+  const btnReset = document.getElementById("btn-reset");
+  const btnHome = document.getElementById("btn-home");
 
   // Home buttons
-  const btnStartAcute = $("btn-start-acute");
-  const btnStartStable = $("btn-start-stable");
-  const btnEvidence = $("btn-evidence");
-  const btnContra = $("btn-contra");
-  const btnExploreModalities = $("btnExploreModalities");
+  const btnStartAcute = document.getElementById("btn-start-acute");
+  const btnStartStable = document.getElementById("btn-start-stable");
 
-  // Evidence view elements
-  const btnEvidenceHome = $("btn-evidence-home");
-  const evidenceFigureLinkEl = $("evidence-figure-link");
-  const evidenceSearchEl = $("evidence-search");
-  const evidenceContentEl = $("evidence-content");
+  const btnBackground = document.getElementById("btn-background");
+  const btnEvidence = document.getElementById("btn-evidence");
+  const btnContra = document.getElementById("btn-contra");
 
-  // Contra view elements
-  const btnContraHome = $("btn-contra-home");
-  const contraContentEl = $("contra-content");
+  // View home buttons
+  const btnBackgroundHome = document.getElementById("btn-background-home");
+  const btnEvidenceHome = document.getElementById("btn-evidence-home");
+  const btnContraHome = document.getElementById("btn-contra-home");
+
+  // Evidence/Contra DOM
+  const evidenceFigureLinkEl = document.getElementById("evidence-figure-link");
+  const evidenceSearchEl = document.getElementById("evidence-search");
+  const evidenceContentEl = document.getElementById("evidence-content");
+  const contraContentEl = document.getElementById("contra-content");
+
+  // Background DOM
+  const backgroundContentEl = document.getElementById("background-content");
 
   // ----------------------------
-  // Small “End of pathway” pill in header (no giant terminal box)
+  // Modal
   // ----------------------------
-  function ensureEndPill(isTerminal) {
-    if (!runnerTitleEl) return;
-    const existing = runnerTitleEl.querySelector(".end-pill");
-    if (existing) existing.remove();
-    if (!isTerminal) return;
+  const modalOverlay = document.getElementById("modalOverlay");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalBody = document.getElementById("modalBody");
+  const modalClose = document.getElementById("modalClose");
+  let lastFocusedEl = null;
 
-    const pill = document.createElement("span");
-    pill.className = "end-pill";
-    pill.textContent = "End of pathway";
-    runnerTitleEl.appendChild(pill);
+  function escapeHtml(str) {
+    return (str ?? "")
+      .toString()
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function isPdf(url) {
+    return typeof url === "string" && url.toLowerCase().endsWith(".pdf");
+  }
+
+  function isImage(url) {
+    return typeof url === "string" && /\.(png|jpg|jpeg|gif|webp)$/i.test(url);
+  }
+
+  function openDocModal(title, url) {
+    if (!url) return;
+    lastFocusedEl = document.activeElement;
+    modalTitle.textContent = title || "Reference";
+
+    if (isPdf(url)) {
+      modalBody.innerHTML = `<div class="doc-frame"><iframe src="${url}" title="${escapeHtml(
+        title || "PDF"
+      )}"></iframe></div>`;
+    } else if (isImage(url)) {
+      modalBody.innerHTML = `<div class="img-frame"><img src="${url}" alt="${escapeHtml(
+        title || "Image"
+      )}"></div>`;
+    } else {
+      modalBody.innerHTML = `<p><a href="${url}" target="_blank" rel="noopener noreferrer">Open resource</a></p>`;
+    }
+
+    modalOverlay.classList.remove("hidden");
+    modalClose.focus();
+  }
+
+  function closeModal() {
+    modalOverlay.classList.add("hidden");
+    modalBody.innerHTML = "";
+    if (lastFocusedEl && typeof lastFocusedEl.focus === "function") lastFocusedEl.focus();
+    lastFocusedEl = null;
+  }
+
+  modalClose?.addEventListener("click", closeModal);
+  modalOverlay?.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modalOverlay && !modalOverlay.classList.contains("hidden")) {
+      closeModal();
+    }
+  });
+
+  // ----------------------------
+  // Fetch helpers
+  // ----------------------------
+  async function loadTextAsset(path) {
+    const res = await fetch(path, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
+    return await res.text();
+  }
+
+  // ----------------------------
+  // End-of-pathway pill in header (always next to title)
+  // ----------------------------
+  function setRunnerTitle(baseTitle, isTerminal) {
+    runnerTitleEl.innerHTML = "";
+    runnerTitleEl.appendChild(document.createTextNode(baseTitle));
+
+    if (isTerminal) {
+      const pill = document.createElement("span");
+      pill.className = "end-pill";
+      pill.textContent = "End of pathway";
+      runnerTitleEl.appendChild(pill);
+    }
   }
 
   function makeFlagPill(text, level) {
@@ -191,189 +197,209 @@
   }
 
   // ----------------------------
-  // Runner state
+  // Runner controller
   // ----------------------------
-  let activePathwayKey = "acute";
-  let activeNodeId = ACUTE?.start || "A0";
-  let historyStack = [];
-
-  function startPathway(pathwayKey, startNodeIdOverride) {
-    const pw = PATHWAYS[pathwayKey];
-    if (!pw) {
+  function startRunner(pathwayKey, startNodeOverride) {
+    if (!PATHWAYS[pathwayKey]) {
       showView("home");
-      window.location.hash = "#home";
       return;
     }
-
     activePathwayKey = pathwayKey;
-    activeNodeId = startNodeIdOverride || pw.start;
     historyStack = [];
+    const pw = PATHWAYS[activePathwayKey];
+    activeNodeId = startNodeOverride || pw.start;
     showView("runner");
     window.location.hash = "#runner";
     renderRunner();
   }
 
-  function resetPathway() {
-    const pw = PATHWAYS[activePathwayKey];
-    activeNodeId = pw?.start || "A0";
-    historyStack = [];
+  function goToNode(nextNodeId) {
+    if (!nextNodeId) return;
+    historyStack.push(activeNodeId);
+    activeNodeId = nextNodeId;
     renderRunner();
   }
 
-  function backOne() {
+  function goBack() {
     const prev = historyStack.pop();
     if (!prev) return;
     activeNodeId = prev;
     renderRunner();
   }
 
-  function goToNode(nextId) {
-    if (!nextId) return;
-    historyStack.push(activeNodeId);
-    activeNodeId = nextId;
-    renderRunner();
+  // ----------------------------
+  // Option reroute overrides (by page ID, surgical)
+  // ----------------------------
+  function overrideNextByPageId(pageId, optLabel, defaultNext) {
+    // Only apply to acute per your list
+    if (activePathwayKey !== "acute") return defaultNext;
+
+    // Helper: go to A-### safely
+    const goto = (targetPageId) => ACUTE_BY_PAGE[targetPageId] || defaultNext;
+
+    // Normalize label matching (case insensitive, trim)
+    const L = (optLabel || "").trim().toLowerCase();
+
+    // Requested reroutes:
+    if (pageId === "A-012" && L.includes("recent negative test")) return goto("A-023");
+    if (pageId === "A-015" && (L.includes("negative") || L.includes("mildly abnormal"))) return goto("A-023");
+    if (pageId === "A-019" && L.includes("nonobstructive") && L.includes("<50")) return goto("A-023");
+
+    if (pageId === "A-028" && L.includes("no change")) return goto("A-036");
+
+    if (pageId === "A-026" && L.includes("stress testing")) return goto("A-033");
+
+    if (pageId === "A-033" && L.includes("normal")) return goto("A-036");
+
+    // A-014 option "CCTA (Class 1 recommendation)" -> A-019
+    if (pageId === "A-014" && L.includes("ccta") && L.includes("class 1")) return goto("A-019");
+
+    return defaultNext;
   }
 
   // ----------------------------
-  // Runner rendering (supports: decision, step, terminal)
+  // Runner rendering
   // ----------------------------
   function renderRunner() {
     const pw = PATHWAYS[activePathwayKey];
-    const node = pw?.nodes?.[activeNodeId];
+    const nodes = pw?.nodes;
+    const node = nodes?.[activeNodeId];
     if (!node) {
-      // Fail-safe: do not hard-crash; return home if something is wrong
-      console.error("Runner: missing node", activePathwayKey, activeNodeId);
       showView("home");
-      window.location.hash = "#home";
       return;
     }
 
-    // Title
-    if (runnerTitleEl) {
-      const baseTitle =
-        activePathwayKey === "acute"
-          ? "Acute chest pain pathway"
-          : activePathwayKey === "stable"
-          ? "Stable chest pain pathway"
-          : "Pathway";
-      runnerTitleEl.textContent = baseTitle;
-      ensureEndPill(node.type === "terminal");
-    }
+    const pageId = PAGE_IDS[activePathwayKey]?.[activeNodeId] || "—";
 
-    // Step label
-    if (runnerStepEl) {
-      const pageId = PAGE_IDS[activePathwayKey]?.[activeNodeId] || "—";
-      runnerStepEl.textContent = `${activePathwayKey.toUpperCase()} • ${pageId}`;
-    }
+    const baseTitle =
+      activePathwayKey === "acute"
+        ? "Acute chest pain pathway"
+        : activePathwayKey === "stable"
+        ? "Stable chest pain pathway"
+        : "Pathway";
 
-    // Per your rule: do not show “Open testing contraindications” link on non-home pages
-    if (runnerSubactionsEl) runnerSubactionsEl.innerHTML = "";
+    setRunnerTitle(baseTitle, node.type === "terminal");
+    runnerStepEl.textContent = `${activePathwayKey.toUpperCase()} • ${pageId}`;
 
-    // Node content
-    if (nodeTitleEl) nodeTitleEl.textContent = node.title || "—";
-    if (nodeBodyEl) nodeBodyEl.textContent = node.body || "";
+    // Per your requirement: delete “Open testing contraindications…” from every non-home page
+    runnerSubactionsEl.innerHTML = "";
 
-    // Flags (render from node.flags[] like {level,text})
-    if (nodeFlagsEl) {
-      const flags = Array.isArray(node.flags) ? node.flags : [];
-      nodeFlagsEl.innerHTML = flags.length
-        ? flags.map((f) => makeFlagPill(f.text || f.message || "", f.level || "")).join("")
-        : "";
-    }
+    // Title/body (support optional HTML in node.bodyHtml)
+    nodeTitleEl.textContent = node.title || "";
 
-    // Resources
-    if (nodeResourcesEl) {
-      const resources = Array.isArray(node.resources) ? node.resources : [];
-      if (!resources.length) {
-        nodeResourcesEl.classList.add("hidden");
-        nodeResourcesEl.innerHTML = "";
-      } else {
-        nodeResourcesEl.classList.remove("hidden");
-        nodeResourcesEl.innerHTML = resources
-          .map((r, idx) => {
-            const label = r.label || `Resource ${idx + 1}`;
-            const url = r.url || "";
-            // Always open via modal for PDFs/images when possible
-            return `
-              <button class="btn-ghost linklike" type="button" data-res-url="${escapeHtml(
-                url
-              )}" data-res-label="${escapeHtml(label)}">${escapeHtml(label)}</button>
-            `;
-          })
-          .join("");
-
-        nodeResourcesEl.querySelectorAll("button[data-res-url]").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const url = btn.getAttribute("data-res-url") || "";
-            const label = btn.getAttribute("data-res-label") || "Reference";
-            if (!url) return;
-            openDocModal(label, url);
-          });
+    if (node.bodyHtml) {
+      nodeBodyEl.innerHTML = node.bodyHtml;
+      // Intercept modal links in body
+      nodeBodyEl.querySelectorAll("[data-open-doc]").forEach((a) => {
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openDocModal(a.getAttribute("data-title") || "Reference", a.getAttribute("data-open-doc"));
         });
-      }
+      });
+      nodeBodyEl.querySelectorAll("[data-open-image]").forEach((a) => {
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openDocModal(a.getAttribute("data-title") || "Figure", a.getAttribute("data-open-image"));
+        });
+      });
+    } else {
+      nodeBodyEl.textContent = node.body || "";
     }
 
-    // Options (decision/step)
-    if (nodeOptionsEl) nodeOptionsEl.innerHTML = "";
-    if (nodeTerminalEl) {
-      // We intentionally suppress large “terminal” boxes per your requirement
-      nodeTerminalEl.classList.add("hidden");
-      nodeTerminalEl.innerHTML = "";
-    }
+    // Flags
+    nodeFlagsEl.innerHTML = "";
+    (node.flags || []).forEach((f) => {
+      nodeFlagsEl.insertAdjacentHTML("beforeend", makeFlagPill(f.text, f.level));
+    });
 
+    // Clear blocks
+    nodeOptionsEl.innerHTML = "";
+    nodeTerminalEl.classList.add("hidden");
+    nodeTerminalEl.innerHTML = "";
+
+    // Decisions / Steps / Terminals
     if (node.type === "decision") {
-      const opts = Array.isArray(node.options) ? node.options : [];
-      opts.forEach((opt) => {
+      (node.options || []).forEach((opt) => {
         const btn = document.createElement("button");
         btn.className = "choice-btn";
         btn.type = "button";
+        btn.innerHTML = `
+          <div>${escapeHtml(opt.label || "")}</div>
+          ${opt.sub ? `<span class="choice-sub">${escapeHtml(opt.sub)}</span>` : ""}
+        `;
 
-        const sub = opt.sub ? `<span class="choice-sub">${escapeHtml(opt.sub)}</span>` : "";
-        btn.innerHTML = `<div>${escapeHtml(opt.label || "Select")}</div>${sub}`;
-
-        btn.addEventListener("click", () => {
-          // Action-style options supported (keeps acute module flexibility)
+        btn.addEventListener("click", (e) => {
+          // Action support (HEART)
           if (opt.action === "OPEN_HEART") {
             window.open("https://heart-score-calculator.netlify.app", "_blank", "noopener,noreferrer");
             return;
           }
-          if (opt.action === "OPEN_URL" && opt.url) {
-            window.open(opt.url, "_blank", "noopener,noreferrer");
-            return;
-          }
-          goToNode(opt.next);
+
+          // override reroutes (by A-###)
+          const next = overrideNextByPageId(pageId, opt.label, opt.next);
+          goToNode(next);
         });
 
-        nodeOptionsEl?.appendChild(btn);
+        nodeOptionsEl.appendChild(btn);
       });
     } else if (node.type === "step") {
-      // IMPORTANT: step behavior (Continue button)
-      const next = node.next;
-      const label = node.continueLabel || "Continue";
-
       const btn = document.createElement("button");
       btn.className = "choice-btn";
       btn.type = "button";
-      btn.innerHTML = `<div>${escapeHtml(label)}</div>`;
-      btn.addEventListener("click", () => goToNode(next));
-      nodeOptionsEl?.appendChild(btn);
+      btn.innerHTML = `<div>${escapeHtml(node.continueLabel || "Continue")}</div>`;
+      btn.addEventListener("click", () => goToNode(node.next));
+      nodeOptionsEl.appendChild(btn);
     } else if (node.type === "terminal") {
-      // Terminal: show disposition in body; no giant end box
-      if (nodeBodyEl) nodeBodyEl.textContent = node.disposition || node.body || "";
-      if (nodeOptionsEl) nodeOptionsEl.innerHTML = "";
+      // No large End of pathway box; disposition goes in main body area
+      if (!node.bodyHtml) nodeBodyEl.textContent = node.disposition || node.body || "";
+      nodeOptionsEl.innerHTML = "";
     }
 
-    if (btnBack) btnBack.disabled = historyStack.length === 0;
+    // Resources: (A-002 request) bottom + compact
+    const resources = Array.isArray(node.resources) ? node.resources : [];
+    const isA002 = pageId === "A-002";
+
+    nodeResourcesEl.innerHTML = "";
+    nodeResourcesEl.classList.add("hidden");
+    nodeResourcesEl.classList.remove("node-resources--compact");
+
+    if (resources.length) {
+      nodeResourcesEl.classList.remove("hidden");
+      if (isA002) nodeResourcesEl.classList.add("node-resources--compact");
+
+      // Always at bottom by virtue of being below options in DOM (already is).
+      // We keep it here (after options logic) intentionally.
+      const title = isA002 ? "" : `<div class="resources-title">Resources</div>`;
+      nodeResourcesEl.innerHTML =
+        title +
+        `<div class="resources-grid">
+          ${resources
+            .map(
+              (r) => `
+              <button class="resource-btn" data-url="${escapeHtml(r.url)}">
+                ${escapeHtml(r.label)}
+              </button>`
+            )
+            .join("")}
+        </div>`;
+
+      nodeResourcesEl.querySelectorAll("button[data-url]").forEach((b) => {
+        b.addEventListener("click", () => {
+          const url = b.getAttribute("data-url");
+          const label = b.textContent?.trim() || "Resource";
+          if (isPdf(url) || isImage(url)) openDocModal(label, url);
+          else window.open(url, "_blank", "noopener,noreferrer");
+        });
+      });
+    }
+
+    btnBack.disabled = historyStack.length === 0;
   }
 
   // ----------------------------
-  // Recommendations (from Recommendations.txt)
-  // Desired behavior:
-  // - dropdown list by topic (## headings)
-  // - no section numbers shown (stripSectionNumber)
-  // - COR/LOE after every claim (pulled from next-line pattern in your file)
-  // - search bar (already in index.html)
-  // - top link opens recommendations.png figure (modal)
+  // Recommendations parsing/render (already working)
   // ----------------------------
   function stripSectionNumber(title) {
     return (title || "")
@@ -384,7 +410,6 @@
   }
 
   function extractCorLoe(line) {
-    // Accept lines like **(COR 2a, LOE B-NR)** or (COR 1, LOE C-LD)
     const m = (line || "").match(/\(\s*COR[^)]*\)/i);
     return m ? m[0].replace(/\s+/g, " ").trim() : "";
   }
@@ -442,19 +467,16 @@
       }
 
       if (t.startsWith("* ")) {
-        // Bullet claim line
         addClaim(t.slice(2));
         continue;
       }
 
       const corloe = extractCorLoe(t);
       if (corloe) {
-        // COR/LOE line belongs to the immediately preceding claim
         attachCorToLast(corloe);
         continue;
       }
 
-      // Otherwise: treat as narrative claim (rare in your file but safe)
       addClaim(t);
     }
 
@@ -469,9 +491,7 @@
       if (!claims || !claims.length) return "";
       return `<ul>${claims
         .map((c) => {
-          const cor = c.corloe
-            ? ` <span class="muted small">${escapeHtml(c.corloe)}</span>`
-            : "";
+          const cor = c.corloe ? ` <span class="muted small">${escapeHtml(c.corloe)}</span>` : "";
           return `<li>${escapeHtml(c.text)}${cor}</li>`;
         })
         .join("")}</ul>`;
@@ -513,20 +533,13 @@
   let RECOMMENDATIONS_SECTIONS = [];
 
   async function loadRecommendations() {
-    const res = await fetch("./Recommendations.txt", { cache: "no-store" });
-    if (!res.ok) throw new Error(`Recommendations.txt not found (${res.status})`);
-    const raw = await res.text();
+    const raw = await loadTextAsset("./Recommendations.txt");
     RECOMMENDATIONS_SECTIONS = parseRecommendations(raw);
-    if (evidenceContentEl) renderRecommendations(evidenceContentEl, RECOMMENDATIONS_SECTIONS, evidenceSearchEl?.value || "");
+    renderRecommendations(evidenceContentEl, RECOMMENDATIONS_SECTIONS, evidenceSearchEl?.value || "");
   }
 
   // ----------------------------
-  // Contraindications
-  // Desired behavior:
-  // - dropdown per modality only (## headings)
-  // - keep "Contraindicated or Not Appropriate When:" as a subheader (not its own dropdown)
-  // NOTE: this expects a file at ./ContraindicationsImagingModality.txt.
-  // If you use a different filename, change it below.
+  // Contra rendering (dropdown per modality only)
   // ----------------------------
   function renderContraindicationsByModality(containerEl, raw) {
     const lines = (raw || "").split("\n");
@@ -557,33 +570,28 @@
 
     const html = sections
       .map((sec, idx) => {
-        // Pull out the “Contraindicated…” line if present
         const body = sec.bodyLines || [];
-        const ciIndex = body.findIndex((x) =>
-          /^contraindicated or not appropriate when:/i.test(x)
+
+        const cleaned = body.filter((x) => !/^Section\s*#\s*Contraindications/i.test(x));
+
+        const ciIndex = cleaned.findIndex((x) =>
+          /^contraindicated\s+or\s+not\s+appropriate\s+when:/i.test(x)
         );
 
-        let ciLine = "";
-        let remainder = body;
-
-        if (ciIndex >= 0) {
-          ciLine = body[ciIndex];
-          remainder = body.slice(ciIndex + 1);
-        }
+        const ciLine = ciIndex >= 0 ? cleaned[ciIndex] : "Contraindicated or Not Appropriate When:";
+        const remainder = ciIndex >= 0 ? cleaned.slice(ciIndex + 1) : cleaned;
 
         const remainderHtml = remainder.length
-          ? `<ul>${remainder.map((x) => `<li>${escapeHtml(x.replace(/^\*\s*/, ""))}</li>`).join("")}</ul>`
+          ? `<ul>${remainder
+              .map((x) => `<li>${escapeHtml(x.replace(/^\*\s*/, ""))}</li>`)
+              .join("")}</ul>`
           : "";
 
         return `
           <details ${idx === 0 ? "open" : ""}>
             <summary>${escapeHtml(sec.title)}</summary>
             <div class="acc-body">
-              ${
-                ciLine
-                  ? `<div class="acc-subhead">${escapeHtml(ciLine)}</div>`
-                  : `<div class="acc-subhead">Contraindicated or Not Appropriate When:</div>`
-              }
+              <div class="acc-subhead">${escapeHtml(ciLine)}</div>
               ${remainderHtml}
             </div>
           </details>
@@ -595,50 +603,87 @@
   }
 
   async function loadContraindications() {
-    const res = await fetch("./ContraindicationsImagingModality.txt", { cache: "no-store" });
-    if (!res.ok) throw new Error(`ContraindicationsImagingModality.txt not found (${res.status})`);
-    const raw = await res.text();
-    if (contraContentEl) renderContraindicationsByModality(contraContentEl, raw);
+    const raw = await loadTextAsset("./ContraindicationsImagingModality.txt");
+    renderContraindicationsByModality(contraContentEl, raw);
   }
 
   // ----------------------------
-  // “Explore testing modalities” (your home button exists)
-  // Minimal behavior: opens modal with a simple chooser + links.
-  // (Does not alter pathways.)
+  // Background rendering (nice, no dropdown)
   // ----------------------------
-  function openExploreModalities() {
-    const html = `
-      <p class="muted">Quick access references (opens in modal when possible).</p>
-      <div class="btn-stack">
-        <button class="choice-btn" type="button" data-open-doc="./Recomendations.png" data-open-title="ACC/AHA COR/LOE interpretation">
-          <div>COR/LOE interpretation figure</div>
-        </button>
-      </div>
-      <p class="muted small">Add modality PDFs here as you wire them in (CCTA, ICA, etc.).</p>
-    `;
-    openDocModal("Explore testing modalities", ""); // open modal shell
-    // Replace modal body content safely
-    if (modalBody) modalBody.innerHTML = html;
+  function renderBackgroundNice(raw) {
+    const lines = (raw || "").split("\n");
+    const blocks = [];
+    let current = { heading: null, paras: [], bullets: [] };
 
-    modalBody?.querySelectorAll("button[data-open-doc]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const url = btn.getAttribute("data-open-doc") || "";
-        const title = btn.getAttribute("data-open-title") || "Reference";
-        openDocModal(title, url);
-      });
-    });
+    const push = () => {
+      const has = current.heading || current.paras.length || current.bullets.length;
+      if (!has) return;
+      blocks.push(current);
+      current = { heading: null, paras: [], bullets: [] };
+    };
+
+    for (const ln of lines) {
+      const t = (ln || "").trim();
+      if (!t || t === "---") continue;
+
+      if (t.startsWith("# ")) continue; // ignore top-level doc title
+      if (t.startsWith("## ")) {
+        push();
+        current.heading = stripSectionNumber(t.slice(3));
+        continue;
+      }
+      if (t.startsWith("* ")) {
+        current.bullets.push(t.slice(2));
+        continue;
+      }
+      current.paras.push(t);
+    }
+    push();
+
+    return blocks
+      .map((b) => {
+        const h = b.heading ? `<h3 class="bg-h">${escapeHtml(b.heading)}</h3>` : "";
+        const p = b.paras.map((x) => `<p class="bg-p">${escapeHtml(x)}</p>`).join("");
+        const ul = b.bullets.length
+          ? `<ul class="bg-ul">${b.bullets.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>`
+          : "";
+        return `<div class="bg-block">${h}${p}${ul}</div>`;
+      })
+      .join("");
+  }
+
+  async function loadBackground() {
+    const raw = await loadTextAsset("./Chest Pain Background.txt");
+    backgroundContentEl.innerHTML = renderBackgroundNice(raw);
   }
 
   // ----------------------------
-  // Navigation wiring (IDs match your pasted index.html)
+  // Wire buttons
   // ----------------------------
-  btnStartAcute?.addEventListener("click", () => startPathway("acute", ACUTE?.start || "A0"));
-  btnStartStable?.addEventListener("click", () => startPathway("stable", STABLE?.start));
-  btnBack?.addEventListener("click", backOne);
-  btnReset?.addEventListener("click", resetPathway);
+  btnStartAcute?.addEventListener("click", () => startRunner("acute"));
+  btnStartStable?.addEventListener("click", () => startRunner("stable"));
+
+  btnBack?.addEventListener("click", goBack);
+  btnReset?.addEventListener("click", () => {
+    historyStack = [];
+    const pw = PATHWAYS[activePathwayKey];
+    activeNodeId = pw?.start;
+    renderRunner();
+  });
   btnHome?.addEventListener("click", () => {
     showView("home");
     window.location.hash = "#home";
+  });
+
+  btnBackground?.addEventListener("click", async () => {
+    showView("background");
+    window.location.hash = "#background";
+    try {
+      await loadBackground();
+    } catch (e) {
+      console.error(e);
+      backgroundContentEl.innerHTML = `<p class="muted">Unable to load Chest Pain Background.txt</p>`;
+    }
   });
 
   btnEvidence?.addEventListener("click", async () => {
@@ -646,9 +691,9 @@
     window.location.hash = "#evidence";
     try {
       await loadRecommendations();
-    } catch (err) {
-      console.error(err);
-      if (evidenceContentEl) evidenceContentEl.innerHTML = `<p class="muted">Unable to load recommendations.</p>`;
+    } catch (e) {
+      console.error(e);
+      evidenceContentEl.innerHTML = `<p class="muted">Unable to load Recommendations.txt</p>`;
     }
   });
 
@@ -657,74 +702,37 @@
     window.location.hash = "#contra";
     try {
       await loadContraindications();
-    } catch (err) {
-      console.error(err);
-      if (contraContentEl) contraContentEl.innerHTML = `<p class="muted">Unable to load contraindications.</p>`;
+    } catch (e) {
+      console.error(e);
+      contraContentEl.innerHTML = `<p class="muted">Unable to load ContraindicationsImagingModality.txt</p>`;
     }
   });
 
-  btnExploreModalities?.addEventListener("click", () => openExploreModalities());
-
+  btnBackgroundHome?.addEventListener("click", () => {
+    showView("home");
+    window.location.hash = "#home";
+  });
   btnEvidenceHome?.addEventListener("click", () => {
     showView("home");
     window.location.hash = "#home";
   });
-
   btnContraHome?.addEventListener("click", () => {
     showView("home");
     window.location.hash = "#home";
   });
 
   evidenceSearchEl?.addEventListener("input", () => {
-    if (!evidenceContentEl) return;
     renderRecommendations(evidenceContentEl, RECOMMENDATIONS_SECTIONS, evidenceSearchEl.value || "");
   });
 
-  // Top link: open the COR/LOE figure image in modal
   evidenceFigureLinkEl?.addEventListener("click", (e) => {
     e.preventDefault();
-    openDocModal("ACC/AHA COR/LOE interpretation", "./Recomendations.png");
+    // Use correct filename (Recommendations.png) if that’s what you have in repo
+    openDocModal("ACC/AHA COR/LOE interpretation", "./Recommendations.png");
   });
 
   // ----------------------------
-  // Initial load
+  // Boot
   // ----------------------------
-  function boot() {
-    // Default route: home
-    if (!window.location.hash || window.location.hash === "#home") {
-      showView("home");
-      return;
-    }
-
-    // Support direct linking to views
-    if (window.location.hash === "#runner") {
-      // Keep acute as default if stable missing
-      startPathway("acute", ACUTE?.start || "A0");
-      return;
-    }
-
-    if (window.location.hash === "#evidence") {
-      showView("evidence");
-      loadRecommendations().catch((err) => {
-        console.error(err);
-        if (evidenceContentEl) evidenceContentEl.innerHTML = `<p class="muted">Unable to load recommendations.</p>`;
-      });
-      return;
-    }
-
-    if (window.location.hash === "#contra") {
-      showView("contra");
-      loadContraindications().catch((err) => {
-        console.error(err);
-        if (contraContentEl) contraContentEl.innerHTML = `<p class="muted">Unable to load contraindications.</p>`;
-      });
-      return;
-    }
-
-    showView("home");
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    boot();
-  });
-})();
+  showView("home");
+});
