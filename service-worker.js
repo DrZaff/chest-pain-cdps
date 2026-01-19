@@ -1,4 +1,4 @@
-const CACHE = "ctdev-cache-v8";
+const CACHE = "ctdev-cache-v4";
 
 const ASSETS = [
   "/",
@@ -7,32 +7,37 @@ const ASSETS = [
   "/script.js",
   "/acute-pathway.js",
   "/manifest.json",
-  "/icons/heart_192.png",
-  "/icons/heart_512.png",
-  "/icons/heart_180.png",
+  "/Recommendations.txt",
+  "/ContraindicationsImagingModality.txt",
+  "/Chest Pain Background.txt",
+  "/Recomendations.png",
+
+  // Icons
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+  "/icons/apple-touch-icon-180.png",
+
+  // Optional PDFs (safe to include if present)
+  "/ICA-summary.pdf",
+  "/CCTA-summary.pdf",
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
+  event.waitUntil(
+    caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.map((k) => (k !== CACHE ? caches.delete(k) : null)))
-    )
+    ).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((resp) => {
-        const copy = resp.clone();
-        caches.open(CACHE).then((cache) => cache.put(event.request, copy));
-        return resp;
-      });
-    })
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });

@@ -437,3 +437,85 @@ body {
     font-size: 1.75rem;
   }
 }
+
+/* Runner title pill for terminal nodes */
+#runner-title {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.end-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: .28rem .7rem;
+  border-radius: 999px;
+  font-size: .78rem;
+  border: 1px solid rgba(255,107,107,.35);
+  background: rgba(255,107,107,.10);
+  color: #ff6b6b;
+}
+
+/* Make resources smaller + more discrete at bottom */
+.node-resources {
+  margin-top: 1rem;
+  padding-top: .75rem;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.resources-title {
+  font-size: .85rem;
+  opacity: .85;
+  margin-bottom: .5rem;
+}
+
+.resources-grid {
+  display: grid;
+  gap: .4rem;
+}
+
+.resource-btn {
+  text-align: left;
+  font-size: .85rem;
+  padding: .55rem .7rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.03);
+  color: inherit;
+}
+
+.resources-cite {
+  margin-top: .5rem;
+  font-size: .78rem;
+  opacity: .7;
+}
+
+/* Contra subheader styling */
+.contra-subhead {
+  font-weight: 650;
+  margin: .4rem 0 .4rem;
+  opacity: .95;
+}
+
+.tight-list {
+  margin: .35rem 0 .1rem 1.2rem;
+}
+
+.subbullet {
+  opacity: .95;
+}
+
+/* Modal PDF/image frames */
+.doc-frame iframe {
+  width: 100%;
+  height: min(70vh, 720px);
+  border: 0;
+  border-radius: 12px;
+}
+
+.img-frame img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
