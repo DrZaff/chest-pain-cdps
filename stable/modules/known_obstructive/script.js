@@ -178,7 +178,225 @@ backBtn?.addEventListener("click", () => window.history.back());
     // Show stress block only when highRisk is explicitly "no"
     setDisplay(stressBlock, hr === "no");
   }
+// ==============================
+// Wave 2 #1 Guided Recommender — Known Obstructive
+// - Lives inside #stressBlock
+// - Stepwise prompts (one at a time)
+// - Apply buttons only after 3 prompts answered
+// - Non-blocking; only sets stressModality
+// ==============================
 
+const rec = {
+  canExercise: document.getElementById("rec_canExercise"),
+  ecgWrap: document.getElementById("rec_ecgWrap"),
+  ecg: document.getElementById("rec_ecgInterpretable"),
+  // Optional extra sections (if present in your HTML; safe if null)
+  hardStopsWrap: document.getElementById("rec_hardStopsWrap"),
+  availWrap: document.getElementById("rec_availWrap"),
+  renalWrap: document.getElementById("rec_renalWrap"),
+  renal: document.getElementById("rec_renalConcern"),
+  output: document.getElementById("rec_output"),
+  applyRow: document.getElementById("rec_applyRow"),
+  btnPrimary: document.getElementById("rec_applyPrimary"),
+  btnAlt1: document.getElementById("rec_applyAlt1"),
+  btnAlt2: document.getElementById("rec_applyAlt2"),
+};
+
+// Module elements
+const highRiskEl = document.getElementById("highRisk");
+const stressBlockEl = document.getElementById("stressBlock");
+const stressModalityEl = document.getElementById("stressModality");
+
+function show(el, on) {
+  if (!el) return;
+  el.style.display = on ? "" : "none";
+}
+function v(el) {
+  return (el && el.value) ? el.value : "";
+}
+
+// If your file doesn't already have escapeHtml, keep this one-liner:
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[m]));
+}
+
+function applyLabel(mod) {
+  const map = {
+    stress_pet: "Apply Stress PET",
+    stress_spect: "Apply Stress SPECT",
+    stress_cmr: "Apply Stress CMR",
+    stress_echo: "Apply Stress echo",
+    exercise_ecg: "Apply Exercise ECG",
+  };
+  return map[mod] || "Apply";
+}
+
+// Heuristic modality ranking (non-blocking)
+// Inputs: canExercise, ecgInterpretable, renalConcern
+function recommendObstructiveStress(r) {
+  const out = { primary: null, alternatives: [] };
+  if (!r.canExercise) return out;
+
+  const renalYes = r.renalConcern === "yes";
+  const canExYes = r.canExercise === "yes";
+  const ecgYes = r.ecgInterpretable === "yes";
+
+  const cands = [];
+
+  // Exercise ECG only in selected cases
+  if (canExYes && ecgYes) {
+    cands.push({
+      mod: "exercise_ecg",
+      label: "Exercise ECG (selected cases)",
+      note: "Selected cases: interpretable baseline ECG + adequate exercise capacity.",
+      score: 3,
+    });
+  }
+
+  // Stress CMR tends to be excellent if available (renal concern may matter locally)
+  cands.push({
+    mod: "stress_cmr",
+    label: "Stress CMR",
+    note: renalYes ? "Renal impairment may affect contrast use per local protocol." : "Good option when available and feasible.",
+    score: renalYes ? 3 : 4,
+  });
+
+  // PET (often highest performance; availability-dependent, but we are not asking availability here)
+  cands.push({
+    mod: "stress_pet",
+    label: "Stress PET",
+    note: "Consider if available; useful when echo windows are poor or higher accuracy desired.",
+    score: 4,
+  });
+
+  // Stress echo
+  cands.push({
+    mod: "stress_echo",
+    label: "Stress echocardiography",
+    note: "Good option when image quality is expected to be adequate.",
+    score: 3,
+  });
+
+  // SPECT as a common alternative
+  cands.push({
+    mod: "stress_spect",
+    label: "Stress SPECT",
+    note: "Useful alternative when PET/CMR not available; consider local protocol.",
+    score: 2,
+  });
+
+  // Sort and pick top 3
+  cands.sort((a, b) => b.score - a.score);
+  out.primary = cands[0];
+  out.alternatives = cands.slice(1, 3);
+  return out;
+}
+
+function applyRec(mod) {
+  if (!stressModalityEl || !mod) return;
+  stressModalityEl.value = mod;
+  stressModalityEl.dispatchEvent(new Event("change", { bubbles: true }));
+
+  // Re-run your existing UI visibility logic if present
+  if (typeof normalize === "function") normalize();
+}
+
+function renderRec() {
+  // Only relevant when stressBlock is visible AND highRisk = "no"
+  const hr = v(highRiskEl);
+
+  const stressVisible =
+    !!stressBlockEl &&
+    stressBlockEl.style.display !== "none" &&
+    hr === "no";
+
+  if (!stressVisible) {
+    // Hide everything so it doesn't confuse users
+    show(rec.ecgWrap, false);
+    show(rec.renalWrap, false);
+    show(rec.hardStopsWrap, false);
+    show(rec.availWrap, false);
+    show(rec.applyRow, false);
+    if (rec.output) {
+      rec.output.innerHTML = `<strong>Recommendation</strong><p class="micro-note">Available when stress testing is the selected route.</p>`;
+    }
+    return;
+  }
+
+  // Stepwise prompts
+  const canEx = v(rec.canExercise);
+  show(rec.ecgWrap, canEx === "yes");
+
+  const ecgNeeded = canEx === "yes";
+  const ecgAns = v(rec.ecg);
+
+  const readyForRenal = !!canEx && (!ecgNeeded || !!ecgAns);
+  show(rec.renalWrap, readyForRenal);
+
+  // Keep extra sections hidden for Option A (reduce overwhelm)
+  show(rec.hardStopsWrap, false);
+  show(rec.availWrap, false);
+
+  const renalAns = v(rec.renal);
+
+  // Gate: 3 prompts answered (Step 1 + Step 2 if needed + renal)
+  const gateOk = !!canEx && (!ecgNeeded || !!ecgAns) && !!renalAns;
+
+  const out = recommendObstructiveStress({
+    canExercise: canEx,
+    ecgInterpretable: ecgAns,
+    renalConcern: renalAns,
+  });
+
+  if (!rec.output) return;
+
+  if (!out.primary) {
+    rec.output.innerHTML = `<strong>Recommendation</strong><p class="micro-note">Answer the first prompt to begin.</p>`;
+    show(rec.applyRow, false);
+    return;
+  }
+
+  rec.output.innerHTML = `
+    <strong>Recommendation</strong>
+    <div style="margin-top:0.45rem;"><strong>${escapeHtml(out.primary.label)}</strong></div>
+    <p class="micro-note" style="margin-top:0.35rem;">${escapeHtml(out.primary.note || "")}</p>
+    ${!gateOk ? `<p class="micro-note">Answer the first 3 prompts to unlock Apply buttons.</p>` : ""}
+  `;
+
+  show(rec.applyRow, gateOk);
+  if (!gateOk) return;
+
+  // Primary
+  rec.btnPrimary.textContent = applyLabel(out.primary.mod);
+  rec.btnPrimary.onclick = () => applyRec(out.primary.mod);
+
+  // Alt 1
+  if (out.alternatives[0]) {
+    show(rec.btnAlt1, true);
+    rec.btnAlt1.textContent = applyLabel(out.alternatives[0].mod);
+    rec.btnAlt1.onclick = () => applyRec(out.alternatives[0].mod);
+  } else {
+    show(rec.btnAlt1, false);
+  }
+
+  // Alt 2
+  if (out.alternatives[1]) {
+    show(rec.btnAlt2, true);
+    rec.btnAlt2.textContent = applyLabel(out.alternatives[1].mod);
+    rec.btnAlt2.onclick = () => applyRec(out.alternatives[1].mod);
+  } else {
+    show(rec.btnAlt2, false);
+  }
+}
+
+// Wire events (safe if any missing)
+[highRiskEl, rec.canExercise, rec.ecg, rec.renal].forEach((el) => {
+  if (!el) return;
+  el.addEventListener("change", renderRec);
+});
+
+// Initial render
+renderRec();
   highRisk?.addEventListener("change", normalize);
   normalize();
   setupModals();
