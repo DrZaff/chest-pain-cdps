@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // -------- Views --------
+  // ----------------------------
+  // Views
+  // ----------------------------
   const VIEWS = {
     home: document.getElementById("view-home"),
     runner: document.getElementById("view-runner"),
@@ -7,7 +9,14 @@ document.addEventListener("DOMContentLoaded", () => {
     contra: document.getElementById("view-contra"),
   };
 
-  // -------- Runner DOM --------
+  function showView(viewKey) {
+    Object.values(VIEWS).forEach((v) => v && v.classList.add("hidden"));
+    VIEWS[viewKey]?.classList.remove("hidden");
+  }
+
+  // ----------------------------
+  // DOM refs (runner)
+  // ----------------------------
   const runnerTitleEl = document.getElementById("runner-title");
   const runnerStepEl = document.getElementById("runner-step");
   const runnerSubactionsEl = document.getElementById("runner-subactions");
@@ -23,24 +32,38 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnReset = document.getElementById("btn-reset");
   const btnHome = document.getElementById("btn-home");
 
-  // -------- Home buttons --------
+  // ----------------------------
+  // DOM refs (home + reference buttons)
+  // IMPORTANT: match actual IDs in index.html
+  // ----------------------------
   const btnStartAcute = document.getElementById("btn-start-acute");
   const btnStartStable = document.getElementById("btn-start-stable");
-  const btnEvidence = document.getElementById("btnEvidence");
-  const btnContra = document.getElementById("btnContra");
+  const btnEvidence = document.getElementById("btn-evidence");
+  const btnContra = document.getElementById("btn-contra");
 
-  // Evidence/Contra home buttons
   const btnEvidenceHome = document.getElementById("btn-evidence-home");
   const btnContraHome = document.getElementById("btn-contra-home");
 
-  // -------- Modal --------
+  // Evidence page elements
+  const evidenceContentEl = document.getElementById("evidence-content");
+  const evidenceSearchEl = document.getElementById("evidence-search");
+  const evidenceFigureLinkEl = document.getElementById("evidence-figure-link");
+
+  // Contra page elements
+  const contraContentEl = document.getElementById("contra-content");
+
+  // ----------------------------
+  // Modal
+  // ----------------------------
   const modalOverlay = document.getElementById("modalOverlay");
   const modalTitle = document.getElementById("modalTitle");
   const modalBody = document.getElementById("modalBody");
   const modalClose = document.getElementById("modalClose");
   let lastFocusedEl = null;
 
-  // -------- Utilities --------
+  // ----------------------------
+  // Utilities
+  // ----------------------------
   function escapeHtml(str) {
     return (str ?? "")
       .toString()
@@ -57,19 +80,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return await res.text();
   }
 
-  function showView(viewKey) {
-    Object.values(VIEWS).forEach((v) => v && v.classList.add("hidden"));
-    VIEWS[viewKey]?.classList.remove("hidden");
-  }
-
-  function openModalityModal(title, html) {
-    lastFocusedEl = document.activeElement;
-    modalTitle.textContent = title || "Reference";
-    modalBody.innerHTML = html || "";
-    modalOverlay.classList.remove("hidden");
-    modalClose.focus();
-  }
-
   function isPdf(url) {
     return typeof url === "string" && url.toLowerCase().endsWith(".pdf");
   }
@@ -81,6 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function openDocModal(title, url) {
     if (!url) return;
     lastFocusedEl = document.activeElement;
+
     modalTitle.textContent = title || "Reference";
 
     if (isPdf(url)) {
@@ -122,131 +133,208 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ----------------------------
-  // Guideline markdown parser (generic)
+  // Pathway normalization (supports acute object-map OR stable module shape)
   // ----------------------------
-  function parseGuidelineMarkdown(raw) {
-    const lines = raw.split("\n");
-    const sections = [];
-    let current = null;
+  function normalizePathway(pw) {
+    if (!pw) return null;
+    const nodes = pw.nodes ? pw.nodes : pw; // acute-pathway.js is a direct node map
+    const start = pw.start ? pw.start : Object.keys(nodes)[0]; // fall back to first key
+    return { nodes, start };
+  }
 
-    function pushCurrent() {
-      if (!current) return;
-      const hasContent =
-        (current.paragraphs && current.paragraphs.length) ||
-        (current.bullets && current.bullets.length) ||
-        (current.sub && current.sub.length);
-      if (hasContent) sections.push(current);
-      current = null;
+  const ACUTE = normalizePathway(window.__ACUTE_PATHWAY__);
+  const STABLE = normalizePathway(window.__STABLE_PATHWAY__);
+
+  const PATHWAYS = {
+    acute: ACUTE,
+    stable: STABLE,
+  };
+
+  function buildPageIndex(nodesObj, prefix) {
+    const map = {};
+    const keys = Object.keys(nodesObj || {});
+    keys.forEach((k, i) => {
+      map[k] = `${prefix}-${String(i + 1).padStart(3, "0")}`;
+    });
+    return map;
+  }
+
+  const PAGE_IDS = {
+    acute: ACUTE ? buildPageIndex(ACUTE.nodes, "A") : {},
+    stable: STABLE ? buildPageIndex(STABLE.nodes, "S") : {},
+  };
+
+  // ----------------------------
+  // Runner state
+  // ----------------------------
+  let activePathwayKey = "acute";
+  let activeNodeId = ACUTE?.start || "A0";
+  let historyStack = [];
+
+  function startPathway(pathwayKey, startNodeIdOverride) {
+    const pw = PATHWAYS[pathwayKey];
+    if (!pw) {
+      // stable module might be maintained elsewhere; fail-safe to home
+      showView("home");
+      window.location.hash = "#home";
+      return;
     }
 
-    function normalizeHeading(h) {
-      const t = (h || "").replaceAll("**", "").trim();
-      return t;
+    activePathwayKey = pathwayKey;
+    activeNodeId = startNodeIdOverride || pw.start;
+    historyStack = [];
+    showView("runner");
+    window.location.hash = "#runner";
+    renderRunner();
+  }
+
+  function goToNode(nextId) {
+    if (!nextId) return;
+    historyStack.push(activeNodeId);
+    activeNodeId = nextId;
+    renderRunner();
+  }
+
+  function backOne() {
+    const prev = historyStack.pop();
+    if (!prev) return;
+    activeNodeId = prev;
+    renderRunner();
+  }
+
+  function resetPathway() {
+    const pw = PATHWAYS[activePathwayKey];
+    if (!pw) return;
+    historyStack = [];
+    activeNodeId = pw.start;
+    renderRunner();
+  }
+
+  // ----------------------------
+  // Runner render
+  // ----------------------------
+  function renderRunner() {
+    const pw = PATHWAYS[activePathwayKey];
+    if (!pw) return;
+
+    const node = pw.nodes?.[activeNodeId];
+    if (!node) return;
+
+    // Title + terminal pill
+    {
+      const baseTitle =
+        activePathwayKey === "acute" ? "Acute chest pain pathway" : "Stable chest pain pathway";
+      runnerTitleEl.innerHTML = "";
+      runnerTitleEl.appendChild(document.createTextNode(baseTitle));
+
+      if (node.type === "terminal") {
+        const pill = document.createElement("span");
+        pill.className = "end-pill";
+        pill.textContent = "End of pathway";
+        runnerTitleEl.appendChild(pill);
+      }
     }
 
-    lines.forEach((line) => {
-      const t = line.trim();
-      if (!t || t === "---") return;
+    const pageId = PAGE_IDS[activePathwayKey]?.[activeNodeId] || "—";
+    runnerStepEl.textContent = `${activePathwayKey.toUpperCase()} • ${pageId}`;
 
-      if (t.startsWith("# ")) {
-        // ignore top-level title
-        return;
-      }
-      if (t.startsWith("## ")) {
-        pushCurrent();
-        current = {
-          title: normalizeHeading(t.slice(3)),
-          paragraphs: [],
-          bullets: [],
-          sub: [],
-        };
-        return;
-      }
-      if (t.startsWith("### ")) {
-        if (!current) {
-          current = { title: "Section", paragraphs: [], bullets: [], sub: [] };
-        }
-        current.sub.push({
-          title: normalizeHeading(t.slice(4)),
-          paragraphs: [],
-          bullets: [],
-        });
-        return;
-      }
-      const isBullet = t.startsWith("* ");
-      const isBoldOnlySub = t.startsWith("**(") && t.endsWith(")**");
-      const activeSub = current?.sub?.length ? current.sub[current.sub.length - 1] : null;
+    // Per your request: no contraindications runner link on non-home pages
+    runnerSubactionsEl.innerHTML = "";
 
-      if (isBoldOnlySub) {
-        // treat as a paragraph line (generic)
-        const text = t.replaceAll("**", "").trim();
-        if (activeSub) activeSub.paragraphs.push(text);
-        else current?.paragraphs.push(text);
-        return;
-      }
+    nodeTitleEl.textContent = node.title || "";
+    nodeBodyEl.textContent = node.body || "";
 
-      if (isBullet) {
-        const text = t.slice(2).trim();
-        if (activeSub) activeSub.bullets.push(text);
-        else current?.bullets.push(text);
-        return;
-      }
-
-      // plain paragraph
-      if (activeSub) activeSub.paragraphs.push(t);
-      else current?.paragraphs.push(t);
+    // Flags
+    nodeFlagsEl.innerHTML = "";
+    (node.flags || []).forEach((f) => {
+      nodeFlagsEl.insertAdjacentHTML("beforeend", makeFlagPill(f.text, f.level));
     });
 
-    pushCurrent();
-    return sections;
-  }
+    // Resources (IMPORTANT: unhide when present)
+    nodeResourcesEl.innerHTML = "";
+    nodeResourcesEl.classList.add("hidden");
+    if (node.resources && node.resources.length) {
+      nodeResourcesEl.classList.remove("hidden");
+      nodeResourcesEl.innerHTML = `
+        <div class="resources-title">Resources</div>
+        <div class="resources-grid">
+          ${node.resources
+            .map(
+              (r) => `
+              <button class="resource-btn" data-url="${escapeHtml(r.url)}">
+                ${escapeHtml(r.label)}
+              </button>
+            `
+            )
+            .join("")}
+        </div>
+      `;
 
-  function renderParsedAccordion(containerEl, sections, searchValue = "", options = {}) {
-    const q = searchValue.trim().toLowerCase();
-    const openFirst = options.openFirst ?? false;
+      nodeResourcesEl.querySelectorAll("button[data-url]").forEach((b) => {
+        b.addEventListener("click", () => {
+          const url = b.getAttribute("data-url");
+          if (isPdf(url) || isImage(url)) {
+            openDocModal(b.textContent?.trim() || "Resource", url);
+          } else {
+            window.open(url, "_blank", "noopener,noreferrer");
+          }
+        });
+      });
+    }
 
-    const html = sections
-      .map((sec, idx) => {
-        const blob = JSON.stringify(sec).toLowerCase();
-        if (q && !blob.includes(q)) return "";
+    // Options / Terminal blocks
+    nodeOptionsEl.innerHTML = "";
+    nodeTerminalEl.classList.add("hidden");
+    nodeTerminalEl.innerHTML = "";
 
-        const renderBlock = (b) => {
-          const paras = (b.paragraphs || []).map((p) => `<p>${escapeHtml(p)}</p>`).join("");
-          const bullets = (b.bullets || []).map((li) => `<li>${escapeHtml(li)}</li>`).join("");
-          const ul = bullets ? `<ul>${bullets}</ul>` : "";
-          return `${paras}${ul}`;
-        };
-
-        const subHtml = (sec.sub || [])
-          .map((sub) => {
-            const subBlob = JSON.stringify(sub).toLowerCase();
-            if (q && !subBlob.includes(q)) return "";
-            return `
-              <div class="acc-subblock">
-                <div class="acc-subhead">${escapeHtml(sub.title)}</div>
-                ${renderBlock(sub)}
-              </div>
-            `;
-          })
-          .join("");
-
-        const openAttr = openFirst && idx === 0 && !q ? "open" : "";
-        return `
-          <details ${openAttr}>
-            <summary>${escapeHtml(sec.title)}</summary>
-            <div class="acc-body">
-              ${renderBlock(sec)}
-              ${subHtml}
-            </div>
-          </details>
+    if (node.type === "decision") {
+      (node.options || []).forEach((opt) => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.type = "button";
+        btn.innerHTML = `
+          <div>${escapeHtml(opt.label || "")}</div>
+          ${opt.sub ? `<span class="choice-sub">${escapeHtml(opt.sub)}</span>` : ""}
         `;
-      })
-      .join("");
 
-    containerEl.innerHTML = html || `<p class="muted">No matches.</p>`;
+        btn.addEventListener("click", () => {
+          // Support action-style options (e.g., OPEN_HEART)
+          if (opt.action === "OPEN_HEART") {
+            window.open("https://heart-score-calculator.netlify.app", "_blank", "noopener,noreferrer");
+            return;
+          }
+          if (opt.action === "OPEN_URL" && opt.url) {
+            window.open(opt.url, "_blank", "noopener,noreferrer");
+            return;
+          }
+          goToNode(opt.next);
+        });
+
+        nodeOptionsEl.appendChild(btn);
+      });
+    } else if (node.type === "step") {
+      // IMPORTANT: restore step behavior (continue button)
+      const next = node.next;
+      const label = node.continueLabel || "Continue";
+
+      const btn = document.createElement("button");
+      btn.className = "choice-btn";
+      btn.type = "button";
+      btn.innerHTML = `<div>${escapeHtml(label)}</div>`;
+      btn.addEventListener("click", () => goToNode(next));
+      nodeOptionsEl.appendChild(btn);
+    } else if (node.type === "terminal") {
+      // No large terminal box; show disposition in main body
+      nodeBodyEl.textContent = node.disposition || node.body || "";
+      nodeOptionsEl.innerHTML = "";
+    }
+
+    btnBack.disabled = historyStack.length === 0;
   }
 
-  // -------- Recommendations parsing (topic dropdowns + COR/LOE after each claim) --------
+  // ----------------------------
+  // Recommendations parsing/render (from Recommendations.txt)
+  // ----------------------------
   function stripSectionNumber(title) {
     return (title || "")
       .replaceAll("**", "")
@@ -276,17 +364,8 @@ document.addEventListener("DOMContentLoaded", () => {
       currentSub = null;
     };
 
-    const ensure = (title) => {
-      if (!current)
-        current = {
-          title: stripSectionNumber(title || "Recommendations"),
-          claims: [],
-          sub: [],
-        };
-    };
-
     const addClaim = (text) => {
-      ensure("Recommendations");
+      if (!current) current = { title: "Recommendations", claims: [], sub: [] };
       const c = { text: (text || "").trim(), corloe: "" };
       if (currentSub) currentSub.claims.push(c);
       else current.claims.push(c);
@@ -311,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (t.startsWith("### ")) {
-        ensure("Recommendations");
+        if (!current) current = { title: "Recommendations", claims: [], sub: [] };
         currentSub = { heading: stripSectionNumber(t.slice(4)), claims: [] };
         current.sub.push(currentSub);
         continue;
@@ -328,7 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
         continue;
       }
 
-      // narrative line
+      // narrative line as claim
       addClaim(t);
     }
 
@@ -343,9 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!claims || !claims.length) return "";
       return `<ul>${claims
         .map((c) => {
-          const cor = c.corloe
-            ? ` <span class="muted small">${escapeHtml(c.corloe)}</span>`
-            : "";
+          const cor = c.corloe ? ` <span class="muted small">${escapeHtml(c.corloe)}</span>` : "";
           return `<li>${escapeHtml(c.text)}${cor}</li>`;
         })
         .join("")}</ul>`;
@@ -384,7 +461,9 @@ document.addEventListener("DOMContentLoaded", () => {
     containerEl.innerHTML = html || `<p class="muted">No matches.</p>`;
   }
 
-  // -------- Contraindications rendering (dropdown per modality only) --------
+  // ----------------------------
+  // Contra parsing/render (from ContraindicationsImagingModality.txt)
+  // ----------------------------
   function renderContraindicationsByModality(containerEl, raw) {
     const lines = (raw || "").split("\n");
     const sections = [];
@@ -392,7 +471,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const push = () => {
       if (!cur) return;
-      const has = (cur.bodyLines && cur.bodyLines.some((x) => x.trim()));
+      const has = (cur.bodyLines || []).some((x) => x.trim());
       if (has) sections.push(cur);
       cur = null;
     };
@@ -407,8 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
         continue;
       }
 
-      if (!cur) continue; // ignore preface
-
+      if (!cur) continue;
       cur.bodyLines.push(t);
     }
     push();
@@ -419,10 +497,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const pieces = [];
 
         for (const line of body) {
+          if (/^Section\s*#\s*Contraindications/i.test(line)) {
+            // explicitly remove: "Section # Contraindications by Imaging Modality"
+            continue;
+          }
           if (/^Contraindicated\s+or\s+Not\s+Appropriate\s+When:/i.test(line)) {
-            pieces.push(
-              `<div class="acc-subhead">Contraindicated or Not Appropriate When:</div>`
-            );
+            pieces.push(`<div class="acc-subhead">Contraindicated or Not Appropriate When:</div>`);
             continue;
           }
           if (line.startsWith("* ")) {
@@ -462,21 +542,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ----------------------------
-  // Evidence / Contra content loading
+  // Load + render evidence/contra on demand
   // ----------------------------
   let RECOMMENDATIONS_RAW = "";
+  let RECS_SECTIONS = [];
   let CONTRA_RAW = "";
-  let RECOMMENDATIONS_SECTIONS = [];
-
-  const evidenceContentEl = document.getElementById("evidence-content");
-  const evidenceSearchEl = document.getElementById("evidence-search");
-  const evidenceFigureLinkEl = document.getElementById("evidence-figure-link");
-  const contraContentEl = document.getElementById("contra-content");
 
   async function ensureEvidenceLoaded() {
-    if (RECOMMENDATIONS_RAW && RECOMMENDATIONS_SECTIONS.length) return;
+    if (RECOMMENDATIONS_RAW && RECS_SECTIONS.length) return;
     RECOMMENDATIONS_RAW = await loadTextAsset("./Recommendations.txt");
-    RECOMMENDATIONS_SECTIONS = parseRecommendations(RECOMMENDATIONS_RAW);
+    RECS_SECTIONS = parseRecommendations(RECOMMENDATIONS_RAW);
   }
 
   async function ensureContraLoaded() {
@@ -484,264 +559,70 @@ document.addEventListener("DOMContentLoaded", () => {
     CONTRA_RAW = await loadTextAsset("./ContraindicationsImagingModality.txt");
   }
 
-  // Evidence search + initial render
-  if (evidenceContentEl && evidenceSearchEl) {
+  function openEvidenceView() {
+    showView("evidence");
+    window.location.hash = "#evidence";
+    if (!evidenceContentEl || !evidenceSearchEl) return;
+
     ensureEvidenceLoaded()
       .then(() => {
-        renderRecommendations(
-          evidenceContentEl,
-          RECOMMENDATIONS_SECTIONS,
-          evidenceSearchEl.value || ""
-        );
+        renderRecommendations(evidenceContentEl, RECS_SECTIONS, evidenceSearchEl.value || "");
       })
       .catch((err) => {
         console.error(err);
-        evidenceContentEl.innerHTML = `<p class="muted">Unable to load recommendations.</p>`;
+        evidenceContentEl.innerHTML = `<p class="muted">Unable to load recommendations. Confirm Recommendations.txt exists at repo root.</p>`;
       });
-
-    evidenceSearchEl.addEventListener("input", () => {
-      renderRecommendations(
-        evidenceContentEl,
-        RECOMMENDATIONS_SECTIONS,
-        evidenceSearchEl.value || ""
-      );
-    });
   }
 
-  if (evidenceFigureLinkEl) {
-    evidenceFigureLinkEl.addEventListener("click", (e) => {
-      e.preventDefault();
-      openDocModal("ACC/AHA COR/LOE interpretation", "./Recomendations.png");
-    });
-  }
+  function openContraView() {
+    showView("contra");
+    window.location.hash = "#contra";
+    if (!contraContentEl) return;
 
-  if (contraContentEl) {
     ensureContraLoaded()
       .then(() => {
         renderContraindicationsByModality(contraContentEl, CONTRA_RAW);
       })
       .catch((err) => {
         console.error(err);
-        contraContentEl.innerHTML = `<p class="muted">Unable to load contraindications.</p>`;
+        contraContentEl.innerHTML = `<p class="muted">Unable to load contraindications. Confirm ContraindicationsImagingModality.txt exists at repo root.</p>`;
       });
   }
 
-  // -------- Pathways --------
-  function buildPageIndexForPathway(nodesObj, prefix) {
-    const map = {};
-    const keys = Object.keys(nodesObj);
-    keys.forEach((nodeKey, idx) => {
-      map[nodeKey] = `${prefix}-${String(idx + 1).padStart(3, "0")}`;
-    });
-    return map;
-  }
-
-  function buildAcutePathway() {
-    // IMPORTANT: acute-pathway.js must set window.__ACUTE_PATHWAY__
-    return window.__ACUTE_PATHWAY__ || {};
-  }
-
-  const PATHWAYS = {
-    acute: buildAcutePathway(),
-  };
-
-  const PAGE_IDS = {
-    acute: buildPageIndexForPathway(PATHWAYS.acute, "A"),
-  };
-
-  // -------- Runner state --------
-  let activePathwayKey = "acute";
-  let activeNodeId = "A0";
-  let historyStack = [];
-
-  function startPathway(pathwayKey, startNodeId) {
-    activePathwayKey = pathwayKey;
-    activeNodeId = startNodeId;
-    historyStack = [];
-    showView("runner");
-    renderRunner();
-  }
-
-  function resetPathway() {
-    const pathway = PATHWAYS[activePathwayKey];
-    const startNode = pathway?.start || "A0";
-    activeNodeId = startNode;
-    historyStack = [];
-    renderRunner();
-  }
-
-  function backOne() {
-    const prev = historyStack.pop();
-    if (!prev) return;
-    activeNodeId = prev;
-    renderRunner();
-  }
-
-  // -------- Runner rendering --------
-  function renderRunner() {
-    const nodes = PATHWAYS[activePathwayKey];
-    const node = nodes?.[activeNodeId];
-    if (!node) return;
-
-    // Runner title + terminal pill
-    {
-      const baseTitle = activePathwayKey === "acute" ? "Acute chest pain pathway" : "Pathway";
-      runnerTitleEl.innerHTML = "";
-      runnerTitleEl.appendChild(document.createTextNode(baseTitle));
-      if (node.type === "terminal") {
-        const pill = document.createElement("span");
-        pill.className = "end-pill";
-        pill.textContent = "End of pathway";
-        runnerTitleEl.appendChild(pill);
-      }
-    }
-
-    const pageId = PAGE_IDS[activePathwayKey]?.[activeNodeId] || "—";
-    runnerStepEl.textContent = `${activePathwayKey.toUpperCase()} • ${pageId}`;
-
-    // Clear subactions per your requirements (no contraindications link on non-home pages)
-    runnerSubactionsEl.innerHTML = "";
-
-    nodeTitleEl.textContent = node.title || "";
-    nodeBodyEl.textContent = node.body || "";
-
-    // Flags
-    nodeFlagsEl.innerHTML = "";
-    if (node.flags && node.flags.length) {
-      node.flags.forEach((f) => {
-        nodeFlagsEl.insertAdjacentHTML("beforeend", makeFlagPill(f.text, f.level));
-      });
-    }
-
-    // Resources
-    nodeResourcesEl.innerHTML = "";
-    if (node.resources && node.resources.length) {
-      nodeResourcesEl.innerHTML = `
-        <div class="resources-title">Resources (2021 ACC/AHA Chest Pain Guideline)</div>
-        <div class="resources-grid">
-          ${node.resources
-            .map(
-              (r) => `
-              <button class="resource-btn" data-url="${escapeHtml(r.url)}">
-                ${escapeHtml(r.label)}
-              </button>
-            `
-            )
-            .join("")}
-        </div>
-        <div class="muted" style="margin-top:.6rem;font-size:.9rem;">
-          Citation: 2021 ACC/AHA Chest Pain Guideline. DOI: 10.1161/CIR.0000000000001029
-        </div>
-      `;
-
-      nodeResourcesEl.querySelectorAll("button[data-url]").forEach((b) => {
-        b.addEventListener("click", () => {
-          const url = b.getAttribute("data-url");
-          if (isPdf(url) || isImage(url)) {
-            openDocModal(b.textContent?.trim() || "Resource", url);
-          } else {
-            window.open(url, "_blank", "noopener,noreferrer");
-          }
-        });
-      });
-    }
-
-    // Options / terminal
-    nodeOptionsEl.innerHTML = "";
-    nodeTerminalEl.classList.add("hidden");
-    nodeTerminalEl.innerHTML = "";
-
-    if (node.type === "decision") {
-      (node.options || []).forEach((opt) => {
-        const btn = document.createElement("button");
-        btn.className = "choice-btn";
-        btn.innerHTML = `
-          <div class="choice-label">${escapeHtml(opt.label)}</div>
-          ${opt.sub ? `<div class="choice-sub">${escapeHtml(opt.sub)}</div>` : ""}
-        `;
-        btn.addEventListener("click", () => {
-          historyStack.push(activeNodeId);
-          activeNodeId = opt.next;
-          renderRunner();
-        });
-        nodeOptionsEl.appendChild(btn);
-      });
-
-      // optional secondary action button if present
-      if (node.secondaryAction) {
-        const btn2 = document.createElement("button");
-        btn2.className = "choice-btn secondary";
-        btn2.innerHTML = `
-          <div class="choice-label">${escapeHtml(node.secondaryAction.label || "More")}</div>
-        `;
-        btn2.addEventListener("click", () => {
-          if (node.secondaryAction.action === "OPEN_MODAL") {
-            openModalityModal(node.secondaryAction.title || "Reference", node.secondaryAction.html || "");
-          } else if (node.secondaryAction.action === "OPEN_URL") {
-            window.open(node.secondaryAction.url, "_blank", "noopener,noreferrer");
-          }
-        });
-        nodeOptionsEl.appendChild(btn2);
-      }
-    } else if (node.type === "terminal") {
-      // Terminal nodes: no large "End of pathway" box; use small pill near header.
-      nodeTerminalEl.classList.add("hidden");
-      nodeTerminalEl.innerHTML = "";
-
-      // Show terminal disposition in main body
-      nodeBodyEl.textContent = node.disposition || "";
-
-      // No options for terminal nodes
-      nodeOptionsEl.innerHTML = "";
-    }
-
-    btnBack.disabled = historyStack.length === 0;
-  }
-
-  // -------- Routing / buttons --------
-  btnStartAcute?.addEventListener("click", () => startPathway("acute", "A0"));
-
-  // Stable opens module immediately (leave as-is if you already have stable module wiring)
-  btnStartStable?.addEventListener("click", () => {
-    // If stable module exists, it likely handles its own routing.
-    // Keeping your existing behavior: open in new tab if you currently do so elsewhere.
-    // Replace this with your stable module call if needed.
-    window.location.hash = "#home";
-    showView("home");
+  // Evidence search binding
+  evidenceSearchEl?.addEventListener("input", () => {
+    if (!evidenceContentEl) return;
+    renderRecommendations(evidenceContentEl, RECS_SECTIONS, evidenceSearchEl.value || "");
   });
 
+  // Evidence figure link: open image in modal
+  evidenceFigureLinkEl?.addEventListener("click", (e) => {
+    e.preventDefault();
+    openDocModal("ACC/AHA COR/LOE interpretation", "./Recomendations.png");
+  });
+
+  // ----------------------------
+  // Navigation / buttons
+  // ----------------------------
   function goHome() {
     showView("home");
     window.location.hash = "#home";
   }
 
-  btnEvidence?.addEventListener("click", () => {
-    showView("evidence");
-    window.location.hash = "#evidence";
-    if (evidenceContentEl && evidenceSearchEl) {
-      ensureEvidenceLoaded()
-        .then(() => {
-          renderRecommendations(
-            evidenceContentEl,
-            RECOMMENDATIONS_SECTIONS,
-            evidenceSearchEl.value || ""
-          );
-        })
-        .catch(console.error);
+  btnStartAcute?.addEventListener("click", () => startPathway("acute", ACUTE?.start || "A0"));
+
+  // Preserve stable behavior: if stable module exists, run it; otherwise, do nothing destructive
+  btnStartStable?.addEventListener("click", () => {
+    if (STABLE) startPathway("stable", STABLE.start);
+    else {
+      // If your partner stable module routes elsewhere, don't break it.
+      // (You can replace this later with the partner’s intended handler.)
+      alert("Stable pathway module not loaded in this build.");
     }
   });
 
-  btnContra?.addEventListener("click", () => {
-    showView("contra");
-    window.location.hash = "#contra";
-    if (contraContentEl) {
-      ensureContraLoaded()
-        .then(() => {
-          renderContraindicationsByModality(contraContentEl, CONTRA_RAW);
-        })
-        .catch(console.error);
-    }
-  });
+  btnEvidence?.addEventListener("click", openEvidenceView);
+  btnContra?.addEventListener("click", openContraView);
 
   btnEvidenceHome?.addEventListener("click", goHome);
   btnContraHome?.addEventListener("click", goHome);
@@ -750,43 +631,38 @@ document.addEventListener("DOMContentLoaded", () => {
   btnReset?.addEventListener("click", resetPathway);
   btnHome?.addEventListener("click", goHome);
 
+  // ----------------------------
+  // Hash routing (simple)
+  // ----------------------------
   function routeFromHash() {
-    if (window.location.hash === "#runner") {
+    const h = window.location.hash || "#home";
+    if (h === "#runner") {
       showView("runner");
       renderRunner();
       return true;
     }
-    if (window.location.hash === "#evidence") {
-      showView("evidence");
-      if (evidenceContentEl && evidenceSearchEl) {
-        ensureEvidenceLoaded()
-          .then(() => {
-            renderRecommendations(
-              evidenceContentEl,
-              RECOMMENDATIONS_SECTIONS,
-              evidenceSearchEl.value || ""
-            );
-          })
-          .catch(console.error);
-      }
+    if (h === "#evidence") {
+      openEvidenceView();
       return true;
     }
-    if (window.location.hash === "#contra") {
-      showView("contra");
-      if (contraContentEl) {
-        ensureContraLoaded()
-          .then(() => {
-            renderContraindicationsByModality(contraContentEl, CONTRA_RAW);
-          })
-          .catch(console.error);
-      }
+    if (h === "#contra") {
+      openContraView();
+      return true;
+    }
+    if (h === "#home") {
+      goHome();
       return true;
     }
     return false;
   }
 
-  if (!routeFromHash()) goHome();
   window.addEventListener("hashchange", () => {
-    if (!routeFromHash()) goHome();
+    routeFromHash();
   });
+
+  // Boot
+  routeFromHash();
+  if (VIEWS.runner && !VIEWS.runner.classList.contains("hidden") && ACUTE) {
+    renderRunner();
+  }
 });
