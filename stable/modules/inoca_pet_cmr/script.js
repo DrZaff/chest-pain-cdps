@@ -110,6 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const modality = document.getElementById("modality");
   const layer3Wrap = document.getElementById("layer3Wrap");
   const resultWrap = document.getElementById("resultWrap");
+  const backBtn = document.getElementById("backBtn");
+backBtn?.addEventListener("click", () => window.history.back());
 
   function setDisplay(el, show) {
     if (!el) return;
