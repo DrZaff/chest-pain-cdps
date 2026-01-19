@@ -358,6 +358,10 @@ backBtn?.addEventListener("click", () => window.history.back());
   testStrategy?.addEventListener("change", normalize);
   stressModality?.addEventListener("change", normalize);
   document.getElementById("stenosis4090")?.addEventListener("change", normalize);
+
+  function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[m]));
+}
 // ==============================
 // Wave 2 #1 Guided Recommender — Known Nonobstructive (Option A)
 // - Stepwise prompts (one at a time)
