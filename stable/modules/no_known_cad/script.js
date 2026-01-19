@@ -439,7 +439,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const stressResult = document.getElementById("stressResult");
   const cctaResult = document.getElementById("cctaResult");
-
+// Simple Back button: browser back
+const backBtn = document.getElementById("backBtn");
+if (backBtn) {
+  backBtn.addEventListener("click", () => {
+    window.history.back();
+  });
+}
   function setDisplay(el, show) {
     if (!el) return;
     el.style.display = show ? "" : "none";
@@ -825,7 +831,3 @@ function backOne(formEl, normalizeFn, resultsContainer, flagsContainer) {
   }
 }
 
-const backBtn = document.getElementById("backBtn");
-backBtn?.addEventListener("click", () => {
-  window.history.back();
-});
