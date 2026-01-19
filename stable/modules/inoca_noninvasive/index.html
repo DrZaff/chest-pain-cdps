@@ -21,28 +21,18 @@
         </p>
       </div>
       <div class="app-meta">
-        <a href="/stable/definitions.html"
-   class="definitions-heart"
-   title="Definitions"
-   aria-label="Definitions">
-  <svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true">
-    <!-- Heart -->
-    <path
-      d="M12 21s-7.1-4.9-9.8-8.5C-.3 9.1 1.6 5 5.6 5c2.2 0 3.7 1.3 4.9 2.7C11.7 6.3 13.2 5 15.4 5c4 0 5.9 4.1 3.4 7.5C19.1 16.1 12 21 12 21z"
-      fill="#d32f2f"/>
-    <!-- Question mark -->
-    <text
-      x="12"
-      y="15.2"
-      text-anchor="middle"
-      font-size="11"
-      font-weight="800"
-      fill="#ffffff"
-      font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif">
-      ?
-    </text>
-  </svg>
-</a>
+        <a href="/stable/definitions.html" class="definitions-heart" title="Definitions" aria-label="Definitions">
+          <svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true">
+            <path
+              d="M12 21s-7.1-4.9-9.8-8.5C-.3 9.1 1.6 5 5.6 5c2.2 0 3.7 1.3 4.9 2.7C11.7 6.3 13.2 5 15.4 5c4 0 5.9 4.1 3.4 7.5C19.1 16.1 12 21 12 21z"
+              fill="#d32f2f"/>
+            <text
+              x="12" y="15.2" text-anchor="middle"
+              font-size="11" font-weight="800"
+              fill="#ffffff"
+              font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif">?</text>
+          </svg>
+        </a>
         <a class="btn-secondary" href="/stable/modules/inoca_invasive/index.html">← INOCA main chooser</a>
       </div>
     </header>
@@ -60,6 +50,7 @@
               <li>Testing does not explain symptoms or is non-diagnostic.</li>
             </ul>
           </div>
+
           <a class="btn-primary btn-primary--full" href="/stable/modules/inoca_pet_cmr/index.html">
             Stress PET / Stress CMR (MBFR) — COR 2a
           </a>
@@ -67,6 +58,69 @@
           <a class="btn-secondary btn-secondary--full" href="/stable/modules/inoca_echo_cfvr/index.html">
             Stress echo (CFVR) — COR 2b
           </a>
+
+          <!-- OPTIONAL stress testing helper -->
+          <details class="callout" style="margin-top:0.25rem;">
+            <summary>
+              <strong>Optional: stress testing (if MBFR/CFVR not available)</strong>
+              <span class="micro-note">Non-blocking guidance + links.</span>
+            </summary>
+
+            <div class="form-grid" style="margin-top:0.75rem;">
+              <div class="form-field">
+                <label class="field-label" for="optStressModality">
+                  Which stress test is being considered?
+                </label>
+                <select id="optStressModality" class="field-input">
+                  <option value="">Select…</option>
+                  <option value="pet">Stress PET</option>
+                  <option value="cmr">Stress CMR</option>
+                  <option value="echo">Stress echocardiography</option>
+                  <option value="spect">Stress SPECT</option>
+                  <option value="exercise_ecg">Exercise ECG</option>
+                </select>
+                <p class="micro-note">
+                  CMD-focused INOCA pathways prefer PET/CMR with <strong>MBFR</strong> or echo with <strong>CFVR</strong> when available.
+                </p>
+              </div>
+
+              <div class="form-field" id="mbfrWrap" style="display:none;">
+                <label class="field-label" for="optMbfrAvailable">
+                  If PET/CMR: is MBFR available/reportable locally?
+                </label>
+                <select id="optMbfrAvailable" class="field-input">
+                  <option value="">Select…</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No / unsure</option>
+                </select>
+              </div>
+
+              <div class="form-field" id="cfvrWrap" style="display:none;">
+                <label class="field-label" for="optCfvrAvailable">
+                  If stress echo: is CFVR available/reportable locally?
+                </label>
+                <select id="optCfvrAvailable" class="field-input">
+                  <option value="">Select…</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No / unsure</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <div id="optStressOutput" class="callout">
+                  <strong>Guidance</strong>
+                  <p class="micro-note">Select a modality to see suggested next steps.</p>
+                </div>
+              </div>
+
+              <div class="btn-row" id="optStressBtns" style="display:none;">
+                <a id="btnGoMbfr" class="btn-primary" href="/stable/modules/inoca_pet_cmr/index.html">Open PET/CMR (MBFR)</a>
+                <a id="btnGoCfvr" class="btn-secondary" href="/stable/modules/inoca_echo_cfvr/index.html" style="display:none;">Open Echo (CFVR)</a>
+                <a id="btnGoInvasive" class="btn-secondary" href="/stable/modules/inoca_invasive_testing/index.html">Open invasive testing</a>
+              </div>
+            </div>
+          </details>
+
           <a class="btn-secondary btn-secondary--full" href="/stable/modules/inoca_invasive/index.html">Back</a>
 
           <div class="callout" style="margin-top:0.75rem;">
@@ -82,6 +136,7 @@
               </a>
             </div>
           </div>
+
         </div>
       </section>
 
