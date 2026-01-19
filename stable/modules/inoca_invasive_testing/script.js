@@ -152,7 +152,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const resetBtn = document.getElementById("resetBtn");
   const resultsContainer = document.getElementById("results-container");
   const flagsContainer = document.getElementById("flags-container");
-
+const backBtn = document.getElementById("backBtn");
+backBtn?.addEventListener("click", () => window.history.back());
   setupModals();
 
   form.addEventListener("submit", (e) => {
