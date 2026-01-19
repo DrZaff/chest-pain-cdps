@@ -53,6 +53,127 @@
         <h2 class="card-title">Inputs</h2>
 
         <form id="tool-form" class="form-grid">
+
+          <!-- OPTIONAL: Guided recommender (Wave 2 #1) -->
+<details class="callout" style="margin-top:0.25rem;">
+  <summary>
+    <strong>Help me choose a test (optional)</strong>
+    <span class="micro-note">Guided prompts; you can still choose manually.</span>
+  </summary>
+
+  <div style="margin-top:0.75rem;" class="form-grid">
+
+    <!-- Step A -->
+    <div class="form-field">
+      <label class="field-label" for="rec_canExercise">
+        Can the patient exercise adequately?
+      </label>
+      <select id="rec_canExercise" name="rec_canExercise" class="field-input">
+        <option value="">Select…</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+        <option value="unknown">Unsure</option>
+      </select>
+    </div>
+
+    <!-- Step B (only if exercise = yes) -->
+    <div class="form-field" id="rec_ecgWrap" style="display:none;">
+      <label class="field-label" for="rec_ecgInterpretable">
+        Is baseline ECG interpretable for ischemia?
+      </label>
+      <select id="rec_ecgInterpretable" name="rec_ecgInterpretable" class="field-input">
+        <option value="">Select…</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+        <option value="unknown">Unsure</option>
+      </select>
+    </div>
+
+    <!-- Step C -->
+    <div class="form-field" id="rec_hardStopsWrap" style="display:none;">
+      <div class="callout">
+        <strong>Key feasibility checks (optional)</strong>
+        <ul>
+          <li>Answer only what you know; “Unsure” is fine.</li>
+          <li>These influence ranking, not eligibility.</li>
+        </ul>
+      </div>
+
+      <label class="field-label" for="rec_bronchospasm">Severe bronchospasm/asthma limiting vasodilators?</label>
+      <select id="rec_bronchospasm" name="rec_bronchospasm" class="field-input">
+        <option value="">Select…</option>
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+        <option value="unknown">Unsure</option>
+      </select>
+
+      <label class="field-label" for="rec_mriContra" style="margin-top:0.6rem;">MRI contraindication or severe claustrophobia?</label>
+      <select id="rec_mriContra" name="rec_mriContra" class="field-input">
+        <option value="">Select…</option>
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+        <option value="unknown">Unsure</option>
+      </select>
+
+      <label class="field-label" for="rec_poorEcho" style="margin-top:0.6rem;">Poor echo windows expected?</label>
+      <select id="rec_poorEcho" name="rec_poorEcho" class="field-input">
+        <option value="">Select…</option>
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+        <option value="unknown">Unsure</option>
+      </select>
+    </div>
+
+    <!-- Step D -->
+    <div class="form-field" id="rec_renalWrap" style="display:none;">
+      <label class="field-label" for="rec_renalConcern">
+        Renal impairment / contrast concern?
+        <span class="micro-note">Affects contrast feasibility; does not override COR 1 ICA when indicated.</span>
+      </label>
+      <select id="rec_renalConcern" name="rec_renalConcern" class="field-input">
+        <option value="">Select…</option>
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+        <option value="unknown">Unsure</option>
+      </select>
+    </div>
+
+    <!-- Step E (availability; only asked late) -->
+    <div class="form-field" id="rec_availWrap" style="display:none;">
+      <label class="field-label" for="rec_petAvail">PET available locally?</label>
+      <select id="rec_petAvail" name="rec_petAvail" class="field-input">
+        <option value="">Select…</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+        <option value="unknown">Unsure</option>
+      </select>
+
+      <label class="field-label" for="rec_cmrAvail" style="margin-top:0.6rem;">Stress CMR available locally?</label>
+      <select id="rec_cmrAvail" name="rec_cmrAvail" class="field-input">
+        <option value="">Select…</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+        <option value="unknown">Unsure</option>
+      </select>
+    </div>
+
+    <!-- Output -->
+    <div class="form-field">
+      <div id="rec_output" class="callout">
+        <strong>Recommendation</strong>
+        <p class="micro-note">Answer the first question to see suggestions.</p>
+      </div>
+    </div>
+
+    <!-- Apply buttons -->
+    <div class="btn-row" id="rec_applyRow" style="display:none;">
+      <button type="button" id="rec_applyPrimary" class="btn-primary"></button>
+      <button type="button" id="rec_applyAlt1" class="btn-secondary" style="display:none;"></button>
+      <button type="button" id="rec_applyAlt2" class="btn-secondary" style="display:none;"></button>
+    </div>
+
+  </div>
+</details>
           <!-- Layer 2: symptoms / suspicion -->
           <div class="form-field">
             <label class="field-label" for="persistentSymptoms">
