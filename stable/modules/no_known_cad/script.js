@@ -677,12 +677,27 @@ function prettyMod(mod) {
 }
 
 function renderRec() {
-  // sequential visibility
+  // Stepwise visibility: one prompt at a time
   const canEx = v(rec.canExercise);
+
+  // Step 2 only if Step 1 answered and can exercise = yes
   show(rec.ecgWrap, canEx === "yes");
-  show(rec.hardStopsWrap, !!canEx);
-  show(rec.renalWrap, !!canEx);
-  show(rec.availWrap, !!canEx);
+
+  const ecgNeeded = (canEx === "yes");
+  const ecgAns = v(rec.ecg);
+
+  // Step 3 (renal) only after Step 1, and after Step 2 if needed
+  const readyForRenal = !!canEx && (!ecgNeeded || !!ecgAns);
+  show(rec.renalWrap, readyForRenal);
+
+  // Hide the overwhelming sections for now
+  show(rec.hardStopsWrap, false);
+  show(rec.availWrap, false);
+
+  const renalAns = v(rec.renal);
+
+  // Gate: show Apply buttons only after 3 prompts answered
+  const gateOk = !!canEx && (!ecgNeeded || !!ecgAns) && !!renalAns;
 
   const inputs = readRecInputs();
   const out = recommendTesting(inputs);
@@ -696,17 +711,16 @@ function renderRec() {
   }
 
   const notes = (out.primary.notes || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
-  const warns = (out.warnings || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
-
   rec.output.innerHTML = `
     <strong>Recommendation</strong>
     <div style="margin-top:0.45rem;"><strong>${escapeHtml(out.primary.label)}</strong></div>
     ${notes ? `<ul style="margin:0.35rem 0 0; padding-left:1.15rem;">${notes}</ul>` : ""}
-    ${warns ? `<div class="micro-note" style="margin-top:0.45rem;"><ul style="margin:0; padding-left:1.15rem;">${warns}</ul></div>` : ""}
+    ${!gateOk ? `<p class="micro-note" style="margin-top:0.5rem;">Answer the first 3 prompts to unlock Apply buttons.</p>` : ""}
   `;
 
-  // Buttons
-  show(rec.applyRow, true);
+  // Apply buttons only after gate
+  show(rec.applyRow, gateOk);
+  if (!gateOk) return;
 
   // Primary
   rec.btnPrimary.textContent = labelForApply(out.primary.apply);
