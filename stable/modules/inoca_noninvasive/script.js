@@ -7,7 +7,8 @@ function setupModals() {
   const backdrop = document.getElementById("modal-backdrop");
   const triggers = document.querySelectorAll("[data-modal]");
   const closeBtns = document.querySelectorAll("[data-close='true']");
-
+const backBtn = document.getElementById("backBtn");
+backBtn?.addEventListener("click", () => window.history.back());
   function openModal(id) {
     const modal = document.getElementById(id);
     if (!modal) return;
