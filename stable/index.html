@@ -30,11 +30,17 @@
           <a class="btn-primary btn-primary--full" href="/stable/modules/no_known_cad/index.html">
             No known CAD
           </a>
+          <button id="btn-definitions" class="btn-tertiary btn-tertiary--full" type="button">
+  Definitions
+</button>
 
           <!-- Known CAD stepwise selector -->
           <a class="btn-secondary btn-secondary--full" href="/stable/known-cad.html">
             Known CAD
           </a>
+          <button id="btn-definitions" class="btn-tertiary btn-tertiary--full" type="button">
+  Definitions
+</button>
 
           <div class="callout" style="margin-top:0.75rem;">
             <strong>Scope</strong>
@@ -63,5 +69,100 @@
       </p>
     </footer>
   </div>
+  <!-- Definitions modal -->
+<div class="modal-backdrop" id="modal-backdrop" aria-hidden="true"></div>
+
+<div class="modal" id="modal-definitions" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Definitions</h3>
+      <button class="modal-close" id="definitions-close" type="button">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="callout">
+        <strong>How to use</strong>
+        <ul>
+          <li>Brief glossary for stable chest pain pathways.</li>
+          <li>Local protocols and radiology/cardiology workflows vary.</li>
+        </ul>
+      </div>
+
+      <div style="margin-top:0.9rem;">
+        <h4>Core terms</h4>
+        <ul>
+          <li><strong>Stable chest pain</strong>: Symptoms without features suggesting ACS/unstable ischemia.</li>
+          <li><strong>Known CAD</strong>: Prior MI, prior PCI/CABG, or documented CAD on CCTA/ICA.</li>
+          <li><strong>Obstructive CAD</strong>: Typically ≥50% stenosis (or flow-limiting disease by physiology).</li>
+          <li><strong>Nonobstructive CAD</strong>: Plaque present but &lt;50% stenosis.</li>
+          <li><strong>GDMT</strong>: Guideline-directed medical therapy (risk-factor and symptom-focused therapy).</li>
+          <li><strong>SIHD</strong>: Stable ischemic heart disease (chronic coronary syndrome framework).</li>
+        </ul>
+
+        <h4 style="margin-top:0.9rem;">Tests and modalities</h4>
+        <ul>
+          <li><strong>CCTA</strong>: Coronary CT angiography (anatomic coronary imaging using iodinated contrast).</li>
+          <li><strong>CAC</strong>: Coronary artery calcium score (noncontrast CT plaque burden marker).</li>
+          <li><strong>ICA</strong>: Invasive coronary angiography (catheter-based coronary imaging).</li>
+          <li><strong>FFR</strong>: Fractional flow reserve (invasive physiology to assess flow-limiting stenosis).</li>
+          <li><strong>iFR</strong>: Instantaneous wave-free ratio (resting invasive physiology alternative to FFR).</li>
+          <li><strong>FFR-CT</strong>: CT-derived estimate of FFR from CCTA data (when available).</li>
+          <li><strong>Stress imaging</strong>: Stress echo, PET/SPECT MPI, or stress CMR to assess ischemia.</li>
+          <li><strong>PET</strong>: Positron emission tomography (can quantify perfusion; may assess flow reserve).</li>
+          <li><strong>SPECT</strong>: Single photon emission CT myocardial perfusion imaging.</li>
+          <li><strong>CMR</strong>: Cardiac MRI (stress perfusion and tissue characterization).</li>
+          <li><strong>MPI</strong>: Myocardial perfusion imaging (PET or SPECT perfusion assessment).</li>
+        </ul>
+
+        <h4 style="margin-top:0.9rem;">INOCA terms</h4>
+        <ul>
+          <li><strong>INOCA</strong>: Ischemia with nonobstructive coronary arteries (symptoms/ischemia without obstructive CAD).</li>
+          <li><strong>CMD</strong>: Coronary microvascular dysfunction (microvascular impaired vasodilation/flow).</li>
+          <li><strong>VSA</strong>: Vasospastic angina (epicardial coronary spasm physiology).</li>
+          <li><strong>MBFR</strong>: Myocardial blood flow reserve (PET/CMR concept; site-specific thresholds).</li>
+          <li><strong>CFVR</strong>: Coronary flow velocity reserve (echo Doppler concept; site-specific thresholds).</li>
+        </ul>
+
+        <h4 style="margin-top:0.9rem;">Evidence shorthand</h4>
+        <ul>
+          <li><strong>COR</strong>: Class of recommendation (strength of recommendation).</li>
+          <li><strong>LOE</strong>: Level of evidence (quality/quantity of supporting evidence).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("btn-definitions");
+    const modal = document.getElementById("modal-definitions");
+    const backdrop = document.getElementById("modal-backdrop");
+    const closeBtn = document.getElementById("definitions-close");
+
+    function openModal() {
+      if (!modal || !backdrop) return;
+      modal.classList.add("is-open");
+      backdrop.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      backdrop.setAttribute("aria-hidden", "false");
+    }
+
+    function closeModal() {
+      if (!modal || !backdrop) return;
+      modal.classList.remove("is-open");
+      backdrop.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      backdrop.setAttribute("aria-hidden", "true");
+    }
+
+    btn && btn.addEventListener("click", openModal);
+    closeBtn && closeBtn.addEventListener("click", closeModal);
+    backdrop && backdrop.addEventListener("click", closeModal);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+    });
+  });
+</script>
 </body>
 </html>
