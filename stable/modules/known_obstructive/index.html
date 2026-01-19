@@ -87,9 +87,68 @@
               <option value="yes">Yes</option>
             </select>
           </div>
-
+I
           <!-- Stress testing branch -->
           <div id="stressBlock" class="form-field" style="display:none;">
+            <!-- Guided recommender (optional) -->
+<details class="callout" id="rec-wrap" style="margin-bottom:0.75rem;">
+  <summary><strong>Help me choose a stress test</strong></summary>
+
+  <div class="form-field">
+    <label class="field-label">
+      <span>Can the patient exercise adequately?</span>
+    </label>
+    <select id="rec-can-exercise" class="field-input">
+      <option value="">Select…</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+  </div>
+
+  <div class="form-field" id="rec-ecg-wrap" style="display:none;">
+    <label class="field-label">
+      <span>Baseline ECG interpretable?</span>
+    </label>
+    <select id="rec-ecg" class="field-input">
+      <option value="">Select…</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+  </div>
+
+  <div class="form-field" id="rec-renal-wrap" style="display:none;">
+    <label class="field-label">
+      <span>Severe renal impairment?</span>
+    </label>
+    <select id="rec-renal" class="field-input">
+      <option value="">Select…</option>
+      <option value="no">No</option>
+      <option value="yes">Yes</option>
+    </select>
+  </div>
+
+  <div class="form-field" id="rec-avail-wrap" style="display:none;">
+    <label class="field-label">
+      <span>Local availability</span>
+    </label>
+    <select id="rec-avail" class="field-input">
+      <option value="">Select…</option>
+      <option value="pet">PET available</option>
+      <option value="cmr">CMR available</option>
+      <option value="echo">Echo only</option>
+    </select>
+  </div>
+
+  <div id="rec-output" style="margin-top:0.6rem;"></div>
+
+  <div id="rec-apply-row" class="btn-row" style="display:none;">
+    <button type="button" id="rec-apply-primary" class="btn-primary btn-primary--full">
+      Apply
+    </button>
+    <button type="button" id="rec-apply-alt1" class="btn-secondary btn-secondary--full"></button>
+    <button type="button" id="rec-apply-alt2" class="btn-secondary btn-secondary--full"></button>
+  </div>
+</details>
             <label class="field-label" for="stressModality">
               <span>Stress testing modality (optional)</span>
               <span class="micro-note">Used for practical considerations only; does not change branch logic.</span>
