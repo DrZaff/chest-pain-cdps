@@ -87,66 +87,68 @@
               <option value="yes">Yes</option>
             </select>
           </div>
-I
           <!-- Stress testing branch -->
           <div id="stressBlock" class="form-field" style="display:none;">
-            <!-- Guided recommender (optional) -->
-<details class="callout" id="rec-wrap" style="margin-bottom:0.75rem;">
-  <summary><strong>Help me choose a stress test</strong></summary>
+<details class="callout" style="margin-top:0.5rem;">
+  <summary><strong>Help me choose a test (optional)</strong></summary>
 
-  <div class="form-field">
-    <label class="field-label">
-      <span>Can the patient exercise adequately?</span>
-    </label>
-    <select id="rec-can-exercise" class="field-input">
-      <option value="">Select…</option>
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
-  </div>
+  <div style="margin-top:0.75rem;" class="form-grid">
 
-  <div class="form-field" id="rec-ecg-wrap" style="display:none;">
-    <label class="field-label">
-      <span>Baseline ECG interpretable?</span>
-    </label>
-    <select id="rec-ecg" class="field-input">
-      <option value="">Select…</option>
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
-  </div>
+    <!-- Step 1 -->
+    <div class="form-field">
+      <label class="field-label" for="rec_canExercise">
+        Can the patient exercise adequately?
+      </label>
+      <select id="rec_canExercise" class="field-input">
+        <option value="">Select…</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+        <option value="unknown">Unsure</option>
+      </select>
+    </div>
 
-  <div class="form-field" id="rec-renal-wrap" style="display:none;">
-    <label class="field-label">
-      <span>Severe renal impairment?</span>
-    </label>
-    <select id="rec-renal" class="field-input">
-      <option value="">Select…</option>
-      <option value="no">No</option>
-      <option value="yes">Yes</option>
-    </select>
-  </div>
+    <!-- Step 2 (only if exercise=yes) -->
+    <div class="form-field" id="rec_ecgWrap" style="display:none;">
+      <label class="field-label" for="rec_ecgInterpretable">
+        Is baseline ECG interpretable for ischemia?
+      </label>
+      <select id="rec_ecgInterpretable" class="field-input">
+        <option value="">Select…</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+        <option value="unknown">Unsure</option>
+      </select>
+    </div>
 
-  <div class="form-field" id="rec-avail-wrap" style="display:none;">
-    <label class="field-label">
-      <span>Local availability</span>
-    </label>
-    <select id="rec-avail" class="field-input">
-      <option value="">Select…</option>
-      <option value="pet">PET available</option>
-      <option value="cmr">CMR available</option>
-      <option value="echo">Echo only</option>
-    </select>
-  </div>
+    <!-- Step 3 -->
+    <div class="form-field" id="rec_renalWrap" style="display:none;">
+      <label class="field-label" for="rec_renalConcern">
+        Renal impairment / iodinated contrast concern?
+        <span class="micro-note">May limit CCTA feasibility per local protocol; does not override COR 1 ICA when indicated.</span>
+      </label>
+      <select id="rec_renalConcern" class="field-input">
+        <option value="">Select…</option>
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+        <option value="unknown">Unsure</option>
+      </select>
+    </div>
 
-  <div id="rec-output" style="margin-top:0.6rem;"></div>
+    <!-- Output -->
+    <div class="form-field">
+      <div id="rec_output" class="callout">
+        <strong>Recommendation</strong>
+        <p class="micro-note">Answer the first 3 prompts to unlock Apply buttons.</p>
+      </div>
+    </div>
 
-  <div id="rec-apply-row" class="btn-row" style="display:none;">
-    <button type="button" id="rec-apply-primary" class="btn-primary btn-primary--full">
-      Apply
-    </button>
-    <button type="button" id="rec-apply-alt1" class="btn-secondary btn-secondary--full"></button>
-    <button type="button" id="rec-apply-alt2" class="btn-secondary btn-secondary--full"></button>
+    <!-- Apply buttons -->
+    <div class="btn-row" id="rec_applyRow" style="display:none;">
+      <button type="button" id="rec_applyPrimary" class="btn-primary"></button>
+      <button type="button" id="rec_applyAlt1" class="btn-secondary" style="display:none;"></button>
+      <button type="button" id="rec_applyAlt2" class="btn-secondary" style="display:none;"></button>
+    </div>
+
   </div>
 </details>
             <label class="field-label" for="stressModality">
