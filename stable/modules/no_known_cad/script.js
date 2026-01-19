@@ -764,3 +764,63 @@ function escapeHtml(str) {
     return map[m];
   });
 }
+
+// ------------------------------
+// Back stack (Brandon-style) for form modules
+// ------------------------------
+let historyStack = [];
+let isRestoring = false;
+
+function captureState(formEl) {
+  const data = new FormData(formEl);
+  const state = {};
+  for (const [k, v] of data.entries()) state[k] = v;
+  return state;
+}
+
+function restoreState(formEl, state) {
+  isRestoring = true;
+
+  // Reset first so cleared fields get cleared
+  formEl.reset();
+
+  // Restore known values
+  Object.entries(state || {}).forEach(([name, value]) => {
+    const el = formEl.elements.namedItem(name);
+    if (!el) return;
+
+    // Handles <select>, <input>, etc.
+    el.value = value;
+  });
+
+  isRestoring = false;
+}
+
+function pushHistory(formEl) {
+  if (isRestoring) return;
+  const snapshot = captureState(formEl);
+
+  // Prevent duplicates (optional but nice)
+  const last = historyStack[historyStack.length - 1];
+  if (last && JSON.stringify(last) === JSON.stringify(snapshot)) return;
+
+  historyStack.push(snapshot);
+}
+
+function backOne(formEl, normalizeFn, resultsContainer, flagsContainer) {
+  if (!historyStack.length) return;
+
+  const prev = historyStack.pop();
+  restoreState(formEl, prev);
+
+  // Re-run your UI visibility logic
+  normalizeFn();
+
+  // Optional: clear results so users don’t mistake old results for new
+  if (resultsContainer) {
+    resultsContainer.innerHTML = `<p class="results-placeholder">Adjusted inputs. Tap “Run pathway” to update results.</p>`;
+  }
+  if (flagsContainer) {
+    flagsContainer.innerHTML = `<p class="results-placeholder">Flags will update after you run the pathway.</p>`;
+  }
+}
