@@ -113,6 +113,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const pathChoice = document.getElementById("pathChoice");
   const layer3Wrap = document.getElementById("layer3Wrap");
   const feasAbbrev = document.getElementById("feasAbbrev");
+  const backBtn = document.getElementById("backBtn");
+backBtn?.addEventListener("click", () => window.history.back());
 
   function setDisplay(el, show) {
     if (!el) return;
