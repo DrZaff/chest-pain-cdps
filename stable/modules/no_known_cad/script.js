@@ -824,3 +824,8 @@ function backOne(formEl, normalizeFn, resultsContainer, flagsContainer) {
     flagsContainer.innerHTML = `<p class="results-placeholder">Flags will update after you run the pathway.</p>`;
   }
 }
+
+const backBtn = document.getElementById("backBtn");
+backBtn?.addEventListener("click", () => {
+  window.history.back();
+});
