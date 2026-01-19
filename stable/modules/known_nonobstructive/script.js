@@ -358,7 +358,230 @@ backBtn?.addEventListener("click", () => window.history.back());
   testStrategy?.addEventListener("change", normalize);
   stressModality?.addEventListener("change", normalize);
   document.getElementById("stenosis4090")?.addEventListener("change", normalize);
+// ==============================
+// Wave 2 #1 Guided Recommender — Known Nonobstructive (Option A)
+// - Stepwise prompts (one at a time)
+// - Apply buttons only after 3 prompts answered
+// - Non-blocking: fills your existing dropdowns, user can override
+// ==============================
 
+// Recommender DOM (these IDs match the block you pasted)
+const rec = {
+  wrap: document.getElementById("recWrap") || null, // optional if you added an outer wrapper; safe if null
+  canExercise: document.getElementById("rec_canExercise"),
+  ecgWrap: document.getElementById("rec_ecgWrap"),
+  ecg: document.getElementById("rec_ecgInterpretable"),
+  // Optional extra sections in your HTML (Option A keeps them)
+  hardStopsWrap: document.getElementById("rec_hardStopsWrap"),
+  availWrap: document.getElementById("rec_availWrap"),
+  renalWrap: document.getElementById("rec_renalWrap"),
+  renal: document.getElementById("rec_renalConcern"),
+  output: document.getElementById("rec_output"),
+  applyRow: document.getElementById("rec_applyRow"),
+  btnPrimary: document.getElementById("rec_applyPrimary"),
+  btnAlt1: document.getElementById("rec_applyAlt1"),
+  btnAlt2: document.getElementById("rec_applyAlt2"),
+};
+
+// Targets in THIS module
+const psEl = document.getElementById("persistentSymptoms"); // yes/no
+const testStrategyEl = document.getElementById("testStrategy"); // ccta_ffrct vs stress
+const stressModalityEl = document.getElementById("stressModality"); // only relevant when strategy=stress
+
+function show(el, on) {
+  if (!el) return;
+  el.style.display = on ? "" : "none";
+}
+function v(el) {
+  return (el && el.value) ? el.value : "";
+}
+
+function prettyApplyLabel(apply) {
+  if (!apply) return "Apply";
+
+  if (apply.testStrategy === "ccta_ffrct") return "Apply CCTA ± FFR-CT";
+
+  if (apply.testStrategy === "stress") {
+    // If we set a modality, reflect it in label
+    const mod = apply.stressModality;
+    if (!mod) return "Apply Stress testing";
+    const map = {
+      exercise_ecg: "Apply Exercise ECG",
+      stress_echo: "Apply Stress echo",
+      stress_nuclear: "Apply Stress nuclear",
+      stress_cmr: "Apply Stress CMR",
+    };
+    return map[mod] || "Apply Stress testing";
+  }
+
+  return "Apply";
+}
+
+// Simple heuristic recommender for known nonobstructive:
+// Primary decision: CCTA±FFR-CT vs Stress.
+// Secondary: stress modality if exercise + interpretable ECG suggests exercise ECG.
+function recommendKnownNonobstructive(r) {
+  // r = { canExercise, ecgInterpretable, renalConcern }
+  const out = { primary: null, alternatives: [] };
+
+  if (!r.canExercise) return out;
+
+  const renalYes = r.renalConcern === "yes";
+  const canExYes = r.canExercise === "yes";
+  const ecgYes = r.ecgInterpretable === "yes";
+
+  const candidates = [];
+
+  // CCTA ± FFR-CT (COR 2a in your text)
+  candidates.push({
+    label: "CCTA ± FFR-CT",
+    note: renalYes
+      ? "Contrast concern may limit feasibility (local protocol)."
+      : "Anatomic test option when feasible.",
+    apply: { testStrategy: "ccta_ffrct" },
+    score: renalYes ? 2 : 4,
+  });
+
+  // Stress testing (COR 2a) — default
+  candidates.push({
+    label: "Stress testing",
+    note: "Functional option when contrast/anatomic testing is limited or ischemia assessment is preferred.",
+    apply: { testStrategy: "stress" },
+    score: renalYes ? 4 : 3,
+  });
+
+  // Exercise ECG (selected cases) as an alternative, only if eligible
+  if (canExYes && ecgYes) {
+    candidates.push({
+      label: "Exercise ECG (selected cases)",
+      note: "Selected cases: interpretable baseline ECG + adequate exercise capacity.",
+      apply: { testStrategy: "stress", stressModality: "exercise_ecg" },
+      score: 3,
+    });
+  }
+
+  candidates.sort((a, b) => b.score - a.score);
+  out.primary = candidates[0];
+  out.alternatives = candidates.slice(1, 3);
+
+  return out;
+}
+
+function applyRec(apply) {
+  if (!apply) return;
+
+  if (testStrategyEl && apply.testStrategy) {
+    testStrategyEl.value = apply.testStrategy;
+    testStrategyEl.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  // Only set modality if present and recommended
+  if (stressModalityEl && apply.stressModality) {
+    stressModalityEl.value = apply.stressModality;
+    stressModalityEl.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  // Let your existing show/hide logic run
+  if (typeof normalize === "function") normalize();
+}
+
+function renderRec() {
+  // Only relevant when persistent symptoms = yes
+  const ps = v(psEl);
+  const psYes = ps === "yes";
+
+  // If symptoms not persistent, hide recommender’s guts
+  if (!psYes) {
+    show(rec.ecgWrap, false);
+    show(rec.renalWrap, false);
+    show(rec.hardStopsWrap, false);
+    show(rec.availWrap, false);
+    show(rec.applyRow, false);
+    if (rec.output) {
+      rec.output.innerHTML =
+        `<strong>Recommendation</strong><p class="micro-note">Available when persistent/frequent symptoms are selected.</p>`;
+    }
+    return;
+  }
+
+  // Stepwise prompts:
+  const canEx = v(rec.canExercise);
+
+  // Step 2 only after step 1 answered AND only if can exercise = yes
+  show(rec.ecgWrap, canEx === "yes");
+
+  const ecgNeeded = canEx === "yes";
+  const ecgAns = v(rec.ecg);
+
+  // Step 3 (renal) only after step 1, and after step 2 if needed
+  const readyForRenal = !!canEx && (!ecgNeeded || !!ecgAns);
+  show(rec.renalWrap, readyForRenal);
+
+  // Option A: hide extra sections by default (so it stays non-overwhelming)
+  show(rec.hardStopsWrap, false);
+  show(rec.availWrap, false);
+
+  const renalAns = v(rec.renal);
+
+  // Gate: 3 prompts answered (step 1 + step 2 if needed + renal)
+  const gateOk = !!canEx && (!ecgNeeded || !!ecgAns) && !!renalAns;
+
+  const out = recommendKnownNonobstructive({
+    canExercise: canEx,
+    ecgInterpretable: ecgAns,
+    renalConcern: renalAns,
+  });
+
+  if (!rec.output) return;
+
+  if (!out.primary) {
+    rec.output.innerHTML =
+      `<strong>Recommendation</strong><p class="micro-note">Answer the first prompt to begin.</p>`;
+    show(rec.applyRow, false);
+    return;
+  }
+
+  rec.output.innerHTML = `
+    <strong>Recommendation</strong>
+    <div style="margin-top:0.45rem;"><strong>${escapeHtml(out.primary.label)}</strong></div>
+    <p class="micro-note" style="margin-top:0.35rem;">${escapeHtml(out.primary.note || "")}</p>
+    ${!gateOk ? `<p class="micro-note">Answer the first 3 prompts to unlock Apply buttons.</p>` : ""}
+  `;
+
+  show(rec.applyRow, gateOk);
+  if (!gateOk) return;
+
+  // Primary
+  rec.btnPrimary.textContent = prettyApplyLabel(out.primary.apply);
+  rec.btnPrimary.onclick = () => applyRec(out.primary.apply);
+
+  // Alt 1
+  if (out.alternatives[0]) {
+    show(rec.btnAlt1, true);
+    rec.btnAlt1.textContent = prettyApplyLabel(out.alternatives[0].apply);
+    rec.btnAlt1.onclick = () => applyRec(out.alternatives[0].apply);
+  } else {
+    show(rec.btnAlt1, false);
+  }
+
+  // Alt 2
+  if (out.alternatives[1]) {
+    show(rec.btnAlt2, true);
+    rec.btnAlt2.textContent = prettyApplyLabel(out.alternatives[1].apply);
+    rec.btnAlt2.onclick = () => applyRec(out.alternatives[1].apply);
+  } else {
+    show(rec.btnAlt2, false);
+  }
+}
+
+// Wire events (safe if some elements are missing)
+[psEl, rec.canExercise, rec.ecg, rec.renal].forEach((el) => {
+  if (!el) return;
+  el.addEventListener("change", renderRec);
+});
+
+// Initial render
+renderRec();
   normalize();
   setupModals();
 
