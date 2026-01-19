@@ -465,3 +465,50 @@ body {
   line-height: 1.4;
   font-size: 0.95rem;
 }
+
+/* ===============================
+   Definitions heart icon
+   =============================== */
+
+.definitions-heart {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.75rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.definitions-heart svg {
+  width: 36px;
+  height: 36px;
+}
+
+.definitions-heart:hover svg {
+  transform: scale(1.08);
+  filter: brightness(1.15);
+}
+
+/* ===============================
+   Definitions heart pulse (on load)
+   =============================== */
+
+@keyframes heartPulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.12);
+  }
+  70% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Pulse once on page load */
+.definitions-heart svg {
+  animation: heartPulse 1.2s ease-out 1;
+}
