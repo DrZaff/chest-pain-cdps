@@ -166,6 +166,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const highRisk = document.getElementById("highRisk");
   const stressBlock = document.getElementById("stressBlock");
 
+  const backBtn = document.getElementById("backBtn");
+backBtn?.addEventListener("click", () => window.history.back());
   function setDisplay(el, show) {
     if (!el) return;
     el.style.display = show ? "" : "none";
