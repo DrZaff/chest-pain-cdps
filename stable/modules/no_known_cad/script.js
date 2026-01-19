@@ -511,6 +511,266 @@ if (backBtn) {
     setStressAbbrev(stressModality?.value || "");
   }
 
+  // ------------------------------
+// Wave 2 #1: Guided recommender (optional)
+// ------------------------------
+const rec = {
+  canExercise: document.getElementById("rec_canExercise"),
+  ecgWrap: document.getElementById("rec_ecgWrap"),
+  ecg: document.getElementById("rec_ecgInterpretable"),
+  hardStopsWrap: document.getElementById("rec_hardStopsWrap"),
+  bronch: document.getElementById("rec_bronchospasm"),
+  mri: document.getElementById("rec_mriContra"),
+  echo: document.getElementById("rec_poorEcho"),
+  renalWrap: document.getElementById("rec_renalWrap"),
+  renal: document.getElementById("rec_renalConcern"),
+  availWrap: document.getElementById("rec_availWrap"),
+  petAvail: document.getElementById("rec_petAvail"),
+  cmrAvail: document.getElementById("rec_cmrAvail"),
+  output: document.getElementById("rec_output"),
+  applyRow: document.getElementById("rec_applyRow"),
+  btnPrimary: document.getElementById("rec_applyPrimary"),
+  btnAlt1: document.getElementById("rec_applyAlt1"),
+  btnAlt2: document.getElementById("rec_applyAlt2"),
+};
+
+// Your existing selects (already in your HTML)
+const riskCatEl = document.getElementById("riskCat");
+const indexTestEl = document.getElementById("indexTest");
+const stressModalityEl = document.getElementById("stressModality");
+
+function show(el, on) {
+  if (!el) return;
+  el.style.display = on ? "" : "none";
+}
+
+function v(el) {
+  return (el && el.value) ? el.value : "";
+}
+
+function readRecInputs() {
+  return {
+    canExercise: v(rec.canExercise),
+    ecgInterpretable: v(rec.ecg),
+    bronchospasm: v(rec.bronch),
+    mriContra: v(rec.mri),
+    poorEcho: v(rec.echo),
+    renalConcern: v(rec.renal),
+    petAvail: v(rec.petAvail),
+    cmrAvail: v(rec.cmrAvail),
+  };
+}
+
+function labelForApply(apply) {
+  // apply = { riskCat, indexTest, stressModality? }
+  if (!apply) return "Apply";
+  if (apply.indexTest === "ccta") return "Apply CCTA";
+  if (apply.indexTest === "stress") {
+    const mod = apply.stressModality;
+    if (!mod) return "Apply Stress testing";
+    const map = {
+      exercise_ecg: "Apply Exercise ECG",
+      stress_echo: "Apply Stress echo",
+      stress_nuclear: "Apply Stress nuclear",
+      stress_cmr: "Apply Stress CMR",
+    };
+    return map[mod] || "Apply Stress testing";
+  }
+  return "Apply";
+}
+
+function recommendTesting(r) {
+  // Returns: { primary, alternatives[], rationale[], warnings[] }
+  // primary/alt items: { label, apply, notes[] }
+  const out = { primary: null, alternatives: [], rationale: [], warnings: [] };
+
+  if (!r.canExercise) return out;
+
+  // Sequential logic should inform ranking, not block.
+  const renalYes = r.renalConcern === "yes";
+  const bronchYes = r.bronchospasm === "yes";
+  const mriNo = r.mriContra === "yes";
+  const echoBad = r.poorEcho === "yes";
+
+  const petOk = r.petAvail !== "no";
+  const cmrOk = r.cmrAvail !== "no";
+
+  // Candidate builder
+  const candidates = [];
+
+  // CCTA candidate (contrast may be limited by renal/contrast concern)
+  candidates.push({
+    label: "CCTA",
+    apply: { riskCat: "intermediate_high", indexTest: "ccta" },
+    score: renalYes ? 2 : 4,
+    notes: renalYes
+      ? ["Contrast concern may limit feasibility (local protocol)."]
+      : ["Good anatomic test when feasible."],
+  });
+
+  // Stress: choose best modality
+  // Default stress modality suggestion:
+  let bestStressMod = "stress_nuclear";
+
+  // If bronchospasm → prefer exercise ECG if eligible, else stress echo
+  if (bronchYes) {
+    if (r.canExercise === "yes" && r.ecgInterpretable === "yes") bestStressMod = "exercise_ecg";
+    else bestStressMod = echoBad ? "stress_nuclear" : "stress_echo";
+  } else {
+    // No bronchospasm: choose based on constraints + availability
+    if (cmrOk && !mriNo) bestStressMod = "stress_cmr";
+    else if (!echoBad) bestStressMod = "stress_echo";
+    else bestStressMod = "stress_nuclear";
+  }
+
+  const stressScore = 4; // keep stress competitive
+  candidates.push({
+    label: `Stress testing (${prettyMod(bestStressMod)})`,
+    apply: { riskCat: "intermediate_high", indexTest: "stress", stressModality: bestStressMod },
+    score: stressScore,
+    notes: ["Ischemia-focused testing; modality depends on feasibility and availability."],
+  });
+
+  // Exercise ECG alternative (selected cases)
+  if (r.canExercise === "yes" && r.ecgInterpretable === "yes") {
+    candidates.push({
+      label: "Exercise ECG (selected cases)",
+      apply: { riskCat: "intermediate_high", indexTest: "stress", stressModality: "exercise_ecg" },
+      score: 3,
+      notes: ["Requires interpretable ECG + adequate exercise capacity."],
+    });
+  }
+
+  // If PET available, offer stress_nuclear as PET/SPECT alternative explicitly
+  if (petOk) {
+    candidates.push({
+      label: "Stress nuclear (PET/SPECT)",
+      apply: { riskCat: "intermediate_high", indexTest: "stress", stressModality: "stress_nuclear" },
+      score: 3,
+      notes: ["Useful when echo/CMR limited; vasodilator constraints may apply."],
+    });
+  }
+
+  // Sort by score
+  candidates.sort((a, b) => b.score - a.score);
+
+  out.primary = candidates[0];
+  out.alternatives = candidates.slice(1, 3);
+
+  out.rationale.push("Suggestions are optional and non-blocking. You can override.");
+  if (renalYes) out.warnings.push("Renal/contrast concern noted: contrast-based tests may be limited by local protocol.");
+  if (bronchYes) out.warnings.push("Bronchospasm noted: vasodilator stress may be limited; consider alternatives.");
+  if (mriNo) out.warnings.push("MRI constraint noted: stress CMR may be limited.");
+  if (echoBad) out.warnings.push("Poor echo windows noted: stress echo may be limited.");
+
+  return out;
+}
+
+function prettyMod(mod) {
+  const map = {
+    exercise_ecg: "Exercise ECG",
+    stress_echo: "Stress echo",
+    stress_nuclear: "Stress nuclear",
+    stress_cmr: "Stress CMR",
+  };
+  return map[mod] || mod || "Stress";
+}
+
+function renderRec() {
+  // sequential visibility
+  const canEx = v(rec.canExercise);
+  show(rec.ecgWrap, canEx === "yes");
+  show(rec.hardStopsWrap, !!canEx);
+  show(rec.renalWrap, !!canEx);
+  show(rec.availWrap, !!canEx);
+
+  const inputs = readRecInputs();
+  const out = recommendTesting(inputs);
+
+  if (!rec.output) return;
+
+  if (!out.primary) {
+    rec.output.innerHTML = `<strong>Recommendation</strong><p class="micro-note">Answer the first question to see suggestions.</p>`;
+    show(rec.applyRow, false);
+    return;
+  }
+
+  const notes = (out.primary.notes || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+  const warns = (out.warnings || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+
+  rec.output.innerHTML = `
+    <strong>Recommendation</strong>
+    <div style="margin-top:0.45rem;"><strong>${escapeHtml(out.primary.label)}</strong></div>
+    ${notes ? `<ul style="margin:0.35rem 0 0; padding-left:1.15rem;">${notes}</ul>` : ""}
+    ${warns ? `<div class="micro-note" style="margin-top:0.45rem;"><ul style="margin:0; padding-left:1.15rem;">${warns}</ul></div>` : ""}
+  `;
+
+  // Buttons
+  show(rec.applyRow, true);
+
+  // Primary
+  rec.btnPrimary.textContent = labelForApply(out.primary.apply);
+  rec.btnPrimary.onclick = () => applyRecommendation(out.primary.apply);
+
+  // Alt 1
+  if (out.alternatives[0]) {
+    show(rec.btnAlt1, true);
+    rec.btnAlt1.textContent = labelForApply(out.alternatives[0].apply);
+    rec.btnAlt1.onclick = () => applyRecommendation(out.alternatives[0].apply);
+  } else {
+    show(rec.btnAlt1, false);
+  }
+
+  // Alt 2
+  if (out.alternatives[1]) {
+    show(rec.btnAlt2, true);
+    rec.btnAlt2.textContent = labelForApply(out.alternatives[1].apply);
+    rec.btnAlt2.onclick = () => applyRecommendation(out.alternatives[1].apply);
+  } else {
+    show(rec.btnAlt2, false);
+  }
+}
+
+function applyRecommendation(apply) {
+  if (!apply) return;
+
+  // Apply recommended selections (non-blocking; user can still change)
+  if (riskCatEl && apply.riskCat) {
+    riskCatEl.value = apply.riskCat;
+    riskCatEl.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  if (indexTestEl && apply.indexTest) {
+    indexTestEl.value = apply.indexTest;
+    indexTestEl.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  if (stressModalityEl && apply.stressModality) {
+    stressModalityEl.value = apply.stressModality;
+    stressModalityEl.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  // Run your existing UI visibility logic
+  if (typeof normalize === "function") normalize();
+}
+
+// Wire events (safe even if user ignores the tool)
+[
+  rec.canExercise,
+  rec.ecg,
+  rec.bronch,
+  rec.mri,
+  rec.echo,
+  rec.renal,
+  rec.petAvail,
+  rec.cmrAvail,
+].forEach((el) => {
+  if (!el) return;
+  el.addEventListener("change", renderRec);
+});
+
+// Initial render
+renderRec();
   riskCat.addEventListener("change", normalize);
   indexTest?.addEventListener("change", normalize);
   stressModality?.addEventListener("change", normalize);
