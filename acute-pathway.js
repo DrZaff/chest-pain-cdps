@@ -1,279 +1,443 @@
 /* acute-pathway.js
- * Acute Chest Pain Pathway — 2021 ACC/AHA
- * Consumed by main runner via buildAcutePathway()
+ * Extracted from Script-old.js buildAcutePathway() return object.
+ * Loads BEFORE script.js so script.js can read window.__ACUTE_PATHWAY__.
  */
 
-function buildAcutePathwayImpl() {
-  return {
-    /* ---------------- A0 ---------------- */
+(() => {
+  // DOI link for resource box
+  const DOI_URL = "https://doi.org/10.1161/CIR.0000000000001029";
+
+  window.__ACUTE_PATHWAY__ = {
+    // Page A-001
     A0: {
+      id: "A0",
       type: "step",
       title: "Initial evaluation",
-      body:
-        "ECG (review for STEMI within 10 minutes), history, physical examination, chest XR, and troponins.",
+      body: "ECG (review for STEMI within 10 minutes), history, physical examination, chest XR, and troponins",
       continueLabel: "Continue",
       next: "A1",
     },
 
-    /* ---------------- A1 ---------------- */
+    // Page A-002 (buttons consistent + STEMI + examples + resources)
     A1: {
+      id: "A1",
       type: "decision",
-      title: "Initial assessment",
-      body: "Based on initial evaluation, determine the most likely category.",
+      title: "ECG / initial assessment outcome",
+      body: "Select the best match for the current presentation.",
+      resources: [
+        { label: "Probability of ischemia based on chest pain description (Figure 2)", url: DOI_URL },
+        { label: "Chest pain history (Table 3)", url: DOI_URL },
+        { label: "Chest pain physical exam (Table 4)", url: DOI_URL },
+        { label: "EKG interpretation flowsheet (Figure 4)", url: DOI_URL },
+      ],
       options: [
         {
           label: "STEMI",
-          sub: "ECG consistent with STEMI",
+          sub: "Meets STEMI criteria on ECG.",
           next: "A_STEMI",
         },
         {
           label: "Obvious noncardiac cause",
-          sub:
-            "PE, aortic dissection, esophageal rupture, PUD, gallbladder disease, pneumonia, pneumothorax, costochondritis, herpes zoster",
-          next: "A_NONCARDIAC",
+          sub: "Examples: PE, aortic dissection, esophageal rupture, esophagitis, PUD, gallbladder dz, PNA, pneumothorax, costochondritis, Tietze syndrome, herpes zoster.",
+          next: "A2_NONCARDIAC",
         },
         {
           label: "Obvious non-ischemic cardiac cause",
-          sub:
-            "Arrhythmia, valvular disease, hypertrophic cardiomyopathy, pericarditis, myocarditis",
-          next: "A_NONISCHEMIC",
+          sub: "Examples: arrhythmia, aortic stenosis, aortic regurgitation, hypertrophic cardiomyopathy, pericarditis, myocarditis.",
+          next: "A2_NONISCHEMIC_CARDIAC",
         },
         {
           label: "Possible ACS",
-          sub: "Unstable angina or NSTEMI",
-          next: "A2",
+          sub: "Examples: UA, NSTEMI.",
+          next: "A3_POSSIBLE_ACS",
         },
       ],
     },
 
-    /* ---------------- STEMI ---------------- */
     A_STEMI: {
+      id: "A_STEMI",
       type: "terminal",
-      title: "STEMI identified",
+      title: "STEMI pathway",
       disposition:
-        "Initiate STEMI management: ASA load, supplemental O₂ if SpO₂ <90%, emergent reperfusion (PCI door-to-balloon ≤90 min [≤120 min if transfer] or fibrinolysis ≤30 min), P2Y12 inhibitor, high-intensity statin, beta-blocker (if no contraindications), ACEi/ARB within 24h, MRA if heart failure, and pain control.",
+        "STEMI guidelines: ASA load, supplemental O2 of SpO2<90%, reperfusion (door-to-balloon under 90mins [120 minutes if transfer possible] OR fibrinolysis within 30 mins of arrival followed by PCI within 3-24 hrs), P2Y12 inhibitor, high-intensity statin, beta-blocker (if no contraindications), ACEi/ARB within 24 hrs, MRA (if HF), pain control.",
+      flags: [{ level: "danger", text: "End of pathway" }],
     },
 
-    /* ---------------- NONCARDIAC ---------------- */
-    A_NONCARDIAC: {
+    A2_NONCARDIAC: {
+      id: "A2_NONCARDIAC",
       type: "terminal",
-      title: "Noncardiac chest pain",
-      disposition: "Manage according to identified noncardiac etiology.",
+      title: "Obvious noncardiac cause",
+      disposition: "No cardiac testing required (per guideline pathway).",
+      flags: [{ level: "ok", text: "End of pathway" }],
     },
 
-    /* ---------------- NONISCHEMIC ---------------- */
-    A_NONISCHEMIC: {
+    A2_NONISCHEMIC_CARDIAC: {
+      id: "A2_NONISCHEMIC_CARDIAC",
       type: "terminal",
-      title: "Non-ischemic cardiac cause",
-      disposition: "Manage according to identified cardiac condition.",
+      title: "Obvious non-ischemic cardiac cause",
+      disposition: "Other cardiac testing as needed (per guideline pathway).",
+      flags: [{ level: "ok", text: "End of pathway" }],
     },
 
-    /* ---------------- A2 ---------------- */
-    A2: {
+    // Page A-004 requirement: CDP click opens HEART score app
+    A3_POSSIBLE_ACS: {
+      id: "A3_POSSIBLE_ACS",
       type: "step",
-      title: "Cardiac biomarkers",
-      body: "Obtain serial cardiac troponins.",
-      continueLabel: "Continue",
-      next: "A3",
+      title: "Possible ACS",
+      body: "Obtain troponin.",
+      continueLabel: "Troponin obtained → continue",
+      next: "A4_RISK_STRATIFY",
     },
 
-    /* ---------------- A3 ---------------- */
-    A3: {
+    A4_RISK_STRATIFY: {
+      id: "A4_RISK_STRATIFY",
       type: "step",
       title: "Risk stratification",
       body: "Use a clinical decision pathway (CDP) to risk stratify.",
-      continueLabel: "Use CDP",
-      action: "OPEN_HEART",
-      next: "A4",
+      // Secondary button opens HEART calculator without advancing
+      secondaryAction: { label: "Open CDP (HEART score) in new window", action: "OPEN_HEART" },
+      continueLabel: "Continue",
+      next: "A5_RISK_BUCKET",
     },
 
-    /* ---------------- A4 ---------------- */
-    A4: {
+    // Page A-005: buttons styled consistently (CSS does this)
+    A5_RISK_BUCKET: {
+      id: "A5_RISK_BUCKET",
       type: "decision",
       title: "Risk category",
-      body: "Select risk category based on CDP.",
+      body: "Select risk category.",
       options: [
-        { label: "Low risk", next: "A_LOW" },
-        { label: "Intermediate risk", next: "A5" },
-        { label: "High risk", next: "A_HIGH" },
+        { label: "Low risk", next: "A_TERM_LOW" },
+        { label: "Intermediate risk", next: "A6_INTERMEDIATE_CAD_KNOWN" },
+        { label: "High risk", next: "A_TERM_ICA_CLASS1" },
       ],
     },
 
-    /* ---------------- LOW ---------------- */
-    A_LOW: {
+    A_TERM_LOW: {
+      id: "A_TERM_LOW",
       type: "terminal",
-      title: "Low-risk chest pain",
-      disposition: "No further cardiac testing required → discharge.",
+      title: "Low risk",
+      disposition: "No testing required → discharge.",
+      flags: [{ level: "ok", text: "End of pathway" }],
     },
 
-    /* ---------------- HIGH ---------------- */
-    A_HIGH: {
-      type: "terminal",
-      title: "High-risk chest pain",
-      disposition:
-        "Proceed with invasive coronary angiography (Class 1 recommendation).",
-    },
-
-    /* ---------------- A5 ---------------- */
-    A5: {
+    // Page A-006: known CAD definition + routing fix
+    A6_INTERMEDIATE_CAD_KNOWN: {
+      id: "A6_INTERMEDIATE_CAD_KNOWN",
       type: "decision",
-      title: "Known coronary artery disease?",
-      body:
-        "Known CAD includes prior MI, revascularization, or known obstructive or nonobstructive CAD.",
+      title: "Intermediate risk",
+      body: "Known CAD? Note: known CAD is prior MI, revascularization, known obstructive or nonobstructive CAD on invasive or CCTA.",
       options: [
-        { label: "No known CAD", next: "A6" },
-        { label: "Known CAD", next: "A_KNOWN" },
+        { label: "No known CAD", next: "A_INO0" },
+        // FIX: Known CAD goes directly to A-030 equivalent (A_IK1)
+        { label: "Known CAD", next: "A_IK1" },
       ],
     },
 
-    /* ---------------- NO KNOWN CAD ---------------- */
-    A6: {
+    // ---------------- ACUTE INTERMEDIATE: NO KNOWN CAD ----------------
+    A_INO0: {
+      id: "A_INO0",
       type: "decision",
-      title: "Prior testing?",
-      body: "Has the patient had prior cardiac testing?",
+      title: "Intermediate risk + no known CAD",
+      body: "Prior testing available?",
       options: [
-        {
-          label: "No prior testing",
-          next: "A7",
-        },
-        {
-          label: "Recent negative test",
-          next: "A_LOW",
-        },
+        { label: "Yes", next: "A_INO_PRIOR_Y" },
+        { label: "No", next: "A_INO_PRIOR_N" },
       ],
     },
 
-    /* ---------------- A7 ---------------- */
-    A7: {
+    A_INO_PRIOR_Y: {
+      id: "A_INO_PRIOR_Y",
       type: "decision",
-      title: "Initial test selection",
-      body: "Select initial diagnostic test.",
+      title: "Prior testing (yes)",
+      body: "Which best describes prior testing?",
       options: [
         {
-          label: "Stress testing",
-          sub: "Exercise ECG, stress echo, stress PET, stress SPECT, stress CMR",
-          next: "A_STRESS_RES",
+          label: "Recent negative test*",
+          sub: "Normal CCTA ≤2 years OR negative stress test ≤1 year (adequate stress).",
+          next: "A_TERM_DISCHARGE_INOCA",
         },
         {
-          label: "CCTA",
-          sub: "Class 1 recommendation",
-          next: "A_CCTA_RES",
+          label: "Prior inconclusive or mildly abnormal stress test ≤1 year",
+          next: "A_INO_CCTA_AFTER_INCONC_STRESS",
+        },
+        {
+          label: "Prior moderate–severely abnormal ≤1 year (no interval ICA)",
+          next: "A_TERM_ICA_CLASS1",
         },
       ],
     },
 
-    /* ---------------- STRESS RESULTS ---------------- */
-    A_STRESS_RES: {
+    // Page A-013 change
+    A_INO_CCTA_AFTER_INCONC_STRESS: {
+      id: "A_INO_CCTA_AFTER_INCONC_STRESS",
+      type: "step",
+      title: "Next test",
+      body: "CCTA (2a recommendation)",
+      continueLabel: "CCTA result available → continue",
+      next: "A_INO_CCTA_RESULTS_1",
+    },
+
+    // Page A-014: indicate Class 1 for stress and CCTA
+    A_INO_PRIOR_N: {
+      id: "A_INO_PRIOR_N",
       type: "decision",
-      title: "Stress test result",
-      body: "Interpret stress test.",
+      title: "No prior testing",
+      body: "Select initial test strategy (guided by local availability/expertise).",
       options: [
         {
-          label: "Negative or mildly abnormal",
-          next: "A_LOW",
+          label: "Stress testing (Class 1 recommendation)",
+          sub: "Exercise ECG, stress CMR, stress echocardiography, stress PET, or stress SPECT.",
+          next: "A_INO_STRESS_RESULTS",
         },
-        {
-          label: "Moderate–severe ischemia",
-          next: "A_ICA",
-        },
-        {
-          label: "Inconclusive",
-          next: "A_CCTA_RES",
-        },
+        { label: "CCTA (Class 1 recommendation)", next: "A_INO_CCTA_RESULTS_ENTRY" },
       ],
     },
 
-    /* ---------------- CCTA RESULTS ---------------- */
-    A_CCTA_RES: {
+    A_INO_STRESS_RESULTS: {
+      id: "A_INO_STRESS_RESULTS",
+      type: "decision",
+      title: "Stress testing result",
+      body: "Select stress testing outcome.",
+      options: [
+        { label: "Negative or mildly abnormal", next: "A_TERM_DISCHARGE_INOCA" },
+        { label: "Moderate–severe ischemia", next: "A_TERM_ICA_CLASS1" },
+        { label: "Inconclusive", next: "A_INO_CCTA_AFTER_INCONCLUSIVE_STRESS" },
+      ],
+    },
+
+    // Page A-016: remove parenthetical + indicate class 1
+    A_INO_CCTA_AFTER_INCONCLUSIVE_STRESS: {
+      id: "A_INO_CCTA_AFTER_INCONCLUSIVE_STRESS",
+      type: "step",
+      title: "Next test",
+      body: "CCTA (Class 1 recommendation).",
+      continueLabel: "CCTA result available → continue",
+      next: "A_INO_CCTA_RESULTS_2",
+    },
+
+    A_INO_CCTA_RESULTS_ENTRY: {
+      id: "A_INO_CCTA_RESULTS_ENTRY",
+      type: "step",
+      title: "CCTA performed",
+      body: "Proceed with CCTA.",
+      continueLabel: "CCTA result available → continue",
+      next: "A_INO_CCTA_RESULTS_2",
+    },
+
+    A_INO_CCTA_RESULTS_1: {
+      id: "A_INO_CCTA_RESULTS_1",
       type: "decision",
       title: "CCTA result",
-      body: "Interpret coronary CT angiography.",
+      body: "Select CCTA interpretation.",
       options: [
-        {
-          label: "Nonobstructive CAD (<50%)",
-          next: "A_DISCH_INOCA",
-        },
-        {
-          label: "Inconclusive or obstructive CAD ≥50%",
-          sub: "Without high-risk CAD or frequent angina",
-          next: "A_CCTA_FOLLOWUP",
-        },
+        { label: "Nonobstructive CAD (<50% stenosis)", next: "A_TERM_DISCHARGE_INOCA" },
+        { label: "Inconclusive stenosis", next: "A_INO_FFRCT_STRESS_OR_MED" },
+        { label: "Obstructive CAD (≥50% stenosis)", next: "A_INO_OBS_BRANCH" },
       ],
     },
 
-    /* ---------------- FOLLOWUP AFTER CCTA ---------------- */
-    A_CCTA_FOLLOWUP: {
+    A_INO_CCTA_RESULTS_2: {
+      id: "A_INO_CCTA_RESULTS_2",
       type: "decision",
-      title: "Next step after CCTA",
-      body: "Select add-on evaluation or management strategy.",
+      title: "CCTA result",
+      body: "Select CCTA interpretation.",
       options: [
-        {
-          label: "FFR-CT",
-          sub: "2a recommendation",
-          next: "A_FFR_RES",
-        },
-        {
-          label: "Stress testing",
-          sub: "2a recommendation",
-          next: "A_STRESS_RES",
-        },
-        {
-          label: "Treat medically (GDMT)",
-          next: "A_GDMT_DISCHARGE",
-        },
+        { label: "Nonobstructive CAD (<50% stenosis)", next: "A_TERM_DISCHARGE_INOCA" },
+        { label: "Inconclusive stenosis", next: "A_INO_FFRCT_STRESS_OR_MED" },
+        { label: "Obstructive CAD (≥50% stenosis)", next: "A_INO_OBS_BRANCH" },
       ],
     },
 
-    /* ---------------- FFR ---------------- */
-    A_FFR_RES: {
+    A_INO_FFRCT_STRESS_OR_MED: {
+      id: "A_INO_FFRCT_STRESS_OR_MED",
       type: "decision",
-      title: "FFR-CT result",
-      body: "Interpret FFR-CT.",
+      title: "Next step after inconclusive CCTA / obstructive CAD without high-risk features",
+      body: "Choose add-on test or decision to treat medically.",
+      flags: [{ level: "warning", text: "FFR-CT turnaround time may affect prompt care decisions." }],
       options: [
-        {
-          label: "FFR-CT > 0.80",
-          next: "A_GDMT_DISCHARGE",
-        },
-        {
-          label: "FFR-CT ≤ 0.80",
-          next: "A_ICA",
-        },
+        { label: "FFR-CT (2a recommendation)", next: "A_INO_FFRCT_RESULTS" },
+        { label: "Stress testing (2a recommendation)", next: "A_INO_STRESS_RESULTS_POSTCCTA" },
+        { label: "Decision to treat medically", next: "A_INO_GDMT_DISCHARGE_CLASS1" },
       ],
     },
 
-    /* ---------------- ICA ---------------- */
-    A_ICA: {
+    A_INO_FFRCT_RESULTS: {
+      id: "A_INO_FFRCT_RESULTS",
+      type: "decision",
+      title: "FFR-CT / stress result available",
+      body: "FFR-CT ≤0.8 or moderate–severe ischemia?",
+      options: [
+        { label: "No", next: "A_INO_GDMT_DISCHARGE_CLASS1" },
+        { label: "Yes", next: "A_TERM_ICA_CLASS1" },
+      ],
+    },
+
+    A_INO_STRESS_RESULTS_POSTCCTA: {
+      id: "A_INO_STRESS_RESULTS_POSTCCTA",
+      type: "decision",
+      title: "Stress testing result (post-CCTA)",
+      body: "Moderate–severe ischemia?",
+      options: [
+        { label: "No", next: "A_INO_GDMT_DISCHARGE_CLASS1" },
+        { label: "Yes", next: "A_TERM_ICA_CLASS1" },
+      ],
+    },
+
+    A_INO_GDMT_DISCHARGE_CLASS1: {
+      id: "A_INO_GDMT_DISCHARGE_CLASS1",
+      type: "terminal",
+      title: "Guideline-directed medical therapy",
+      disposition: "Proceed with guideline-directed medical therapy (GDMT) (Class 1 recommendation) → discharge.",
+      flags: [{ level: "ok", text: "End of pathway" }],
+    },
+
+    A_INO_OBS_BRANCH: {
+      id: "A_INO_OBS_BRANCH",
+      type: "decision",
+      title: "Obstructive CAD (≥50% stenosis)",
+      body: "High-risk CAD or frequent angina? High-risk CAD means left main stenosis ≥ 50%; anatomically significant 3-vessel disease (≥70% stenosis).",
+      options: [
+        { label: "High-risk CAD or frequent angina", next: "A_TERM_ICA_CLASS1" },
+        { label: "Not high-risk CAD / not frequent angina", next: "A_INO_FFRCT_STRESS_OR_MED" },
+      ],
+    },
+
+    // ---------------- ACUTE INTERMEDIATE: KNOWN CAD ----------------
+    A_IK1: {
+      id: "A_IK1",
+      type: "decision",
+      title: "Intermediate risk + known CAD",
+      body:
+        "Select known CAD category.\n\nObstructive CAD includes prior coronary artery bypass graft/percutaneous coronary intervention.\nHigh-risk CAD means left main stenosis ≥50%; anatomically significant 3-vessel disease (≥70% stenosis).",
+      options: [
+        { label: "Nonobstructive CAD (<50% stenosis)", next: "A_IK_NONOBS_OPTIONS" },
+        { label: "Obstructive CAD (≥50% stenosis)", next: "A_IK_OBS_STRESS" },
+      ],
+    },
+
+    A_IK_NONOBS_OPTIONS: {
+      id: "A_IK_NONOBS_OPTIONS",
+      type: "decision",
+      title: "Nonobstructive CAD options",
+      body:
+        "Choose testing strategy or defer testing.\n\nNote: If extensive plaque is present a high-quality CCTA is unlikely to be achieved, and stress testing is preferred.",
+      options: [
+        { label: "CCTA (2a recommendation)", next: "A_IK_NONOBS_CCTA_RES" },
+        {
+          label: "Stress testing (2a recommendation)",
+          sub: "Stress CMR, stress echo, stress PET, or stress SPECT (all 2a recommendations).",
+          next: "A_IK_NONOBS_STRESS_RES",
+        },
+        { label: "Defer testing and intensify GDMT (Class 1 recommendation)", next: "A_IK_GDMT_DEFER" },
+      ],
+    },
+
+    A_IK_GDMT_DEFER: {
+      id: "A_IK_GDMT_DEFER",
+      type: "terminal",
+      title: "GDMT optimization",
+      disposition: "Option to defer testing and intensify GDMT (Class 1 recommendation) → discharge.",
+      flags: [{ level: "ok", text: "End of pathway" }],
+    },
+
+    A_IK_NONOBS_CCTA_RES: {
+      id: "A_IK_NONOBS_CCTA_RES",
+      type: "decision",
+      title: "CCTA result",
+      body: "Select CCTA interpretation.",
+      options: [
+        { label: "No change", next: "A_TERM_DISCHARGE_SIMPLE" },
+        { label: "Obstructive CAD (≥50% stenosis)", next: "A_IK_NONOBS_FFR_OR_STRESS" },
+      ],
+    },
+
+    A_IK_NONOBS_FFR_OR_STRESS: {
+      id: "A_IK_NONOBS_FFR_OR_STRESS",
+      type: "decision",
+      title: "Next step",
+      body: "Choose add-on test.",
+      options: [
+        { label: "FFR-CT (2a recommendation)", next: "A_IK_NONOBS_FFR_RES" },
+        { label: "Stress testing (2a recommendation)", next: "A_IK_NONOBS_FFR_RES" },
+      ],
+    },
+
+    A_IK_NONOBS_FFR_RES: {
+      id: "A_IK_NONOBS_FFR_RES",
+      type: "decision",
+      title: "FFR-CT / stress result",
+      body: "FFR-CT ≤0.8 or moderate–severe ischemia?",
+      options: [
+        { label: "No", next: "A_IK_GDMT_DEFER" },
+        { label: "Yes", next: "A_TERM_ICA_CLASS1" },
+      ],
+    },
+
+    A_IK_NONOBS_STRESS_RES: {
+      id: "A_IK_NONOBS_STRESS_RES",
+      type: "decision",
+      title: "Stress testing result",
+      body: "Select result.",
+      options: [
+        { label: "Mild ischemia", next: "A_IK_GDMT_DEFER" },
+        { label: "Moderate–severe ischemia", next: "A_TERM_ICA_CLASS1" },
+        { label: "Inconclusive", next: "A_IK_NONOBS_FFR_OR_STRESS" },
+      ],
+    },
+
+    A_IK_OBS_STRESS: {
+      id: "A_IK_OBS_STRESS",
+      type: "step",
+      title: "Stress testing (2a recommendation)",
+      body: "Stress CMR, stress echocardiography, stress PET, or stress SPECT (2a recommendations).",
+      continueLabel: "Stress test result available → continue",
+      next: "A_IK_OBS_STRESS_RES",
+    },
+
+    A_IK_OBS_STRESS_RES: {
+      id: "A_IK_OBS_STRESS_RES",
+      type: "decision",
+      title: "Functional test result",
+      body: "Select functional test outcome.",
+      options: [
+        { label: "Normal functional test", next: "A_TERM_DISCHARGE_SIMPLE" },
+        { label: "Abnormal functional test", next: "A_IK_OBS_ABN_NOTE" },
+      ],
+    },
+
+    A_IK_OBS_ABN_NOTE: {
+      id: "A_IK_OBS_ABN_NOTE",
+      type: "step",
+      title: "Abnormal functional test",
+      body: "Per pathway: option to defer ICA with mildly abnormal test (discuss with cardiologist); otherwise proceed to ICA.",
+      continueLabel: "Proceed",
+      next: "A_TERM_ICA_CLASS1",
+    },
+
+    A_TERM_DISCHARGE_SIMPLE: {
+      id: "A_TERM_DISCHARGE_SIMPLE",
+      type: "terminal",
+      title: "Discharge",
+      disposition: "Discharge.",
+      flags: [{ level: "ok", text: "End of pathway" }],
+    },
+
+    A_TERM_DISCHARGE_INOCA: {
+      id: "A_TERM_DISCHARGE_INOCA",
+      type: "terminal",
+      title: "Discharge",
+      disposition: "Discharge and consider INOCA pathway as an outpatient for frequent or persistent symptoms",
+      flags: [{ level: "ok", text: "End of pathway" }],
+    },
+
+    A_TERM_ICA_CLASS1: {
+      id: "A_TERM_ICA_CLASS1",
       type: "terminal",
       title: "Invasive coronary angiography",
-      disposition:
-        "Proceed with invasive coronary angiography (Class 1 recommendation).",
-    },
-
-    /* ---------------- GDMT ---------------- */
-    A_GDMT_DISCHARGE: {
-      type: "terminal",
-      title: "Medical therapy",
-      disposition:
-        "Proceed with guideline-directed medical therapy → discharge.",
-    },
-
-    /* ---------------- INOCA ---------------- */
-    A_DISCH_INOCA: {
-      type: "terminal",
-      title: "Nonobstructive CAD",
-      disposition:
-        "Discharge and consider INOCA pathway as an outpatient for frequent or persistent symptoms.",
-    },
-
-    /* ---------------- KNOWN CAD ---------------- */
-    A_KNOWN: {
-      type: "terminal",
-      title: "Known CAD",
-      disposition:
-        "Manage according to known CAD pathway (stress imaging vs ICA depending on risk and symptoms).",
+      disposition: "Invasive coronary angiography (ICA) (Class 1 recommendation).",
+      flags: [{ level: "danger", text: "End of pathway" }],
+      recommendedTests: ["ICA"],
     },
   };
-}
-
-/* Export hook for main script */
-window.buildAcutePathway = buildAcutePathwayImpl;
+})();
