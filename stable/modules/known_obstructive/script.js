@@ -201,7 +201,6 @@ const rec = {
   btnAlt1: document.getElementById("rec_applyAlt1"),
   btnAlt2: document.getElementById("rec_applyAlt2"),
 };
-
 // Module elements
 const highRiskEl = document.getElementById("highRisk");
 const stressBlockEl = document.getElementById("stressBlock");
