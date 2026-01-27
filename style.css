@@ -672,3 +672,8 @@ body {
   }
 }
 
+.home-card--references {
+  max-width: 360px;
+  justify-self: end;
+}
+
