@@ -612,3 +612,63 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* HOME: emphasize Start, de-emphasize References */
+.grid-home {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1.7fr 0.7fr; /* make References narrower */
+  align-items: start;
+}
+
+/* References card: smaller, distinct color, utility panel feel */
+.home-card--references {
+  padding: 0.65rem;
+  border-radius: 14px;
+  border: 1px solid rgba(120, 200, 255, 0.18);
+  background: rgba(80, 140, 255, 0.06); /* subtle blue tint */
+  opacity: 0.9;
+}
+
+/* Tighten spacing and typography inside References */
+.home-card--references .home-card-title {
+  font-size: 0.92rem;
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.2px;
+}
+
+.home-card--references .muted {
+  font-size: 0.85rem;
+  line-height: 1.25;
+  margin-bottom: 0.6rem;
+}
+
+/* Make reference buttons compact + less dominant */
+.home-card--references .btn-stack {
+  gap: 0.45rem;
+}
+
+.home-card--references .choice-btn {
+  padding: 0.55rem 0.65rem;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+/* Optional: make reference buttons look “utility” not “primary” */
+.home-card--references .choice-btn {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Mobile: stack, but still de-emphasize References */
+@media (max-width: 600px) {
+  .grid-home {
+    grid-template-columns: 1fr;
+  }
+  .home-card--references {
+    padding: 0.6rem;
+    opacity: 0.92;
+  }
+}
+
