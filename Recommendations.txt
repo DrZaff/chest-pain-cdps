@@ -1,40 +1,114 @@
 ACC/AHA Chest Pain Guideline — Key Recommendations
 
-## Defining Chest Pain
-  Early assessment for ischemia (COR 1)
-- Avoid term 'atypical chest pain'
-- Classify as cardiac, possibly cardiac, noncardiac
+##Defining Chest Pain
+  Initial Triage (COR 1, LOE B-NR)
+    Use early assessment of chest pain to triage patients based on likelihood of myocardial ischemia¹-⁷
 
-## Initial Evaluation
-- Focused history and physical
-- Special attention to women and older adults
-- Cultural and language considerations
+##Terminology (COR 1, LOE C-LD)
+  Avoid the term “atypical chest pain”
+  Describe symptoms as:
+    Cardiac
+    Possibly cardiac
+    Noncardiac
+  Note: These terms are more specific and reduce misclassification¹-⁷
 
-## Diagnostic Testing
-- ECG within 10 minutes
-- Troponin testing ASAP
-- Avoid delayed ED transfer
+##Initial Evaluation
+  History (COR 1, LOE C-LD)
+    Obtain a focused history that includes:
+    Symptom characteristics
+      Symptom duration
+      Associated features
+      Cardiovascular risk factor
 
-## ECG
-- Serial ECGs if nondiagnostic
-- Treat per STEMI/NSTE-ACS guidelines
+    Focus on the Uniqueness of Chest Pain in Women (COR 1, LOE B-NR)
+      Women presenting with chest pain are at risk for underdiagnosis; cardiac causes should always be considered¹–⁷
+      History in women should emphasize accompanying symptoms more common in ACS (e.g., dyspnea, fatigue, nausea)¹–⁷ (COR 1, LOE B-NR)
+    
+    Considerations for Older Patients With Chest Pain (COR 1, LOE C-LD)
+      In patients >75 years, consider ACS when chest pain is accompanied by:
+        Shortness of breath
+        Syncope
+        Acute delirium
+        Unexplained fall
+    
+    Considerations for Diverse Patient Populations (COR 1, LOE C-LD)
+        Use cultural competency training to improve outcomes in patients from diverse racial and ethnic backgrounds
+        When English is not a patient’s primary language, use formal medical translation services to address language barriers
+    
+    Patient-Centric Considerations (COR 1, LOE C-LD)
+        For acute chest pain, patients or bystanders should activate 9-1-1 to initiate EMS transport to the nearest ED
+    
+    Physical Examination (COR 1, LOE C-EO)
+      Perform an initial focused cardiovascular examination to:
+        Aid in diagnosis of ACS
+        Identify other life-threatening causes (e.g., aortic dissection, PE, esophageal rupture)
+        Detect complications
 
-## Biomarkers
-- Serial troponins
-- hs-cTn preferred
+##Diagnostic Testing
+  Setting Considerations
+    If no clear noncardiac cause is evident, obtain an ECG for patients with stable chest pain seen in office settings; refer to the ED if ECG is unavailable¹-⁵ (COR 1, LOE B-NR)
+    Patients with suspected ACS or other life-threatening causes in the office setting should be urgently transported to the ED, ideally by EMS¹-⁹ (COR 1, LOE C-LD)
+    In all settings, obtain and review an ECG within 10 minutes of arrival for patients with acute chest pain¹,³,⁶,⁷,¹⁰ (COR 1, LOE C-LD)
+    Measure cardiac troponin (cTn) as soon as possible after ED presentation in suspected ACS⁸,⁹ (COR 1, LOE C-LD)
+    Avoid delayed ED transfer for patients with suspected ACS initially evaluated in outpatient settings when diagnostic testing (e.g., cTn) is required (COR 3: Harm, LOE C-LD)
 
-## Acute Chest Pain With Suspected ACS
-- Use clinical decision pathways
-- Risk stratify (low, intermediate, high)
+  Electrocardiogram
+    If the initial ECG is nondiagnostic, perform serial ECGs to detect ischemic changes, especially when (COR 1, LOE C-EO) ¹:
+      Clinical suspicion for ACS is high
+      Symptoms persist
+      Clinical status worsens
 
-## Low-Risk Patients
-- <1% 30-day MACE → discharge without testing
+  Treat patients with ECG findings consistent with ACS according to STEMI or NSTE-ACS guidelines¹,² (COR 1, LOE C-EO)
+    In patients with intermediate-to-high suspicion for ACS and a nondiagnostic ECG, posterior leads (V7–V9) are reasonable to evaluate for posterior MI³–⁵ (COR 2a, LOE B-NR)
 
-## Intermediate-Risk Patients
-- TTE for bedside assessment
-- Observation unit reasonable
+  Chest Radiography (COR 1, LOE C-EO)
+    Obtain a chest radiograph in acute chest pain to evaluate for alternative cardiac, pulmonary, or thoracic causes
 
-## Diagnostic Testing in No Known CAD
-- CCTA or stress testing
-- ICA for high-risk findings
-::end::
+  Biomarkers
+    Serial cardiac troponin (cTn) measurements are useful to identify abnormal values and rising or falling patterns consistent with acute myocardial injury¹-²¹ (COR 1, LOE B-NR)
+    High-sensitivity cTn (hs-cTn) is the preferred biomarker for acute chest pain because it improves detection and exclusion of myocardial injury and increases diagnostic accuracy¹,⁷,²¹-²⁶        (COR 1, LOE B-NR)
+    Clinicians should be familiar with the 99th percentile upper reference limit for the specific cTn assay used at their institution²³,²⁶ (COR 1, LOE C-EO)
+    With availability of cTn, CK-MB and myoglobin are not useful for diagnosing acute myocardial injury²⁷-³² (COR 3, LOE B-NR)
+  
+##Patients With Acute Chest Pain and Suspected ACS (Not Including STEMI)
+  General Approach
+    Clinical decision pathways (CDPs) should be used to stratify patients into low-, intermediate-, or high-risk groups to guide disposition and diagnostic evaluation¹-¹⁴ (COR 1, LOE B-NR)
+    When serial troponins are used to exclude myocardial injury, recommended repeat intervals are (COR 1, LOE B-NR):
+      1–3 hours for hs-cTn
+      3–6 hours for conventional cTn assays¹⁶-¹⁷
+    Institutions should implement standardized CDPs with troponin sampling protocols tailored to the specific assay in use¹⁸,¹⁹ (COR 1, LOE C-LD)
+    Prior cardiac testing results should be reviewed and incorporated into CDPs when available²⁰-²⁴ (COR 1, LOE C-LD)
+
+    In patients with:
+      Normal ECG
+      Symptoms suggestive of ACS beginning ≥3 hours before ED arrival
+      A single hs-cTn below the limit of detection at time zero is reasonable to exclude myocardial injury¹,³,²⁵-²⁹ (COR 2a, LOE B-NR)
+
+##Low-Risk Patients With Acute Chest Pain
+  Patients with a 30-day risk of death or MACE <1% should be designated as low risk¹¹ (COR 1, LOE B-NR)
+  For low-risk patients with suspected ACS (<1% 30-day risk), it is reasonable to discharge home without admission or urgent cardiac testing¹²-¹⁶ (COR 2a, LOE B-R)
+
+##Intermediate-Risk Patients With Acute Chest Pain
+  General Intermediate-Risk
+  Transthoracic echocardiography (TTE) is recommended as a rapid bedside test to (COR 1, LOE C-EO):
+  Establish ventricular and valvular function
+  Evaluate for wall motion abnormalities
+  Assess for pericardial effusion
+  Management in an observation unit is reasonable to reduce length of stay and cost compared with inpatient admission¹-⁷ (COR 2a, LOE A)
+
+##Intermediate-Risk Patients With Acute Chest Pain and No Known CAD
+  Index Diagnostic Testing
+  Anatomic Testing
+  CCTA is useful after a negative or inconclusive ACS evaluation to exclude atherosclerotic plaque and obstructive CAD¹-¹¹ (COR 1, LOE A)
+
+##Invasive coronary angiography (ICA) is recommended when (COR 1, LOE C-EO):
+  Moderate–severe ischemia is present, or There is recent (<1 year) abnormal stress testing, and no known CAD by prior anatomic testing
+  CCTA is reasonable in patients with previous mildly abnormal stress testing (<1 year) to diagnose obstructive CAD¹²,¹³ (COR 2a, LOE C-LD)
+
+##Stress Testing
+  Exercise ECG, stress echocardiography, stress PET/SPECT MPI, or stress CMR are useful to diagnose myocardial ischemia¹,⁴,¹⁰,¹⁴-³⁶ (COR 1, LOE B-NR)
+
+##Sequential or Add-On Testing
+  FFR-CT is useful for stenoses of 40%–90% on CCTA to diagnose vessel-specific ischemia and guide revascularization decisions³⁷-⁴³ (COR 2a, LOE B-NR)
+  After inconclusive stress testing, CCTA is useful to exclude atherosclerotic plaque and obstructive CAD (COR 2a, LOE C-EO)
+  After inconclusive CCTA, stress imaging (echo, PET/SPECT MPI, or CMR) can be useful to diagnose ischemia (COR 2a, LOE C-EO)
