@@ -533,7 +533,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let RECOMMENDATIONS_SECTIONS = [];
 
   async function loadRecommendations() {
-    const raw = await loadTextAsset("./Recommendations.txt");
+    const raw = await loadTextAsset("./Recommendations.pdf");
     RECOMMENDATIONS_SECTIONS = parseRecommendations(raw);
     renderRecommendations(evidenceContentEl, RECOMMENDATIONS_SECTIONS, evidenceSearchEl?.value || "");
   }
@@ -603,7 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function loadContraindications() {
-    const raw = await loadTextAsset("./ContraindicationsImagingModality.txt");
+    const raw = await loadTextAsset("./ContraindicationsImagingModality.pdf");
     renderContraindicationsByModality(contraContentEl, raw);
   }
 
@@ -653,7 +653,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function loadBackground() {
-    const raw = await loadTextAsset("./Chest Pain Background.txt");
+    const raw = await loadTextAsset("./Chest Pain Background.pdf");
     backgroundContentEl.innerHTML = renderBackgroundNice(raw);
   }
 
@@ -682,7 +682,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await loadBackground();
     } catch (e) {
       console.error(e);
-      backgroundContentEl.innerHTML = `<p class="muted">Unable to load Chest Pain Background.txt</p>`;
+      backgroundContentEl.innerHTML = `<p class="muted">Unable to load Chest Pain Background.pdf</p>`;
     }
   });
 
@@ -693,7 +693,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await loadRecommendations();
     } catch (e) {
       console.error(e);
-      evidenceContentEl.innerHTML = `<p class="muted">Unable to load Recommendations.txt</p>`;
+      evidenceContentEl.innerHTML = `<p class="muted">Unable to load Recommendations.pdf</p>`;
     }
   });
 
@@ -704,7 +704,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await loadContraindications();
     } catch (e) {
       console.error(e);
-      contraContentEl.innerHTML = `<p class="muted">Unable to load ContraindicationsImagingModality.txt</p>`;
+      contraContentEl.innerHTML = `<p class="muted">Unable to load ContraindicationsImagingModality.pdf</p>`;
     }
   });
 
@@ -736,3 +736,4 @@ document.addEventListener("DOMContentLoaded", () => {
   // ----------------------------
   showView("home");
 });
+
