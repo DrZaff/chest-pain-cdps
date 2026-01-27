@@ -1,7 +1,7 @@
-# ACC/AHA Chest Pain Guideline — Key Recommendations
-::content::
+ACC/AHA Chest Pain Guideline — Key Recommendations
+
 ## Defining Chest Pain
-- Early assessment for ischemia (COR 1)
+  Early assessment for ischemia (COR 1)
 - Avoid term 'atypical chest pain'
 - Classify as cardiac, possibly cardiac, noncardiac
 
