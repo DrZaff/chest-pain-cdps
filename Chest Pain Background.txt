@@ -1,22 +1,45 @@
-# Chest Pain: Scope and Clinical Importance
-::content::
-## Epidemiology and Health Care Utilization
-- Second most common ED presentation in U.S. adults (>6.5 million visits/year)
-- Nearly 4 million outpatient visits annually
-- Often noncardiac but requires careful evaluation
+Chest Pain: Scope and Clinical Importance
 
-## Coronary Disease Context
-- CAD affects >18.2 million U.S. adults
-- Leading cause of death in men and women (>365,000 deaths/year)
-- Chest pain is the most common presenting symptom
+##Epidemiology and Health Care Utilization
+  Chest pain is the second most common emergency department (ED) presentation among U.S.
+  adults, accounting for >6.5 million ED visits annually (4.7% of all ED visits).¹
 
-## Diagnostic Challenge
-- Lifetime prevalence: 20–40%
-- More frequent in women
-- Among ED presentations:
-  - ~5.1% ACS
-  - >50% noncardiac causes
+  Chest pain also results in nearly 4 million outpatient visits per year in the United States.²
+  
+  Although chest pain is frequently noncardiac in origin, it requires careful evaluation due to the
+  prevalence and potential severity of coronary disease.
 
-## Clinical Implication
-- Critical to distinguish serious cardiac etiologies from benign causes
-::end::
+##Coronary Disease Context
+  Coronary artery disease (CAD) affects >18.2 million U.S. adults and remains the leading cause of
+  death in both men and women, with >365,000 deaths annually.³
+
+  Chest pain is the most common presenting symptom of CAD in both sexes.
+
+##Diagnostic Challenge
+  The lifetime prevalence of chest pain in the United States is 20–40%.⁴
+  Women experience chest pain more frequently than men.⁵
+
+  Among ED patients presenting with chest pain:
+    Only ~5.1% are diagnosed with acute coronary syndrome (ACS).⁶
+    >50% are ultimately found to have a noncardiac cause.⁶
+
+##Clinical Implication
+  Differentiating serious cardiac etiologies from benign causes is essential, given the low
+  prevalence of ACS but the high mortality burden associated with CAD.¹–⁶
+
+##References
+  1.Rui P, Kang K. National Hospital Ambulatory Medical Care Survey: 2017 Emergency Department Summary
+  Tables. National Center for Health Statistics. Available at: https://www.cdc.gov/nchs/data/nhamcs/
+  web_tables/2017_ed_web_tables-508.pdf. Accessed February 12, 2021.
+  2. Rui P, Okeyode T. National Ambulatory Medical Care Survey: 2016 National Summary Tables. Available at:
+  https://www.cdc.gov/nchs/data/ahcd/namcs_summary/2016_namcs_web_tables.pdf. Accessed
+  February 12, 2021.
+  3. Virani SS, Alonso A, Benjamin EJ, et al. Heart disease and stroke statistics—2020 update: a report
+  from the American Heart Association. Circulation. 2020;141:e139–e596.
+  4. Ruigómez A, Rodríguez LA, Wallander MA, et al. Chest pain in general practice: incidence,
+  comorbidity, and mortality. Family Practice. 2006;23:167–174.
+  5. Bösner S, Becker A, Haasenritter J, et al. Chest pain in primary care: epidemiology and pre-work-up
+  probabilities. European Journal of General Practice. 2009;15:141–146.
+  6. Hsia RY, Hale Z, Tabas JA. A national study of the prevalence of life-threatening diagnoses in patients 
+  with chest pain. JAMA Internal Medicine. 2016;176:1029–1032.
+
