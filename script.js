@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const ACUTE = normalizePathway(window.__ACUTE_PATHWAY__);
-  const STABLE = normalizePathway(window.__STABLE_PATHWAY__);
+  let STABLE = normalizePathway(window.__STABLE_PATHWAY__); // may be null at load-time
 
   const PATHWAYS = {
     acute: ACUTE,
@@ -54,6 +54,52 @@ document.addEventListener("DOMContentLoaded", () => {
     return out;
   }
   const ACUTE_BY_PAGE = invertMap(PAGE_IDS.acute);
+
+  // ----------------------------
+  // Lazy-load Stable pathway module (partner file)
+  // ----------------------------
+  async function ensureStablePathwayLoaded() {
+    if (window.__STABLE_PATHWAY__) return true;
+
+    const candidates = [
+      "./stable-pathway.js",
+      "./stable-pathway.min.js",
+      "./stable_pathway.js",
+      "./stable.js",
+      "./stable-pathway-module.js",
+    ];
+
+    const tryLoadScript = (src) =>
+      new Promise((resolve) => {
+        // Avoid duplicates
+        if ([...document.scripts].some((s) => (s.src || "").includes(src.replace("./", "")))) {
+          setTimeout(() => resolve(true), 0);
+          return;
+        }
+        const el = document.createElement("script");
+        el.src = src;
+        el.async = true;
+        el.onload = () => resolve(true);
+        el.onerror = () => resolve(false);
+        document.head.appendChild(el);
+      });
+
+    for (const src of candidates) {
+      const ok = await tryLoadScript(src);
+      if (ok && window.__STABLE_PATHWAY__) return true;
+    }
+    return false;
+  }
+
+  function refreshStableInRuntime() {
+    STABLE = normalizePathway(window.__STABLE_PATHWAY__);
+    if (STABLE) {
+      PATHWAYS.stable = STABLE;
+      PAGE_IDS.stable = buildPageIndex(STABLE.nodes, "S");
+      return true;
+    }
+    return false;
+  }
 
   // ----------------------------
   // Runner state
@@ -382,8 +428,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ============================================================
-  // REFERENCE PAGES: "##" dropdowns + preserve indentation exactly
+  // REFERENCE PAGES: "##" dropdowns + NESTED BULLETS BY INDENT
   // Works for both "##Heading" and "## Heading"
+  // All dropdowns CLOSED by default.
   // ============================================================
   function isHashHeading(line) {
     return /^##\s*\S/.test(line || "");
@@ -401,7 +448,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const push = () => {
       if (!current) return;
-      // Trim trailing blank lines only (keep indentation in body lines)
       while (current.bodyLines.length && current.bodyLines[current.bodyLines.length - 1].trim() === "") {
         current.bodyLines.pop();
       }
@@ -420,12 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
         continue;
       }
 
-      if (!current) {
-        // ignore text before the first ##
-        continue;
-      }
-
-      // preserve indentation: keep the raw line (minus trailing whitespace)
+      if (!current) continue;
       current.bodyLines.push((line ?? "").replace(/\s+$/g, ""));
     }
 
@@ -433,33 +474,98 @@ document.addEventListener("DOMContentLoaded", () => {
     return sections;
   }
 
+  function countLeadingSpaces(line) {
+    const m = (line || "").match(/^(\s*)/);
+    return m ? m[1].length : 0;
+  }
+
+  function indentedTextToNestedListHtml(textBlock) {
+    const lines = (textBlock || "").replace(/\r\n/g, "\n").split("\n");
+    const items = [];
+
+    for (const raw of lines) {
+      if (!raw || raw.trim() === "") continue;
+      items.push({
+        indent: countLeadingSpaces(raw),
+        text: escapeHtml(raw.replace(/\s+$/g, "")).trimStart(),
+      });
+    }
+
+    if (!items.length) return `<p class="muted">No content.</p>`;
+
+    let html = "";
+    const stack = []; // indent levels of open ULs
+
+    const openUl = () => (html += `<ul class="ref-ul">`);
+    const closeUl = () => (html += `</ul>`);
+    const openLi = (t) => (html += `<li>${t}`);
+    const closeLi = () => (html += `</li>`);
+
+    openUl();
+    stack.push(items[0].indent);
+    openLi(items[0].text);
+
+    for (let i = 1; i < items.length; i++) {
+      const prev = items[i - 1];
+      const cur = items[i];
+
+      if (cur.indent > prev.indent) {
+        openUl();
+        stack.push(cur.indent);
+        openLi(cur.text);
+        continue;
+      }
+
+      closeLi();
+
+      while (stack.length && cur.indent < stack[stack.length - 1]) {
+        closeUl();
+        stack.pop();
+        closeLi();
+      }
+
+      openLi(cur.text);
+    }
+
+    closeLi();
+
+    while (stack.length > 1) {
+      closeUl();
+      stack.pop();
+      closeLi();
+    }
+
+    closeUl();
+    return html;
+  }
+
   function renderHashAccordion(containerEl, sections, searchValue = "") {
     const q = (searchValue || "").trim().toLowerCase();
     const items = Array.isArray(sections) ? sections : [];
 
     const html = items
-      .map((sec, idx) => {
+      .map((sec) => {
         const hay = (sec.title + "\n" + sec.body).toLowerCase();
         if (q && !hay.includes(q)) return "";
 
-        const openAttr = q ? "open" : idx === 0 ? "open" : "";
         return `
-          <details ${openAttr}>
+          <details>
             <summary>${escapeHtml(sec.title)}</summary>
             <div class="acc-body">
-              <pre class="ref-pre">${escapeHtml(sec.body)}</pre>
+              <div class="ref-bullets">
+                ${indentedTextToNestedListHtml(sec.body)}
+              </div>
             </div>
           </details>
         `;
       })
       .join("");
 
-    // Ensure accordion styling applies even on background page
     containerEl.innerHTML = `<div class="accordion">${html || `<p class="muted">No matches.</p>`}</div>`;
   }
 
   // ----------------------------
-  // Recommendations (dropdown by ## + preserve indent, search works)
+  // Recommendations
   // ----------------------------
   let RECOMMENDATION_SECTIONS = [];
 
@@ -470,7 +576,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ----------------------------
-  // Contraindications (dropdown by ## + preserve indent)
+  // Contraindications
   // ----------------------------
   let CONTRA_SECTIONS = [];
 
@@ -481,7 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ----------------------------
-  // Background (dropdown by ## + preserve indent)
+  // Background
   // ----------------------------
   let BACKGROUND_SECTIONS = [];
 
@@ -495,7 +601,28 @@ document.addEventListener("DOMContentLoaded", () => {
   // Wire buttons
   // ----------------------------
   btnStartAcute?.addEventListener("click", () => startRunner("acute"));
-  btnStartStable?.addEventListener("click", () => startRunner("stable"));
+
+  // FIX: stable pathway no longer breaks if partner module loads after script.js
+  btnStartStable?.addEventListener("click", async () => {
+    if (PATHWAYS.stable) {
+      startRunner("stable");
+      return;
+    }
+
+    const loaded = await ensureStablePathwayLoaded();
+    const ok = loaded && refreshStableInRuntime();
+
+    if (!ok) {
+      alert(
+        "Stable pathway module not loaded.\n\n" +
+          "Ensure the partner stable pathway script exists in your project and loads before script.js,\n" +
+          "or name it stable-pathway.js at the project root."
+      );
+      return;
+    }
+
+    startRunner("stable");
+  });
 
   btnBack?.addEventListener("click", goBack);
   btnReset?.addEventListener("click", () => {
@@ -563,7 +690,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   evidenceFigureLinkEl?.addEventListener("click", (e) => {
     e.preventDefault();
-    openDocModal("ACC/AHA COR/LOE interpretation", "./Recommendations.png");
+    // Keep consistent with your current assets + SW cache + acute pathway resources
+    openDocModal("ACC/AHA COR/LOE interpretation", "./Recomendations.png");
   });
 
   // ----------------------------
