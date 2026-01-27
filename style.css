@@ -677,3 +677,50 @@ body {
   justify-self: end;
 }
 
+/* Make the Start card feel primary (no HTML changes required) */
+#view-home .grid-home > .home-card:first-child {
+  position: relative;
+  border: 1px solid rgba(120, 255, 220, 0.16);
+  background:
+    radial-gradient(1200px 500px at 20% 0%,
+      rgba(120, 255, 220, 0.10),
+      rgba(0, 0, 0, 0) 55%),
+    rgba(255, 255, 255, 0.02);
+  box-shadow:
+    0 0 0 1px rgba(120, 255, 220, 0.10) inset,
+    0 14px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* A subtle “badge” accent strip at the top */
+#view-home .grid-home > .home-card:first-child::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 12px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(120, 255, 220, 0.55);
+  opacity: 0.65;
+}
+
+/* Make Start title + subtitle slightly larger */
+#view-home .grid-home > .home-card:first-child .home-card-title {
+  font-size: 1.15rem;
+  letter-spacing: 0.2px;
+}
+
+#view-home .grid-home > .home-card:first-child .muted {
+  font-size: 1rem;
+}
+
+/* Make acute/stable buttons feel more “primary” */
+#view-home .grid-home > .home-card:first-child .choice-btn {
+  border: 1px solid rgba(120, 255, 220, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+#view-home .grid-home > .home-card:first-child .choice-btn:hover {
+  transform: translateY(-1px);
+}
+
