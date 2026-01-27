@@ -1,39 +1,89 @@
-# Contraindications by Imaging Modality
-::content::
-## Exercise ECG
-- Abnormal resting ECG (LBBB, paced rhythm, WPW)
-- Inability to exercise ≥5 METs
-- Active ischemia or ACS (<2 days)
-- Uncontrolled cardiac conditions
-- Severe aortic stenosis or hypertension
-- Acute systemic illness (PE, myocarditis, dissection)
+Contraindications by Imaging Modality
 
-## Stress Nuclear Imaging (SPECT / PET)
-- High-risk ACS
-- Vasodilator contraindications (arrhythmias, hypotension, bronchospasm, caffeine)
-- Severe hypertension
+##Exercise ECG
+  Contraindicated or Not Appropriate When:
+    Abnormal resting ECG limiting interpretation:
+    Left bundle branch block
+    Ventricular paced rhythm
+    Parkinson-White pattern
+    Unable to achieve ≥5 METs or unsafe to exercise
+    High-risk or active ischemia:
+      High-risk unstable angina
+      Active ACS or AMI (<2 days)
+    Uncontrolled cardiac conditions:
+    Heart failure
+    Significant arrhythmias (VT, complete AV block, high-risk QT-related arrhythmias)
+    Severe symptomatic aortic stenosis
+    Severe systemic arterial hypertension (≈ ≥200/110 mm Hg)
+    Acute systemic illness:
+      Acute PE
+      Acute myocarditis/pericarditis
+      Acute aortic dissection
 
-## Stress Echocardiography
-- Poor acoustic windows
-- Uncontrolled HF or arrhythmias
-- Acute systemic illness
-- Atropine contraindications
-- Contrast hypersensitivity
+##Stress Nuclear Imaging (SPECT / PET)
+  Contraindicated or Not Appropriate When:
+    High-risk unstable angina or complicated ACS / AMI (<2 days)
+    Contraindications to vasodilator stress:
+      Significant arrhythmias (VT, advanced AV block)
+      Sinus bradycardia (<45 bpm)
+      Hypotension (SBP <90 mm Hg)
+      Known or suspected bronchoconstrictive or bronchospastic disease
+      Recent use of dipyridamole or dipyridamole-containing medications
+      Recent methylxanthine use (e.g., caffeine, aminophylline within 12 h)
+      Known hypersensitivity to adenosine or regadenoson
+      Severe systemic arterial hypertension (≈ ≥200/110 mm Hg)
 
-## Stress Cardiac MRI
-- eGFR <30
-- MRI-incompatible devices
-- Claustrophobia
-- Recent caffeine
+##Stress Echocardiography
+  Contraindicated or Limited When:
+    Poor acoustic windows (e.g., COPD, obesity)
+    Inability to reach target heart rate
+    Uncontrolled heart failure
+    High-risk unstable angina or active ACS / AMI (<2 days)
+    Serious ventricular arrhythmias or high-risk QT prolongation
+    Significant respiratory failure:
+      Severe COPD
+      Acute pulmonary embolism
+      Severe pulmonary hypertension
+    Critical aortic stenosis
+    Acute illnesses:
+      Acute PE
+      Acute myocarditis/pericarditis
+      Acute aortic dissection
+    Hemodynamically significant LV outflow tract obstruction
+    Contraindications to atropine:
+      Narrow-angle glaucoma
+      Myasthenia gravis
+      Obstructive uropathy
+      Obstructive gastrointestinal disorders
+    Severe systemic arterial hypertension (≈ ≥200/110 mm Hg)
+    Contrast-Specific Contraindications:
+      Hypersensitivity to perflutren
+      Hypersensitivity to blood products or albumin (Optison only)
 
-## Coronary CT Angiography (CCTA)
-- Iodinated contrast allergy
-- Clinical instability
-- Renal impairment
-- Inability to control heart rate
+##Stress Cardiac MRI (CMR)
+  Contraindicated or Limited When:
+    Reduced renal function (eGFR <30 mL/min/1.73 m²)
+    Contraindications to vasodilator stress
+    Implanted devices not MRI-safe or causing major artifact
+    Significant claustrophobia
+    Caffeine ingestion within past 12 hours
 
-## Global Imaging Considerations
-- Diagnostic image quality
-- Pregnancy screening
-- Low-dose dobutamine use
-::end::
+##Coronary CT Angiography (CCTA)
+  Contraindicated or Limited When:
+    Allergy to iodinated contrast
+    Inability to cooperate with scan or breath-hold instructions
+    Clinical instability:
+      Acute respiratory distress
+      Severe hypotension
+      Unstable arrhythmia
+      Renal impairment per institutional protocol
+      Inability to achieve adequate heart rate control:
+      Contraindication to beta-blockers
+      No alternative rate-control agents available
+      Significant heart rate variability or arrhythmia
+      Contraindication to nitroglycerin (if required for protocol)
+
+##Global Imaging Considerations
+  Inability to obtain diagnostic image quality should prompt alternative testing, especially in obese patients
+  Pregnancy screening should follow institutional radiation-safety policies
+  Low-dose dobutamine may be useful for assessing low-gradient aortic stenosis
