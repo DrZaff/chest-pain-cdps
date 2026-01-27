@@ -569,3 +569,46 @@ body {
 .bg-ul {
   margin: .55rem 0 0 1.1rem;
 }
+
+/* HOME layout: make Start dominant, References secondary */
+.grid-home {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1.55fr 0.85fr; /* Start gets more space */
+}
+
+/* References card: smaller + visually secondary */
+.home-card--references {
+  padding: 0.85rem;
+  opacity: 0.92;
+}
+
+.home-card--references .home-card-title {
+  font-size: 0.98rem;
+}
+
+.home-card--references .muted {
+  font-size: 0.9rem;
+}
+
+.home-card--references .btn-stack {
+  gap: 0.55rem;
+}
+
+.home-card--references .choice-btn {
+  padding: 0.7rem 0.85rem;
+  font-size: 0.98rem;
+  font-weight: 650;
+}
+
+/* Slightly reduce the description text under reference buttons */
+.home-card--references .choice-sub {
+  font-size: 0.85rem;
+}
+
+/* Mobile: keep single column */
+@media (max-width: 600px) {
+  .grid-home {
+    grid-template-columns: 1fr;
+  }
+}
