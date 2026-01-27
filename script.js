@@ -231,16 +231,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Option reroute overrides (by page ID, surgical)
   // ----------------------------
   function overrideNextByPageId(pageId, optLabel, defaultNext) {
-    // Only apply to acute per your list
     if (activePathwayKey !== "acute") return defaultNext;
 
-    // Helper: go to A-### safely
     const goto = (targetPageId) => ACUTE_BY_PAGE[targetPageId] || defaultNext;
-
-    // Normalize label matching (case insensitive, trim)
     const L = (optLabel || "").trim().toLowerCase();
 
-    // Requested reroutes:
     if (pageId === "A-012" && L.includes("recent negative test")) return goto("A-023");
     if (pageId === "A-015" && (L.includes("negative") || L.includes("mildly abnormal"))) return goto("A-023");
     if (pageId === "A-019" && L.includes("nonobstructive") && L.includes("<50")) return goto("A-023");
@@ -251,7 +246,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (pageId === "A-033" && L.includes("normal")) return goto("A-036");
 
-    // A-014 option "CCTA (Class 1 recommendation)" -> A-019
     if (pageId === "A-014" && L.includes("ccta") && L.includes("class 1")) return goto("A-019");
 
     return defaultNext;
@@ -281,15 +275,13 @@ document.addEventListener("DOMContentLoaded", () => {
     setRunnerTitle(baseTitle, node.type === "terminal");
     runnerStepEl.textContent = `${activePathwayKey.toUpperCase()} • ${pageId}`;
 
-    // Per your requirement: delete “Open testing contraindications…” from every non-home page
+    // Remove “Open testing contraindications…” from every non-home page
     runnerSubactionsEl.innerHTML = "";
 
-    // Title/body (support optional HTML in node.bodyHtml)
     nodeTitleEl.textContent = node.title || "";
 
     if (node.bodyHtml) {
       nodeBodyEl.innerHTML = node.bodyHtml;
-      // Intercept modal links in body
       nodeBodyEl.querySelectorAll("[data-open-doc]").forEach((a) => {
         a.addEventListener("click", (e) => {
           e.preventDefault();
@@ -308,18 +300,15 @@ document.addEventListener("DOMContentLoaded", () => {
       nodeBodyEl.textContent = node.body || "";
     }
 
-    // Flags
     nodeFlagsEl.innerHTML = "";
     (node.flags || []).forEach((f) => {
       nodeFlagsEl.insertAdjacentHTML("beforeend", makeFlagPill(f.text, f.level));
     });
 
-    // Clear blocks
     nodeOptionsEl.innerHTML = "";
     nodeTerminalEl.classList.add("hidden");
     nodeTerminalEl.innerHTML = "";
 
-    // Decisions / Steps / Terminals
     if (node.type === "decision") {
       (node.options || []).forEach((opt) => {
         const btn = document.createElement("button");
@@ -330,14 +319,11 @@ document.addEventListener("DOMContentLoaded", () => {
           ${opt.sub ? `<span class="choice-sub">${escapeHtml(opt.sub)}</span>` : ""}
         `;
 
-        btn.addEventListener("click", (e) => {
-          // Action support (HEART)
+        btn.addEventListener("click", () => {
           if (opt.action === "OPEN_HEART") {
             window.open("https://heart-score-calculator.netlify.app", "_blank", "noopener,noreferrer");
             return;
           }
-
-          // override reroutes (by A-###)
           const next = overrideNextByPageId(pageId, opt.label, opt.next);
           goToNode(next);
         });
@@ -352,12 +338,11 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.addEventListener("click", () => goToNode(node.next));
       nodeOptionsEl.appendChild(btn);
     } else if (node.type === "terminal") {
-      // No large End of pathway box; disposition goes in main body area
       if (!node.bodyHtml) nodeBodyEl.textContent = node.disposition || node.body || "";
       nodeOptionsEl.innerHTML = "";
     }
 
-    // Resources: (A-002 request) bottom + compact
+    // Resources: compact bottom for A-002
     const resources = Array.isArray(node.resources) ? node.resources : [];
     const isA002 = pageId === "A-002";
 
@@ -369,8 +354,6 @@ document.addEventListener("DOMContentLoaded", () => {
       nodeResourcesEl.classList.remove("hidden");
       if (isA002) nodeResourcesEl.classList.add("node-resources--compact");
 
-      // Always at bottom by virtue of being below options in DOM (already is).
-      // We keep it here (after options logic) intentionally.
       const title = isA002 ? "" : `<div class="resources-title">Resources</div>`;
       nodeResourcesEl.innerHTML =
         title +
@@ -398,263 +381,114 @@ document.addEventListener("DOMContentLoaded", () => {
     btnBack.disabled = historyStack.length === 0;
   }
 
-  // ----------------------------
-  // Recommendations parsing/render (already working)
-  // ----------------------------
-  function stripSectionNumber(title) {
-    return (title || "")
-      .replaceAll("**", "")
-      .trim()
-      .replace(/^\d+(?:\.\d+)*\.\s*/, "")
-      .trim();
+  // ============================================================
+  // REFERENCE PAGES: "##" dropdowns + preserve indentation exactly
+  // Works for both "##Heading" and "## Heading"
+  // ============================================================
+  function isHashHeading(line) {
+    return /^##\s*\S/.test(line || "");
   }
 
-  function extractCorLoe(line) {
-    const m = (line || "").match(/\(\s*COR[^)]*\)/i);
-    return m ? m[0].replace(/\s+/g, " ").trim() : "";
+  function headingTitle(line) {
+    return (line || "").replace(/^##\s*/, "").trim();
   }
 
-  function parseRecommendations(raw) {
-    const lines = (raw || "").split("\n");
+  function parseHashSections(raw) {
+    const lines = (raw || "").replace(/\r\n/g, "\n").split("\n");
+
     const sections = [];
     let current = null;
-    let currentSub = null;
 
     const push = () => {
       if (!current) return;
-      const has =
-        (current.claims && current.claims.length) ||
-        (current.sub && current.sub.some((s) => s.claims && s.claims.length));
-      if (has) sections.push(current);
+      // Trim trailing blank lines only (keep indentation in body lines)
+      while (current.bodyLines.length && current.bodyLines[current.bodyLines.length - 1].trim() === "") {
+        current.bodyLines.pop();
+      }
+      const body = current.bodyLines.join("\n");
+      if (current.title && body.trim()) sections.push({ title: current.title, body });
       current = null;
-      currentSub = null;
     };
 
-    const ensure = (title) => {
-      if (!current) current = { title: stripSectionNumber(title || "Recommendations"), claims: [], sub: [] };
-    };
-
-    const addClaim = (text) => {
-      ensure("Recommendations");
-      const c = { text: (text || "").trim(), corloe: "" };
-      if (currentSub) currentSub.claims.push(c);
-      else current.claims.push(c);
-    };
-
-    const attachCorToLast = (corloe) => {
-      if (!corloe || !current) return;
-      const list = currentSub ? currentSub.claims : current.claims;
-      if (!list.length) return;
-      list[list.length - 1].corloe = corloe;
-    };
-
-    for (const ln of lines) {
-      const t = (ln || "").trim();
+    for (const line of lines) {
+      const t = (line ?? "").trim();
       if (!t || t === "---") continue;
 
-      if (t.startsWith("## ")) {
+      if (isHashHeading(t)) {
         push();
-        current = { title: stripSectionNumber(t.slice(3)), claims: [], sub: [] };
-        currentSub = null;
+        current = { title: headingTitle(t), bodyLines: [] };
         continue;
       }
 
-      if (t.startsWith("### ")) {
-        ensure("Recommendations");
-        currentSub = { heading: stripSectionNumber(t.slice(4)), claims: [] };
-        current.sub.push(currentSub);
+      if (!current) {
+        // ignore text before the first ##
         continue;
       }
 
-      if (t.startsWith("* ")) {
-        addClaim(t.slice(2));
-        continue;
-      }
-
-      const corloe = extractCorLoe(t);
-      if (corloe) {
-        attachCorToLast(corloe);
-        continue;
-      }
-
-      addClaim(t);
+      // preserve indentation: keep the raw line (minus trailing whitespace)
+      current.bodyLines.push((line ?? "").replace(/\s+$/g, ""));
     }
 
     push();
     return sections;
   }
 
-  function renderRecommendations(containerEl, sections, searchValue = "") {
+  function renderHashAccordion(containerEl, sections, searchValue = "") {
     const q = (searchValue || "").trim().toLowerCase();
+    const items = Array.isArray(sections) ? sections : [];
 
-    const renderClaimList = (claims) => {
-      if (!claims || !claims.length) return "";
-      return `<ul>${claims
-        .map((c) => {
-          const cor = c.corloe ? ` <span class="muted small">${escapeHtml(c.corloe)}</span>` : "";
-          return `<li>${escapeHtml(c.text)}${cor}</li>`;
-        })
-        .join("")}</ul>`;
-    };
-
-    const html = (sections || [])
+    const html = items
       .map((sec, idx) => {
-        const blob = JSON.stringify(sec).toLowerCase();
-        if (q && !blob.includes(q)) return "";
+        const hay = (sec.title + "\n" + sec.body).toLowerCase();
+        if (q && !hay.includes(q)) return "";
 
-        const subHtml = (sec.sub || [])
-          .map((s) => {
-            const subBlob = JSON.stringify(s).toLowerCase();
-            if (q && !subBlob.includes(q)) return "";
-            return `
-              <div class="acc-subblock">
-                <div class="acc-subhead">${escapeHtml(s.heading)}</div>
-                ${renderClaimList(s.claims)}
-              </div>
-            `;
-          })
-          .join("");
-
+        const openAttr = q ? "open" : idx === 0 ? "open" : "";
         return `
-          <details ${idx === 0 && !q ? "open" : ""}>
+          <details ${openAttr}>
             <summary>${escapeHtml(sec.title)}</summary>
             <div class="acc-body">
-              ${renderClaimList(sec.claims)}
-              ${subHtml}
+              <pre class="ref-pre">${escapeHtml(sec.body)}</pre>
             </div>
           </details>
         `;
       })
       .join("");
 
-    containerEl.innerHTML = html || `<p class="muted">No matches.</p>`;
+    // Ensure accordion styling applies even on background page
+    containerEl.innerHTML = `<div class="accordion">${html || `<p class="muted">No matches.</p>`}</div>`;
   }
 
-  let RECOMMENDATIONS_SECTIONS = [];
+  // ----------------------------
+  // Recommendations (dropdown by ## + preserve indent, search works)
+  // ----------------------------
+  let RECOMMENDATION_SECTIONS = [];
 
   async function loadRecommendations() {
     const raw = await loadTextAsset("./Recommendations.txt");
-    RECOMMENDATIONS_SECTIONS = parseRecommendations(raw);
-    renderRecommendations(evidenceContentEl, RECOMMENDATIONS_SECTIONS, evidenceSearchEl?.value || "");
+    RECOMMENDATION_SECTIONS = parseHashSections(raw);
+    renderHashAccordion(evidenceContentEl, RECOMMENDATION_SECTIONS, evidenceSearchEl?.value || "");
   }
 
   // ----------------------------
-  // Contra rendering (dropdown per modality only)
+  // Contraindications (dropdown by ## + preserve indent)
   // ----------------------------
-  function renderContraindicationsByModality(containerEl, raw) {
-    const lines = (raw || "").split("\n");
-    const sections = [];
-    let cur = null;
-
-    const push = () => {
-      if (!cur) return;
-      const has = (cur.bodyLines || []).some((x) => x.trim());
-      if (has) sections.push(cur);
-      cur = null;
-    };
-
-    for (const ln of lines) {
-      const t = (ln || "").trim();
-      if (!t || t === "---") continue;
-
-      if (t.startsWith("## ")) {
-        push();
-        cur = { title: stripSectionNumber(t.slice(3)), bodyLines: [] };
-        continue;
-      }
-
-      if (!cur) continue;
-      cur.bodyLines.push(t);
-    }
-    push();
-
-    const html = sections
-      .map((sec, idx) => {
-        const body = sec.bodyLines || [];
-
-        const cleaned = body.filter((x) => !/^Section\s*#\s*Contraindications/i.test(x));
-
-        const ciIndex = cleaned.findIndex((x) =>
-          /^contraindicated\s+or\s+not\s+appropriate\s+when:/i.test(x)
-        );
-
-        const ciLine = ciIndex >= 0 ? cleaned[ciIndex] : "Contraindicated or Not Appropriate When:";
-        const remainder = ciIndex >= 0 ? cleaned.slice(ciIndex + 1) : cleaned;
-
-        const remainderHtml = remainder.length
-          ? `<ul>${remainder
-              .map((x) => `<li>${escapeHtml(x.replace(/^\*\s*/, ""))}</li>`)
-              .join("")}</ul>`
-          : "";
-
-        return `
-          <details ${idx === 0 ? "open" : ""}>
-            <summary>${escapeHtml(sec.title)}</summary>
-            <div class="acc-body">
-              <div class="acc-subhead">${escapeHtml(ciLine)}</div>
-              ${remainderHtml}
-            </div>
-          </details>
-        `;
-      })
-      .join("");
-
-    containerEl.innerHTML = html || `<p class="muted">Unable to render contraindications.</p>`;
-  }
+  let CONTRA_SECTIONS = [];
 
   async function loadContraindications() {
     const raw = await loadTextAsset("./ContraindicationsImagingModality.txt");
-    renderContraindicationsByModality(contraContentEl, raw);
+    CONTRA_SECTIONS = parseHashSections(raw);
+    renderHashAccordion(contraContentEl, CONTRA_SECTIONS, "");
   }
 
   // ----------------------------
-  // Background rendering (nice, no dropdown)
+  // Background (dropdown by ## + preserve indent)
   // ----------------------------
-  function renderBackgroundNice(raw) {
-    const lines = (raw || "").split("\n");
-    const blocks = [];
-    let current = { heading: null, paras: [], bullets: [] };
-
-    const push = () => {
-      const has = current.heading || current.paras.length || current.bullets.length;
-      if (!has) return;
-      blocks.push(current);
-      current = { heading: null, paras: [], bullets: [] };
-    };
-
-    for (const ln of lines) {
-      const t = (ln || "").trim();
-      if (!t || t === "---") continue;
-
-      if (t.startsWith("# ")) continue; // ignore top-level doc title
-      if (t.startsWith("## ")) {
-        push();
-        current.heading = stripSectionNumber(t.slice(3));
-        continue;
-      }
-      if (t.startsWith("* ")) {
-        current.bullets.push(t.slice(2));
-        continue;
-      }
-      current.paras.push(t);
-    }
-    push();
-
-    return blocks
-      .map((b) => {
-        const h = b.heading ? `<h3 class="bg-h">${escapeHtml(b.heading)}</h3>` : "";
-        const p = b.paras.map((x) => `<p class="bg-p">${escapeHtml(x)}</p>`).join("");
-        const ul = b.bullets.length
-          ? `<ul class="bg-ul">${b.bullets.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>`
-          : "";
-        return `<div class="bg-block">${h}${p}${ul}</div>`;
-      })
-      .join("");
-  }
+  let BACKGROUND_SECTIONS = [];
 
   async function loadBackground() {
     const raw = await loadTextAsset("./Chest Pain Background.txt");
-    backgroundContentEl.innerHTML = renderBackgroundNice(raw);
+    BACKGROUND_SECTIONS = parseHashSections(raw);
+    renderHashAccordion(backgroundContentEl, BACKGROUND_SECTIONS, "");
   }
 
   // ----------------------------
@@ -670,6 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
     activeNodeId = pw?.start;
     renderRunner();
   });
+
   btnHome?.addEventListener("click", () => {
     showView("home");
     window.location.hash = "#home";
@@ -721,13 +556,13 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.hash = "#home";
   });
 
+  // Search (Recommendations only)
   evidenceSearchEl?.addEventListener("input", () => {
-    renderRecommendations(evidenceContentEl, RECOMMENDATIONS_SECTIONS, evidenceSearchEl.value || "");
+    renderHashAccordion(evidenceContentEl, RECOMMENDATION_SECTIONS, evidenceSearchEl.value || "");
   });
 
   evidenceFigureLinkEl?.addEventListener("click", (e) => {
     e.preventDefault();
-    // Use correct filename (Recommendations.png) if that’s what you have in repo
     openDocModal("ACC/AHA COR/LOE interpretation", "./Recommendations.png");
   });
 

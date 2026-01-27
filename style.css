@@ -724,3 +724,18 @@ body {
   transform: translateY(-1px);
 }
 
+/* Reference pages: preserve indentation and make it readable */
+.ref-pre {
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: var(--color-text-secondary);
+  white-space: pre-wrap;     /* keep indentation + wrap long lines */
+  word-break: break-word;    /* long URLs won’t overflow */
+  line-height: 1.45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.92rem;
+}
+
