@@ -604,7 +604,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // FIX: stable pathway no longer breaks if partner module loads after script.js
   btnStartStable?.addEventListener("click", () => {
-    startRunner("stable");
+    window.location.href = "./stable/";
   });
 
   btnBack?.addEventListener("click", goBack);
