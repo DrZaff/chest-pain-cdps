@@ -757,3 +757,84 @@ body {
   color: rgba(180, 220, 255, 0.7);
 }
 
+/* =========================================================
+   Runner header: better separation from node content
+   ========================================================= */
+.runner-header {
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding-bottom: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+/* =========================================================
+   Acute-only header pills (Start/End) - standardized
+   JS controls where they appear (Acute header only).
+   ========================================================= */
+#runner-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.pathway-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.2px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.05);
+}
+
+.pathway-pill--start {
+  border-color: rgba(22, 242, 154, 0.30);
+  background: rgba(22, 242, 154, 0.12);
+  color: rgba(210, 255, 230, 0.95);
+}
+
+.pathway-pill--end {
+  border-color: rgba(255, 80, 80, 0.45);
+  background: rgba(255, 80, 80, 0.12);
+  color: #ff5050;
+}
+
+/* Keep legacy .end-pill harmless if it exists somewhere */
+.end-pill {
+  display: none;
+}
+
+/* =========================================================
+   A-002: clinical judgement subtext (bottom)
+   ========================================================= */
+.a002-subtext {
+  margin-top: 0.85rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 200, 87, 0.18);
+  background: rgba(255, 200, 87, 0.06);
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+}
+
+/* =========================================================
+   A-002: compact/de-emphasized resources block at bottom
+   ========================================================= */
+.node-resources--compact {
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  opacity: 0.88;
+}
+
+.node-resources--compact .resources-grid {
+  gap: 0.35rem;
+}
+
+.node-resources--compact .resource-btn {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+}
+

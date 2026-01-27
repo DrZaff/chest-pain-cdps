@@ -1,4 +1,4 @@
-const CACHE = "ctdev-cache-v4";
+const CACHE = "ctdev-cache-v5";
 
 const ASSETS = [
   "/",
@@ -11,6 +11,12 @@ const ASSETS = [
   "/ContraindicationsImagingModality.txt",
   "/Chest Pain Background.txt",
   "/Recomendations.png",
+
+  // A-002 figures/tables (upload these files to /assets/acute/)
+  "/assets/acute/figure-2.png",
+  "/assets/acute/table-3.png",
+  "/assets/acute/table-4.png",
+  "/assets/acute/figure-4.png",
 
   // Icons
   "/icons/icon-192.png",

@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ----------------------------
   // Lazy-load Stable pathway module (partner file)
+  // (NOTE: stable is now accessed via /stable/ route; keeping this code untouched)
   // ----------------------------
   async function ensureStablePathwayLoaded() {
     if (window.__STABLE_PATHWAY__) return true;
@@ -123,6 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const nodeTerminalEl = document.getElementById("node-terminal");
 
   const btnBack = document.getElementById("btn-back");
+  // Reset removed per request (keep lookup for safety but do not use)
   const btnReset = document.getElementById("btn-reset");
   const btnHome = document.getElementById("btn-home");
 
@@ -223,17 +225,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ----------------------------
-  // End-of-pathway pill in header (always next to title)
+  // Header pills (ONLY next to "Acute chest pain pathway")
   // ----------------------------
-  function setRunnerTitle(baseTitle, isTerminal) {
+  function setRunnerTitle(baseTitle, { isAcute, pageId, isTerminal }) {
     runnerTitleEl.innerHTML = "";
     runnerTitleEl.appendChild(document.createTextNode(baseTitle));
 
+    // Pills should exist ONLY next to the acute header, nowhere else.
+    if (!isAcute) return;
+
+    if (pageId === "A-001") {
+      const startPill = document.createElement("span");
+      startPill.className = "pathway-pill pathway-pill--start";
+      startPill.textContent = "Start of pathway";
+      runnerTitleEl.appendChild(startPill);
+    }
+
     if (isTerminal) {
-      const pill = document.createElement("span");
-      pill.className = "end-pill";
-      pill.textContent = "End of pathway";
-      runnerTitleEl.appendChild(pill);
+      const endPill = document.createElement("span");
+      endPill.className = "pathway-pill pathway-pill--end";
+      endPill.textContent = "End of pathway";
+      runnerTitleEl.appendChild(endPill);
     }
   }
 
@@ -318,7 +330,13 @@ document.addEventListener("DOMContentLoaded", () => {
         ? "Stable chest pain pathway"
         : "Pathway";
 
-    setRunnerTitle(baseTitle, node.type === "terminal");
+    // ✅ FIX: pass the object (pills only on acute + A-001 + terminal)
+    setRunnerTitle(baseTitle, {
+      isAcute: activePathwayKey === "acute",
+      pageId,
+      isTerminal: node.type === "terminal",
+    });
+
     runnerStepEl.textContent = `${activePathwayKey.toUpperCase()} • ${pageId}`;
 
     // Remove “Open testing contraindications…” from every non-home page
@@ -346,9 +364,22 @@ document.addEventListener("DOMContentLoaded", () => {
       nodeBodyEl.textContent = node.body || "";
     }
 
+    // ✅ A-002: move "Use clinical judgment" into bottom subtext (not a pill)
+    let a002Subtext = "";
+
     nodeFlagsEl.innerHTML = "";
     (node.flags || []).forEach((f) => {
-      nodeFlagsEl.insertAdjacentHTML("beforeend", makeFlagPill(f.text, f.level));
+      const t = (f?.text || "").trim();
+
+      // Never show start/end pills in body (header-only)
+      if (/^start of pathway/i.test(t) || /^end of pathway/i.test(t)) return;
+
+      if (pageId === "A-002" && /use clinical judgment/i.test(t)) {
+        a002Subtext = t;
+        return;
+      }
+
+      nodeFlagsEl.insertAdjacentHTML("beforeend", makeFlagPill(t, f.level));
     });
 
     nodeOptionsEl.innerHTML = "";
@@ -388,9 +419,10 @@ document.addEventListener("DOMContentLoaded", () => {
       nodeOptionsEl.innerHTML = "";
     }
 
-    // Resources: compact bottom for A-002
+    // Resources: compact + bottom for A-002 (less visually present)
     const resources = Array.isArray(node.resources) ? node.resources : [];
     const isA002 = pageId === "A-002";
+    const runnerBodyEl = nodeOptionsEl?.parentElement; // .runner-body
 
     nodeResourcesEl.innerHTML = "";
     nodeResourcesEl.classList.add("hidden");
@@ -424,7 +456,34 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    btnBack.disabled = historyStack.length === 0;
+    // ✅ Ensure A-002 order: options dominate; resources at bottom; then the subtext at the very bottom
+    // Remove any prior A-002 subtext on navigation
+    runnerBodyEl?.querySelectorAll(".a002-subtext").forEach((el) => el.remove());
+
+    if (runnerBodyEl) {
+      if (isA002) {
+        // Move resources AFTER options (bottom)
+        if (!nodeResourcesEl.classList.contains("hidden")) {
+          runnerBodyEl.appendChild(nodeResourcesEl);
+        }
+
+        if (a002Subtext) {
+          const sub = document.createElement("div");
+          sub.className = "a002-subtext muted small";
+          sub.textContent = a002Subtext;
+          runnerBodyEl.appendChild(sub);
+        }
+      } else {
+        // Default order for all other slides: resources should appear above options (original layout)
+        // Only do this if resources exist
+        if (!nodeResourcesEl.classList.contains("hidden")) {
+          runnerBodyEl.insertBefore(nodeResourcesEl, nodeOptionsEl);
+        }
+      }
+    }
+
+    // ✅ Back should work even on A-001: never disable it
+    btnBack.disabled = false;
   }
 
   // ============================================================
@@ -602,18 +661,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // ----------------------------
   btnStartAcute?.addEventListener("click", () => startRunner("acute"));
 
-  // FIX: stable pathway no longer breaks if partner module loads after script.js
+  // stable lives in separate app
   btnStartStable?.addEventListener("click", () => {
     window.location.href = "./stable/";
   });
 
-  btnBack?.addEventListener("click", goBack);
-  btnReset?.addEventListener("click", () => {
-    historyStack = [];
-    const pw = PATHWAYS[activePathwayKey];
-    activeNodeId = pw?.start;
-    renderRunner();
+  // ✅ Back works for A-001: if no history, go Home
+  btnBack?.addEventListener("click", () => {
+    if (!historyStack.length) {
+      showView("home");
+      window.location.hash = "#home";
+      return;
+    }
+    goBack();
   });
+
+  // ✅ Reset removed: no handler (and harmless if button still exists)
+  // btnReset intentionally unused
 
   btnHome?.addEventListener("click", () => {
     showView("home");

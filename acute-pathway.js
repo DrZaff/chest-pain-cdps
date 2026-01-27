@@ -31,10 +31,13 @@
       title: "ECG result / initial triage",
       body: "Select the clinical picture after initial evaluation.",
       resources: [
-        { label: "Probability of ischemia based on chest pain description (Figure 2)", url: DOI_URL },
-        { label: "Chest pain history (Table 3)", url: DOI_URL },
-        { label: "Chest pain physical exam (Table 4)", url: DOI_URL },
-        { label: "ECG interpretation flowsheet (Figure 4)", url: DOI_URL },
+        { label: "Probability of ischemia based on chest pain description (Figure 2)", url: "./assets/acute/figure-2.png" },
+        { label: "Chest pain history (Table 3)", url: "./assets/acute/table-3.png" },
+        { label: "Chest pain physical exam (Table 4)", url: "./assets/acute/table-4.png" },
+        { label: "ECG interpretation flowsheet (Figure 4)", url: "./assets/acute/figure-4.png" },
+
+        // Optional: keep DOI reference available (not shown unless you add it back to UI)
+        // { label: "Guideline (DOI)", url: DOI_URL },
       ],
       flags: [{ level: "warning", text: "Use clinical judgment; consider life-threatening etiologies." }],
       options: [
