@@ -603,24 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
   btnStartAcute?.addEventListener("click", () => startRunner("acute"));
 
   // FIX: stable pathway no longer breaks if partner module loads after script.js
-  btnStartStable?.addEventListener("click", async () => {
-    if (PATHWAYS.stable) {
-      startRunner("stable");
-      return;
-    }
-
-    const loaded = await ensureStablePathwayLoaded();
-    const ok = loaded && refreshStableInRuntime();
-
-    if (!ok) {
-      alert(
-        "Stable pathway module not loaded.\n\n" +
-          "Ensure the partner stable pathway script exists in your project and loads before script.js,\n" +
-          "or name it stable-pathway.js at the project root."
-      );
-      return;
-    }
-
+  btnStartStable?.addEventListener("click", () => {
     startRunner("stable");
   });
 
