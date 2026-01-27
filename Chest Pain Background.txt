@@ -1,0 +1,22 @@
+# Chest Pain: Scope and Clinical Importance
+::content::
+## Epidemiology and Health Care Utilization
+- Second most common ED presentation in U.S. adults (>6.5 million visits/year)
+- Nearly 4 million outpatient visits annually
+- Often noncardiac but requires careful evaluation
+
+## Coronary Disease Context
+- CAD affects >18.2 million U.S. adults
+- Leading cause of death in men and women (>365,000 deaths/year)
+- Chest pain is the most common presenting symptom
+
+## Diagnostic Challenge
+- Lifetime prevalence: 20–40%
+- More frequent in women
+- Among ED presentations:
+  - ~5.1% ACS
+  - >50% noncardiac causes
+
+## Clinical Implication
+- Critical to distinguish serious cardiac etiologies from benign causes
+::end::

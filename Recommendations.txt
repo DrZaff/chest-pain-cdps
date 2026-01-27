@@ -1,0 +1,40 @@
+# ACC/AHA Chest Pain Guideline — Key Recommendations
+::content::
+## Defining Chest Pain
+- Early assessment for ischemia (COR 1)
+- Avoid term 'atypical chest pain'
+- Classify as cardiac, possibly cardiac, noncardiac
+
+## Initial Evaluation
+- Focused history and physical
+- Special attention to women and older adults
+- Cultural and language considerations
+
+## Diagnostic Testing
+- ECG within 10 minutes
+- Troponin testing ASAP
+- Avoid delayed ED transfer
+
+## ECG
+- Serial ECGs if nondiagnostic
+- Treat per STEMI/NSTE-ACS guidelines
+
+## Biomarkers
+- Serial troponins
+- hs-cTn preferred
+
+## Acute Chest Pain With Suspected ACS
+- Use clinical decision pathways
+- Risk stratify (low, intermediate, high)
+
+## Low-Risk Patients
+- <1% 30-day MACE → discharge without testing
+
+## Intermediate-Risk Patients
+- TTE for bedside assessment
+- Observation unit reasonable
+
+## Diagnostic Testing in No Known CAD
+- CCTA or stress testing
+- ICA for high-risk findings
+::end::

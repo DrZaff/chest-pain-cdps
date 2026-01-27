@@ -1,0 +1,39 @@
+# Contraindications by Imaging Modality
+::content::
+## Exercise ECG
+- Abnormal resting ECG (LBBB, paced rhythm, WPW)
+- Inability to exercise ≥5 METs
+- Active ischemia or ACS (<2 days)
+- Uncontrolled cardiac conditions
+- Severe aortic stenosis or hypertension
+- Acute systemic illness (PE, myocarditis, dissection)
+
+## Stress Nuclear Imaging (SPECT / PET)
+- High-risk ACS
+- Vasodilator contraindications (arrhythmias, hypotension, bronchospasm, caffeine)
+- Severe hypertension
+
+## Stress Echocardiography
+- Poor acoustic windows
+- Uncontrolled HF or arrhythmias
+- Acute systemic illness
+- Atropine contraindications
+- Contrast hypersensitivity
+
+## Stress Cardiac MRI
+- eGFR <30
+- MRI-incompatible devices
+- Claustrophobia
+- Recent caffeine
+
+## Coronary CT Angiography (CCTA)
+- Iodinated contrast allergy
+- Clinical instability
+- Renal impairment
+- Inability to control heart rate
+
+## Global Imaging Considerations
+- Diagnostic image quality
+- Pregnancy screening
+- Low-dose dobutamine use
+::end::
