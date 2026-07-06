@@ -418,6 +418,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const resetBtn = document.getElementById("resetBtn");
   const resultsContainer = document.getElementById("results-container");
   const flagsContainer = document.getElementById("flags-container");
+  const spearRecommenderWrap = document.getElementById("spearRecommenderWrap");
 
   const riskCat = document.getElementById("riskCat");
   const lowRiskChoiceWrap = document.getElementById("lowRiskChoiceWrap");
@@ -492,6 +493,7 @@ if (backBtn) {
     const rc = riskCat.value || "";
     setDisplay(lowRiskChoiceWrap, rc === "low");
     setDisplay(indexTestWrap, rc === "intermediate_high");
+    setDisplay(spearRecommenderWrap, rc === "intermediate_high");
 
     const it = indexTest?.value || "";
     setDisplay(cctaResultWrap, rc === "intermediate_high" && it === "ccta");
@@ -688,7 +690,24 @@ function renderRec() {
 renderRec();
 // Initial render
 renderRec();
-  riskCat.addEventListener("change", normalize);
+  riskCat.addEventListener("change", () => {
+  if (rec.canExercise) rec.canExercise.value = "";
+  if (rec.ecg) rec.ecg.value = "";
+  if (rec.renal) rec.renal.value = "";
+  if (rec.bronch) rec.bronch.value = "";
+  if (rec.mri) rec.mri.value = "";
+  if (rec.echo) rec.echo.value = "";
+
+  if (rec.output) {
+    rec.output.innerHTML = `
+      <strong>SPEAR Recommendation</strong>
+      <p class="micro-note">Answer the first question to generate ranked recommendations.</p>
+    `;
+  }
+
+  normalize();
+  renderRec();
+});
   indexTest?.addEventListener("change", normalize);
   stressModality?.addEventListener("change", normalize);
   stressResult?.addEventListener("change", normalize);
