@@ -1,3 +1,4 @@
+import { recommendStableNoKnownCad } from "../../spear-engine.js";
 export function evaluatePathway(inputs) {
   const values = {
     pathwayId: "stable-no-known-cad",
@@ -514,19 +515,19 @@ if (backBtn) {
   // ------------------------------
 // Wave 2 #1: Guided recommender (optional)
 // ------------------------------
+// ------------------------------
+// SPEAR recommender v1
+// ------------------------------
 const rec = {
   canExercise: document.getElementById("rec_canExercise"),
   ecgWrap: document.getElementById("rec_ecgWrap"),
   ecg: document.getElementById("rec_ecgInterpretable"),
+  renalWrap: document.getElementById("rec_renalWrap"),
+  renal: document.getElementById("rec_renalConcern"),
   hardStopsWrap: document.getElementById("rec_hardStopsWrap"),
   bronch: document.getElementById("rec_bronchospasm"),
   mri: document.getElementById("rec_mriContra"),
   echo: document.getElementById("rec_poorEcho"),
-  renalWrap: document.getElementById("rec_renalWrap"),
-  renal: document.getElementById("rec_renalConcern"),
-  availWrap: document.getElementById("rec_availWrap"),
-  petAvail: document.getElementById("rec_petAvail"),
-  cmrAvail: document.getElementById("rec_cmrAvail"),
   output: document.getElementById("rec_output"),
   applyRow: document.getElementById("rec_applyRow"),
   btnPrimary: document.getElementById("rec_applyPrimary"),
@@ -534,7 +535,6 @@ const rec = {
   btnAlt2: document.getElementById("rec_applyAlt2"),
 };
 
-// Your existing selects (already in your HTML)
 const riskCatEl = document.getElementById("riskCat");
 const indexTestEl = document.getElementById("indexTest");
 const stressModalityEl = document.getElementById("stressModality");
@@ -545,210 +545,23 @@ function show(el, on) {
 }
 
 function v(el) {
-  return (el && el.value) ? el.value : "";
+  return el?.value || "";
 }
 
-function readRecInputs() {
+function readSpearInputs() {
   return {
     canExercise: v(rec.canExercise),
     ecgInterpretable: v(rec.ecg),
+    renalConcern: v(rec.renal),
     bronchospasm: v(rec.bronch),
     mriContra: v(rec.mri),
     poorEcho: v(rec.echo),
-    renalConcern: v(rec.renal),
-    petAvail: v(rec.petAvail),
-    cmrAvail: v(rec.cmrAvail),
   };
 }
 
-function labelForApply(apply) {
-  // apply = { riskCat, indexTest, stressModality? }
-  if (!apply) return "Apply";
-  if (apply.indexTest === "ccta") return "Apply CCTA";
-  if (apply.indexTest === "stress") {
-    const mod = apply.stressModality;
-    if (!mod) return "Apply Stress testing";
-    const map = {
-      exercise_ecg: "Apply Exercise ECG",
-      stress_echo: "Apply Stress echo",
-      stress_nuclear: "Apply Stress nuclear",
-      stress_cmr: "Apply Stress CMR",
-    };
-    return map[mod] || "Apply Stress testing";
-  }
-  return "Apply";
-}
-
-function recommendTesting(r) {
-  // Returns: { primary, alternatives[], rationale[], warnings[] }
-  // primary/alt items: { label, apply, notes[] }
-  const out = { primary: null, alternatives: [], rationale: [], warnings: [] };
-
-  if (!r.canExercise) return out;
-
-  // Sequential logic should inform ranking, not block.
-  const renalYes = r.renalConcern === "yes";
-  const bronchYes = r.bronchospasm === "yes";
-  const mriNo = r.mriContra === "yes";
-  const echoBad = r.poorEcho === "yes";
-
-  const petOk = r.petAvail !== "no";
-  const cmrOk = r.cmrAvail !== "no";
-
-  // Candidate builder
-  const candidates = [];
-
-  // CCTA candidate (contrast may be limited by renal/contrast concern)
-  candidates.push({
-    label: "CCTA",
-    apply: { riskCat: "intermediate_high", indexTest: "ccta" },
-    score: renalYes ? 2 : 4,
-    notes: renalYes
-      ? ["Contrast concern may limit feasibility (local protocol)."]
-      : ["Good anatomic test when feasible."],
-  });
-
-  // Stress: choose best modality
-  // Default stress modality suggestion:
-  let bestStressMod = "stress_nuclear";
-
-  // If bronchospasm → prefer exercise ECG if eligible, else stress echo
-  if (bronchYes) {
-    if (r.canExercise === "yes" && r.ecgInterpretable === "yes") bestStressMod = "exercise_ecg";
-    else bestStressMod = echoBad ? "stress_nuclear" : "stress_echo";
-  } else {
-    // No bronchospasm: choose based on constraints + availability
-    if (cmrOk && !mriNo) bestStressMod = "stress_cmr";
-    else if (!echoBad) bestStressMod = "stress_echo";
-    else bestStressMod = "stress_nuclear";
-  }
-
-  const stressScore = 4; // keep stress competitive
-  candidates.push({
-    label: `Stress testing (${prettyMod(bestStressMod)})`,
-    apply: { riskCat: "intermediate_high", indexTest: "stress", stressModality: bestStressMod },
-    score: stressScore,
-    notes: ["Ischemia-focused testing; modality depends on feasibility and availability."],
-  });
-
-  // Exercise ECG alternative (selected cases)
-  if (r.canExercise === "yes" && r.ecgInterpretable === "yes") {
-    candidates.push({
-      label: "Exercise ECG (selected cases)",
-      apply: { riskCat: "intermediate_high", indexTest: "stress", stressModality: "exercise_ecg" },
-      score: 3,
-      notes: ["Requires interpretable ECG + adequate exercise capacity."],
-    });
-  }
-
-  // If PET available, offer stress_nuclear as PET/SPECT alternative explicitly
-  if (petOk) {
-    candidates.push({
-      label: "Stress nuclear (PET/SPECT)",
-      apply: { riskCat: "intermediate_high", indexTest: "stress", stressModality: "stress_nuclear" },
-      score: 3,
-      notes: ["Useful when echo/CMR limited; vasodilator constraints may apply."],
-    });
-  }
-
-  // Sort by score
-  candidates.sort((a, b) => b.score - a.score);
-
-  out.primary = candidates[0];
-  out.alternatives = candidates.slice(1, 3);
-
-  out.rationale.push("Suggestions are optional and non-blocking. You can override.");
-  if (renalYes) out.warnings.push("Renal/contrast concern noted: contrast-based tests may be limited by local protocol.");
-  if (bronchYes) out.warnings.push("Bronchospasm noted: vasodilator stress may be limited; consider alternatives.");
-  if (mriNo) out.warnings.push("MRI constraint noted: stress CMR may be limited.");
-  if (echoBad) out.warnings.push("Poor echo windows noted: stress echo may be limited.");
-
-  return out;
-}
-
-function prettyMod(mod) {
-  const map = {
-    exercise_ecg: "Exercise ECG",
-    stress_echo: "Stress echo",
-    stress_nuclear: "Stress nuclear",
-    stress_cmr: "Stress CMR",
-  };
-  return map[mod] || mod || "Stress";
-}
-
-function renderRec() {
-  // Stepwise visibility: one prompt at a time
-  const canEx = v(rec.canExercise);
-
-  // Step 2 only if Step 1 answered and can exercise = yes
-  show(rec.ecgWrap, canEx === "yes");
-
-  const ecgNeeded = (canEx === "yes");
-  const ecgAns = v(rec.ecg);
-
-  // Step 3 (renal) only after Step 1, and after Step 2 if needed
-  const readyForRenal = !!canEx && (!ecgNeeded || !!ecgAns);
-  show(rec.renalWrap, readyForRenal);
-
-  // Hide the overwhelming sections for now
-  show(rec.hardStopsWrap, false);
-  show(rec.availWrap, false);
-
-  const renalAns = v(rec.renal);
-
-  // Gate: show Apply buttons only after 3 prompts answered
-  const gateOk = !!canEx && (!ecgNeeded || !!ecgAns) && !!renalAns;
-
-  const inputs = readRecInputs();
-  const out = recommendTesting(inputs);
-
-  if (!rec.output) return;
-
-  if (!out.primary) {
-    rec.output.innerHTML = `<strong>Recommendation</strong><p class="micro-note">Answer the first question to see suggestions.</p>`;
-    show(rec.applyRow, false);
-    return;
-  }
-
-  const notes = (out.primary.notes || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
-  rec.output.innerHTML = `
-    <strong>Recommendation</strong>
-    <div style="margin-top:0.45rem;"><strong>${escapeHtml(out.primary.label)}</strong></div>
-    ${notes ? `<ul style="margin:0.35rem 0 0; padding-left:1.15rem;">${notes}</ul>` : ""}
-    ${!gateOk ? `<p class="micro-note" style="margin-top:0.5rem;">Answer the first 3 prompts to unlock Apply buttons.</p>` : ""}
-  `;
-
-  // Apply buttons only after gate
-  show(rec.applyRow, gateOk);
-  if (!gateOk) return;
-
-  // Primary
-  rec.btnPrimary.textContent = labelForApply(out.primary.apply);
-  rec.btnPrimary.onclick = () => applyRecommendation(out.primary.apply);
-
-  // Alt 1
-  if (out.alternatives[0]) {
-    show(rec.btnAlt1, true);
-    rec.btnAlt1.textContent = labelForApply(out.alternatives[0].apply);
-    rec.btnAlt1.onclick = () => applyRecommendation(out.alternatives[0].apply);
-  } else {
-    show(rec.btnAlt1, false);
-  }
-
-  // Alt 2
-  if (out.alternatives[1]) {
-    show(rec.btnAlt2, true);
-    rec.btnAlt2.textContent = labelForApply(out.alternatives[1].apply);
-    rec.btnAlt2.onclick = () => applyRecommendation(out.alternatives[1].apply);
-  } else {
-    show(rec.btnAlt2, false);
-  }
-}
-
-function applyRecommendation(apply) {
+function applySpearRecommendation(apply) {
   if (!apply) return;
 
-  // Apply recommended selections (non-blocking; user can still change)
   if (riskCatEl && apply.riskCat) {
     riskCatEl.value = apply.riskCat;
     riskCatEl.dispatchEvent(new Event("change", { bubbles: true }));
@@ -764,25 +577,115 @@ function applyRecommendation(apply) {
     stressModalityEl.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
-  // Run your existing UI visibility logic
   if (typeof normalize === "function") normalize();
 }
 
-// Wire events (safe even if user ignores the tool)
+function renderSpearCard(test) {
+  const why = (test.why || []).slice(0, 5).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+  const evidence = (test.evidence || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+
+  return `
+    <div class="callout" style="margin-top:0.75rem;">
+      <strong>${escapeHtml(test.category)}</strong>
+      <div style="font-size:1.05rem; margin-top:0.25rem;">
+        <strong>${escapeHtml(test.label)}<sup>${escapeHtml(test.confidence)}</sup></strong>
+      </div>
+
+      <details style="margin-top:0.45rem;">
+        <summary><strong>Why?</strong></summary>
+        <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">${why}</ul>
+      </details>
+
+      <details style="margin-top:0.45rem;">
+        <summary><strong>How?</strong></summary>
+        <p class="micro-note" style="margin-top:0.35rem;">${escapeHtml(test.how || "")}</p>
+      </details>
+
+      <details style="margin-top:0.45rem;">
+        <summary><strong>Evidence?</strong></summary>
+        <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">${evidence}</ul>
+      </details>
+
+      <button type="button" class="btn-primary btn-primary--full" style="margin-top:0.75rem;" data-apply="${escapeHtml(test.key)}">
+        Apply ${escapeHtml(test.label)}
+      </button>
+    </div>
+  `;
+}
+
+function renderRec() {
+  const canEx = v(rec.canExercise);
+
+  show(rec.ecgWrap, canEx === "yes");
+
+  const ecgNeeded = canEx === "yes";
+  const ecgAns = v(rec.ecg);
+
+  const readyForRenal = !!canEx && (!ecgNeeded || !!ecgAns);
+  show(rec.renalWrap, readyForRenal);
+
+  const renalAns = v(rec.renal);
+
+  // Reveal practical limitations only after first 3 prompts
+  const gateOk = !!canEx && (!ecgNeeded || !!ecgAns) && !!renalAns;
+  show(rec.hardStopsWrap, gateOk);
+
+  if (!rec.output) return;
+
+  if (!canEx) {
+    rec.output.innerHTML = `
+      <strong>SPEAR Recommendation</strong>
+      <p class="micro-note">Answer the first question to begin.</p>
+    `;
+    show(rec.applyRow, false);
+    return;
+  }
+
+  if (!gateOk) {
+    rec.output.innerHTML = `
+      <strong>SPEAR Recommendation</strong>
+      <p class="micro-note">Answer the first 3 prompts to generate ranked recommendations.</p>
+    `;
+    show(rec.applyRow, false);
+    return;
+  }
+
+  const result = recommendStableNoKnownCad(readSpearInputs());
+  const cards = result.rankedTests.map(renderSpearCard).join("");
+
+  rec.output.innerHTML = `
+    <strong>SPEAR Recommendation</strong>
+    <p class="micro-note">
+      Ranked among guideline-supported options. Internal scores are not shown.
+    </p>
+    ${cards}
+    <p class="micro-note" style="margin-top:0.75rem;">
+      Confidence grades: A = high, B = moderate, C = lower certainty / feasibility-driven.
+    </p>
+  `;
+
+  rec.output.querySelectorAll("[data-apply]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.getAttribute("data-apply");
+      const test = result.rankedTests.find(t => t.key === key);
+      if (test) applySpearRecommendation(test.apply);
+    });
+  });
+}
+
 [
   rec.canExercise,
   rec.ecg,
+  rec.renal,
   rec.bronch,
   rec.mri,
   rec.echo,
-  rec.renal,
-  rec.petAvail,
-  rec.cmrAvail,
 ].forEach((el) => {
   if (!el) return;
   el.addEventListener("change", renderRec);
 });
 
+renderRec();
 // Initial render
 renderRec();
   riskCat.addEventListener("change", normalize);
