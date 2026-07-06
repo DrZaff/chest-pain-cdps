@@ -457,7 +457,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="callout" style="margin-top:0.75rem;">
         <strong>${escapeHtml(test.category)}</strong>
         <div style="font-size:1.05rem; margin-top:0.25rem;">
-          <strong>${escapeHtml(test.stars || "")} ${escapeHtml(test.label)}<sup>${escapeHtml(test.confidence)}</sup></strong>
+              <strong>${escapeHtml(test.label)}<sup>${escapeHtml(test.confidence)}</sup></strong>
         </div>
 
         <details style="margin-top:0.45rem;">
@@ -670,24 +670,6 @@ function renderResults(container, result) {
         <div style="color: var(--color-text-secondary); font-size: 0.9rem;">Disposition</div>
         <div style="font-size: 1.05rem;"><strong>${escapeHtml(disp)}</strong></div>
         ${summary ? `<div style="color: var(--color-text-secondary); margin-top:0.25rem;">${escapeHtml(summary)}</div>` : ""}
-      </div>
-
-      <hr class="hr" />
-
-      <div>
-        <div style="color: var(--color-text-secondary); font-size: 0.9rem;">Next steps</div>
-        ${steps || `<p class="results-placeholder">No next steps.</p>`}
-      </div>
-
-      <hr class="hr" />
-
-      <div>
-        <div style="color: var(--color-text-secondary); font-size: 0.9rem;">Branch trace</div>
-        ${
-          branches
-            ? `<ul style="margin: 0.35rem 0 0; padding-left: 1.1rem;">${branches}</ul>`
-            : `<p class="results-placeholder">No branches recorded yet.</p>`
-        }
       </div>
     </div>
   `;
