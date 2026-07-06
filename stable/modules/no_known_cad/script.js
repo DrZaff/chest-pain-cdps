@@ -1,18 +1,17 @@
 import { recommendStableNoKnownCad } from "../../spear-engine.js";
+
 export function evaluatePathway(inputs) {
   const values = {
     pathwayId: "stable-no-known-cad",
-    version: "v1.3",
+    version: "v1.4-spear",
     inputSummary: { ...inputs },
     branchesTaken: [],
   };
 
   const flags = [];
   const nextSteps = [];
-
   const pushFlag = (severity, code, message) => flags.push({ severity, code, message });
 
-  // UPDATED: allow optional "info" payload per step
   const step = (label, detail, strength = null, level = "info", info = null) => ({
     label,
     detail,
@@ -27,10 +26,8 @@ export function evaluatePathway(inputs) {
     "Stable chest pain + no known CAD pathway module. Outputs mirror pathway boxes; does not replace clinical judgment or local protocols."
   );
 
-  // Layer 3 soft guidance (warnings + alternatives)
   addLayer3Guidance(inputs, pushFlag, nextSteps);
 
-  // Validation
   const v = validateInputs(inputs);
   if (!v.ok) flags.push(...v.flags);
 
@@ -39,81 +36,32 @@ export function evaluatePathway(inputs) {
 
     if (inputs.lowRiskChoice === "no_testing") {
       values.branchesTaken.push("lowRiskChoice=no_testing");
-
-      // Base step
-      const baseSteps = [
-        step("No testing recommended", "Low risk branch.", "COR 1", "info"),
-      ];
-
-      // NEW: CAD Consortium “double-check” recommendation + hover/info modal
-      const cadInfo = {
-        title: "Why confirm low-risk status with contemporary PTP models?",
-        bullets: [
-          "Typical exertional angina is uncommon (<10%), and symptoms are often infrequent, complicating diagnostic assessment.",
-          "Among symptomatic patients undergoing evaluation, the prevalence of obstructive CAD or ischemia is low (≈10%).",
-          "Traditional pretest risk scores overestimate disease probability and contribute to unnecessary testing and high normal angiography rates.",
-          "Contemporary pretest probability models improve identification of truly low-risk patients who may not require additional diagnostic testing.",
-        ],
-        link: {
-          label: "Open CAD Consortium Score (QxMD)",
-          url: "https://qxmd.com/calculate/calculator_287/pre-test-probability-of-cad-cad-consortium",
-        },
-      };
-
-      const cadStep = step(
-        "Optional confirmation (recommended)",
-        "Consider using a contemporary pretest probability model (eg, CAD Consortium) to confirm low-risk status before deferring testing.",
-        null,
-        "info",
-        cadInfo
-      );
-
       return finalize(values, flags, {
         disposition: "No testing recommended",
         summary: "Low-risk stable chest pain: no testing recommended (COR 1).",
-        nextSteps: [...baseSteps, cadStep, ...nextSteps],
-      });
-    }
-
-    if (inputs.lowRiskChoice === "selected_cac_execg") {
-      values.branchesTaken.push("lowRiskChoice=selected_cac_execg");
-
-      // NEW: “selected cases” guidance, shown in Next Steps
-      const guidanceSteps = [
-        step(
-          "CAC guidance in selected cases",
-          "A CAC score of zero identifies a low-risk cohort who may not require additional diagnostic testing. Most events occur among patients with detectable CAC (eg, PROMISE). CAC-guided strategies (eg, CRESCENT-1) reduced downstream testing and were associated with fewer cardiovascular events compared with exercise testing alone.",
-          null,
-          "info"
-        ),
-        step(
-          "Exercise ECG guidance in selected cases",
-          "Exercise testing is an effective diagnostic strategy in low-risk symptomatic women (WOMEN trial), with similar clinical outcomes to exercise MPI and significant cost savings. Practical requirement: adequate exercise capacity and an interpretable baseline ECG.",
-          null,
-          "info"
-        ),
-      ];
-
-      return finalize(values, flags, {
-        disposition: "CAC or exercise ECG in selected cases",
-        summary:
-          "Low-risk stable chest pain: CAC or exercise ECG may be considered in selected cases (COR 2a).",
         nextSteps: [
-          step("CAC or exercise ECG", "Selected low-risk cases.", "COR 2a", "info"),
-          ...guidanceSteps,
+          step("No testing recommended", "Low-risk stable chest pain branch.", "COR 1", "info"),
           ...nextSteps,
         ],
       });
     }
 
-    pushFlag(
-      "warning",
-      "MISSING_LOW_RISK_CHOICE",
-      "Select the low-risk testing strategy to complete the pathway."
-    );
+    if (inputs.lowRiskChoice === "selected_cac_execg") {
+      values.branchesTaken.push("lowRiskChoice=selected_cac_execg");
+      return finalize(values, flags, {
+        disposition: "CAC or exercise ECG in selected cases",
+        summary: "Low-risk stable chest pain: CAC or exercise ECG may be considered in selected cases (COR 2a).",
+        nextSteps: [
+          step("CAC or exercise ECG", "Selected low-risk cases.", "COR 2a", "info"),
+          ...nextSteps,
+        ],
+      });
+    }
+
+    pushFlag("warning", "MISSING_LOW_RISK_CHOICE", "Apply a low-risk recommendation before running the pathway.");
     return finalize(values, flags, {
       disposition: "Incomplete",
-      summary: "Missing low-risk branch selection.",
+      summary: "Missing low-risk recommendation selection.",
       nextSteps,
     });
   }
@@ -137,14 +85,7 @@ export function evaluatePathway(inputs) {
       if (inputs.cctaResult === "no_cad") {
         values.branchesTaken.push("cctaResult=no_cad");
         nextSteps.push(step("No CAD", "No stenosis or plaque on CCTA.", null, "info"));
-        nextSteps.push(
-          step(
-            "Consider INOCA pathway (outpatient)",
-            "Consider INOCA pathway for frequent or persistent symptoms.",
-            null,
-            "info"
-          )
-        );
+        nextSteps.push(step("Consider INOCA pathway", "Consider INOCA pathway for frequent or persistent symptoms.", null, "info"));
         return finalize(values, flags, {
           disposition: "No CAD on CCTA",
           summary: "No CAD identified; consider outpatient INOCA evaluation if symptoms persist.",
@@ -157,32 +98,17 @@ export function evaluatePathway(inputs) {
 
         if (inputs.stenosis4090 === true) {
           values.branchesTaken.push("stenosis4090=yes");
-          nextSteps.push(
-            step(
-              "FFR-CT for 40–90% stenosis OR stress testing",
-              "Consider add-on testing per figure.",
-              "COR 2a",
-              "info"
-            )
-          );
+          nextSteps.push(step("FFR-CT for 40–90% stenosis OR stress testing", "Consider add-on testing per figure.", "COR 2a", "info"));
         } else if (inputs.stenosis4090 === false) {
           values.branchesTaken.push("stenosis4090=no");
-          nextSteps.push(
-            step(
-              "Consider INOCA pathway (outpatient)",
-              "For frequent or persistent symptoms.",
-              null,
-              "info"
-            )
-          );
+          nextSteps.push(step("Consider INOCA pathway", "For frequent or persistent symptoms.", null, "info"));
         } else {
           pushFlag("warning", "MISSING_40_90", "For nonobstructive CAD, specify whether 40–90% stenosis is present.");
         }
 
         return finalize(values, flags, {
           disposition: "Nonobstructive CAD (<50%)",
-          summary:
-            "Nonobstructive CAD branch; add-on testing may be considered depending on stenosis range and symptoms.",
+          summary: "Nonobstructive CAD branch; add-on testing may be considered depending on stenosis range and symptoms.",
           nextSteps,
         });
       }
@@ -202,18 +128,10 @@ export function evaluatePathway(inputs) {
 
         if (inputs.highRiskCad === false) {
           values.branchesTaken.push("highRiskCad=no");
-          nextSteps.push(
-            step(
-              "Follow-up testing / intensification of GDMT",
-              "Follow-up based on results and symptom burden.",
-              null,
-              "info"
-            )
-          );
+          nextSteps.push(step("Follow-up testing / intensification of GDMT", "Follow-up based on results and symptom burden.", null, "info"));
           return finalize(values, flags, {
             disposition: "Obstructive CAD (≥50%)",
-            summary:
-              "Obstructive CAD identified; emphasize follow-up and GDMT intensification by symptoms and results.",
+            summary: "Obstructive CAD identified; emphasize follow-up and GDMT intensification by symptoms and results.",
             nextSteps,
           });
         }
@@ -234,7 +152,7 @@ export function evaluatePathway(inputs) {
       nextSteps.unshift(
         step(
           "Stress testing",
-          "Stress imaging (CMR/PET/SPECT/echo) options. Exercise ECG may be used in selected cases.",
+          "Stress imaging options. Exercise ECG may be used in selected cases.",
           "COR 1 (imaging); Exercise ECG COR 2a",
           "info"
         )
@@ -255,7 +173,7 @@ export function evaluatePathway(inputs) {
         nextSteps.push(step("Consider CAC", "CAC shown alongside preventive optimization.", "COR 2a", "info"));
         return finalize(values, flags, {
           disposition: "Mild ischemia",
-          summary: "Mild ischemia → optimize preventive therapies; CAC may be considered per figure.",
+          summary: "Mild ischemia → optimize preventive therapies; CAC may be considered.",
           nextSteps,
         });
       }
@@ -279,8 +197,7 @@ export function evaluatePathway(inputs) {
           nextSteps.push(step("Continue preventive therapies", "No persistent symptoms branch.", "COR 1", "info"));
           return finalize(values, flags, {
             disposition: "Moderate–severe ischemia without persistent symptoms",
-            summary:
-              "Optimize/continue preventive therapies; ICA reserved for persistent symptoms per figure.",
+            summary: "Optimize/continue preventive therapies; ICA reserved for persistent symptoms per figure.",
             nextSteps,
           });
         }
@@ -295,14 +212,7 @@ export function evaluatePathway(inputs) {
 
       if (inputs.stressResult === "inconclusive") {
         values.branchesTaken.push("stressResult=inconclusive");
-        nextSteps.push(
-          step(
-            "Further evaluation after inconclusive stress test",
-            "Per figure: further evaluation may include CCTA (COR 2a) and/or ICA (COR 1) depending on context.",
-            null,
-            "warning"
-          )
-        );
+        nextSteps.push(step("Further evaluation after inconclusive stress test", "Further evaluation may include CCTA and/or ICA depending on context.", null, "warning"));
         return finalize(values, flags, {
           disposition: "Inconclusive stress test",
           summary: "Inconclusive stress test → further evaluation per pathway.",
@@ -311,8 +221,12 @@ export function evaluatePathway(inputs) {
       }
     }
 
-    pushFlag("warning", "MISSING_INDEX_TEST", "For intermediate/high risk, select the index test (CCTA vs stress testing).");
-    return finalize(values, flags, { disposition: "Incomplete", summary: "Missing index test selection.", nextSteps });
+    pushFlag("warning", "MISSING_SPEAR_APPLICATION", "Apply one SPEAR recommendation before running the pathway.");
+    return finalize(values, flags, {
+      disposition: "Incomplete",
+      summary: "Apply a SPEAR recommendation to continue.",
+      nextSteps,
+    });
   }
 
   pushFlag("warning", "MISSING_RISK", "Select the clinical risk category to start the pathway.");
@@ -320,56 +234,28 @@ export function evaluatePathway(inputs) {
 }
 
 function addLayer3Guidance(inputs, pushFlag, nextSteps) {
-  // Soft guidance only: if user says there’s a limitation, we warn + list alternatives
   const cctaLimited = inputs.layer3?.cctaAnyLimit === true;
   const stressLimited = inputs.layer3?.stressAnyLimit === true;
 
   if (inputs.indexTest === "ccta" && cctaLimited) {
     pushFlag("warning", "CCTA_LIMITED", formatNote("CCTA may be limited by patient/site factors.", inputs.layer3?.cctaNotes));
     nextSteps.push({
-      label: "Suggested alternatives (non-blocking)",
-      detail:
-        "Consider stress imaging modalities (stress echo, PET/SPECT, stress CMR) when CCTA feasibility is limited; choose based on local availability and patient factors.",
+      label: "Suggested alternatives",
+      detail: "Consider stress imaging when CCTA feasibility is limited; choose based on local availability and patient factors.",
       strength: null,
       level: "info",
     });
   }
 
   if (inputs.indexTest === "stress" && inputs.stressModality && stressLimited) {
-    const mod = inputs.stressModality;
-    pushFlag("warning", "STRESS_MODALITY_LIMITED", formatNote(`Selected stress modality may be limited (${prettyMod(mod)}).`, inputs.layer3?.stressNotes));
-
-    const alts = suggestStressAlternatives(mod);
+    pushFlag("warning", "STRESS_MODALITY_LIMITED", formatNote(`Selected stress modality may be limited (${prettyMod(inputs.stressModality)}).`, inputs.layer3?.stressNotes));
     nextSteps.push({
-      label: "Suggested alternatives (non-blocking)",
-      detail: `Consider: ${alts.join(", ")}. Choose based on feasibility, contraindications, and local availability.`,
+      label: "Suggested alternatives",
+      detail: "Consider another stress modality or CCTA if feasible.",
       strength: null,
       level: "info",
     });
   }
-}
-
-function suggestStressAlternatives(selected) {
-  const map = {
-    exercise_ecg: ["Stress echocardiography", "PET/SPECT MPI", "Stress CMR", "CCTA (if feasible)"],
-    stress_echo: ["PET/SPECT MPI", "Stress CMR", "Exercise ECG (if ECG interpretable + able to exercise)", "CCTA (if feasible)"],
-    stress_nuclear: ["Stress echocardiography", "Stress CMR", "Exercise ECG (selected cases)", "CCTA (if feasible)"],
-    stress_cmr: ["Stress echocardiography", "PET/SPECT MPI", "Exercise ECG (selected cases)", "CCTA (if feasible)"],
-  };
-  return map[selected] || ["Stress echocardiography", "PET/SPECT MPI", "Stress CMR", "CCTA (if feasible)"];
-}
-
-function prettyMod(mod) {
-  return mod
-    .replace("exercise_ecg", "Exercise ECG")
-    .replace("stress_echo", "Stress echocardiography")
-    .replace("stress_nuclear", "Stress nuclear (PET/SPECT)")
-    .replace("stress_cmr", "Stress CMR");
-}
-
-function formatNote(prefix, note) {
-  const trimmed = (note || "").trim();
-  return trimmed ? `${prefix} Note: ${trimmed}` : prefix;
 }
 
 function validateInputs(inputs) {
@@ -379,11 +265,11 @@ function validateInputs(inputs) {
   if (!inputs.riskCat) warn("REQ_RISKCAT", "Risk category is required.");
 
   if (inputs.riskCat === "low") {
-    if (!inputs.lowRiskChoice) warn("REQ_LOWRISK_CHOICE", "Low-risk testing strategy is required.");
+    if (!inputs.lowRiskChoice) warn("REQ_LOWRISK_CHOICE", "Apply a low-risk recommendation before running the pathway.");
   }
 
   if (inputs.riskCat === "intermediate_high") {
-    if (!inputs.indexTest) warn("REQ_INDEX_TEST", "Index test selection is required.");
+    if (!inputs.indexTest) warn("REQ_INDEX_TEST", "Apply a SPEAR recommendation before running the pathway.");
 
     if (inputs.indexTest === "stress") {
       if (!inputs.stressResult) warn("REQ_STRESS_RESULT", "Stress testing result is required to complete branch.");
@@ -410,308 +296,274 @@ function finalize(values, flags, interpretation) {
   return { values, flags, interpretation };
 }
 
-// ------------------------------
-// UI glue
-// ------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("tool-form");
   const resetBtn = document.getElementById("resetBtn");
   const resultsContainer = document.getElementById("results-container");
   const flagsContainer = document.getElementById("flags-container");
-  const spearRecommenderWrap = document.getElementById("spearRecommenderWrap");
 
   const riskCat = document.getElementById("riskCat");
-  const lowRiskChoiceWrap = document.getElementById("lowRiskChoiceWrap");
-  const indexTestWrap = document.getElementById("indexTestWrap");
+
+  const lowRiskRecommendationWrap = document.getElementById("lowRiskRecommendationWrap");
+  const spearRecommenderWrap = document.getElementById("spearRecommenderWrap");
+
+  const applyNoTesting = document.getElementById("applyNoTesting");
+  const applyLowRiskSelected = document.getElementById("applyLowRiskSelected");
+
+  const lowRiskChoice = document.getElementById("lowRiskChoice");
   const indexTest = document.getElementById("indexTest");
 
   const cctaLayer3Wrap = document.getElementById("cctaLayer3Wrap");
+  const cctaResultWrap = document.getElementById("cctaResultWrap");
+  const cctaResult = document.getElementById("cctaResult");
+  const stenosis4090Wrap = document.getElementById("stenosis4090Wrap");
+  const highRiskCadWrap = document.getElementById("highRiskCadWrap");
 
   const stressModalityWrap = document.getElementById("stressModalityWrap");
   const stressModality = document.getElementById("stressModality");
   const stressLayer3Wrap = document.getElementById("stressLayer3Wrap");
   const stressAbbrevList = document.getElementById("stressAbbrevList");
-
   const stressResultWrap = document.getElementById("stressResultWrap");
+  const stressResult = document.getElementById("stressResult");
   const persistentSymptomsWrap = document.getElementById("persistentSymptomsWrap");
 
-  const cctaResultWrap = document.getElementById("cctaResultWrap");
-  const stenosis4090Wrap = document.getElementById("stenosis4090Wrap");
-  const highRiskCadWrap = document.getElementById("highRiskCadWrap");
+  const rec = {
+    canExercise: document.getElementById("rec_canExercise"),
+    ecgWrap: document.getElementById("rec_ecgWrap"),
+    ecg: document.getElementById("rec_ecgInterpretable"),
+    renalWrap: document.getElementById("rec_renalWrap"),
+    renal: document.getElementById("rec_renalConcern"),
+    output: document.getElementById("rec_output"),
+  };
 
-  const stressResult = document.getElementById("stressResult");
-  const cctaResult = document.getElementById("cctaResult");
-// Simple Back button: browser back
-const backBtn = document.getElementById("backBtn");
-if (backBtn) {
-  backBtn.addEventListener("click", () => {
-    window.history.back();
-  });
-}
+  const backBtn = document.getElementById("backBtn");
+  if (backBtn) backBtn.addEventListener("click", () => window.history.back());
+
   function setDisplay(el, show) {
     if (!el) return;
     el.style.display = show ? "" : "none";
   }
 
-  function setStressAbbrev(mod) {
-    const content = {
-      exercise_ecg: `
-        <strong>Exercise ECG (abbrev)</strong>
-        <ul>
-          <li>Baseline ECG must be interpretable for ischemia</li>
-          <li>Requires adequate exercise capacity (≥5 METs)</li>
-          <li>Consider limitations with major arrhythmias or severe AS/HTN</li>
-        </ul>`,
-      stress_echo: `
-        <strong>Stress echocardiography (abbrev)</strong>
-        <ul>
-          <li>Limited acoustic windows can reduce performance</li>
-          <li>If pharmacologic stress needed, consider dobutamine limitations</li>
-          <li>Major arrhythmias/unstable features may limit feasibility</li>
-        </ul>`,
-      stress_nuclear: `
-        <strong>Stress nuclear PET/SPECT (abbrev)</strong>
-        <ul>
-          <li>Vasodilator contraindications (eg, significant bronchospasm) may limit</li>
-          <li>Caffeine/theophylline within 12h can interfere</li>
-          <li>Severe hypotension or high-risk ACS features are limiting</li>
-        </ul>`,
-      stress_cmr: `
-        <strong>Stress CMR (abbrev)</strong>
-        <ul>
-          <li>MRI-unsafe devices / severe claustrophobia may limit</li>
-          <li>Low GFR (&lt;30) is a common constraint</li>
-          <li>Caffeine within 12h can interfere with vasodilator stress</li>
-        </ul>`,
-    };
+  function v(el) {
+    return el?.value || "";
+  }
 
-    stressAbbrevList.innerHTML =
-      content[mod] || `<strong>Select a stress modality</strong><p class="micro-note">Abbreviated considerations will appear here.</p>`;
+  function clearSpearInputs() {
+    if (rec.canExercise) rec.canExercise.value = "";
+    if (rec.ecg) rec.ecg.value = "";
+    if (rec.renal) rec.renal.value = "";
+    if (rec.output) {
+      rec.output.innerHTML = `
+        <strong>Ranked recommendations</strong>
+        <p class="micro-note">Answer the first question to generate recommendations.</p>
+      `;
+    }
+  }
+
+  function clearAppliedSelections() {
+    if (lowRiskChoice) lowRiskChoice.value = "";
+    if (indexTest) indexTest.value = "";
+    if (stressModality) stressModality.value = "";
+    if (cctaResult) cctaResult.value = "";
+    if (stressResult) stressResult.value = "";
   }
 
   function normalize() {
-    const rc = riskCat.value || "";
-    setDisplay(lowRiskChoiceWrap, rc === "low");
-    setDisplay(indexTestWrap, rc === "intermediate_high");
+    const rc = riskCat?.value || "";
+    const it = indexTest?.value || "";
+
+    setDisplay(lowRiskRecommendationWrap, rc === "low");
     setDisplay(spearRecommenderWrap, rc === "intermediate_high");
 
-    const it = indexTest?.value || "";
     setDisplay(cctaResultWrap, rc === "intermediate_high" && it === "ccta");
-    setDisplay(stressResultWrap, rc === "intermediate_high" && it === "stress");
-
-    // Layer 3 screens
     setDisplay(cctaLayer3Wrap, rc === "intermediate_high" && it === "ccta");
+
+    setDisplay(stressResultWrap, rc === "intermediate_high" && it === "stress");
     setDisplay(stressModalityWrap, rc === "intermediate_high" && it === "stress");
     setDisplay(stressLayer3Wrap, rc === "intermediate_high" && it === "stress" && !!(stressModality?.value));
 
-    const sr = stressResult.value || "";
+    const sr = stressResult?.value || "";
     setDisplay(persistentSymptomsWrap, rc === "intermediate_high" && it === "stress" && sr === "modsev");
 
-    const cr = cctaResult.value || "";
+    const cr = cctaResult?.value || "";
     setDisplay(stenosis4090Wrap, rc === "intermediate_high" && it === "ccta" && cr === "nonobstructive_lt50");
     setDisplay(highRiskCadWrap, rc === "intermediate_high" && it === "ccta" && cr === "obstructive_ge50");
 
     setStressAbbrev(stressModality?.value || "");
   }
 
-  // ------------------------------
-// Wave 2 #1: Guided recommender (optional)
-// ------------------------------
-// ------------------------------
-// SPEAR recommender v1
-// ------------------------------
-const rec = {
-  canExercise: document.getElementById("rec_canExercise"),
-  ecgWrap: document.getElementById("rec_ecgWrap"),
-  ecg: document.getElementById("rec_ecgInterpretable"),
-  renalWrap: document.getElementById("rec_renalWrap"),
-  renal: document.getElementById("rec_renalConcern"),
-  hardStopsWrap: document.getElementById("rec_hardStopsWrap"),
-  bronch: document.getElementById("rec_bronchospasm"),
-  mri: document.getElementById("rec_mriContra"),
-  echo: document.getElementById("rec_poorEcho"),
-  output: document.getElementById("rec_output"),
-  applyRow: document.getElementById("rec_applyRow"),
-  btnPrimary: document.getElementById("rec_applyPrimary"),
-  btnAlt1: document.getElementById("rec_applyAlt1"),
-  btnAlt2: document.getElementById("rec_applyAlt2"),
-};
+  function setStressAbbrev(mod) {
+    if (!stressAbbrevList) return;
 
-const riskCatEl = document.getElementById("riskCat");
-const indexTestEl = document.getElementById("indexTest");
-const stressModalityEl = document.getElementById("stressModality");
+    const content = {
+      exercise_ecg: `
+        <strong>Exercise ECG</strong>
+        <ul>
+          <li>Baseline ECG must be interpretable for ischemia</li>
+          <li>Requires adequate exercise capacity</li>
+        </ul>`,
+      stress_echo: `
+        <strong>Stress echocardiography</strong>
+        <ul>
+          <li>Limited acoustic windows can reduce performance</li>
+          <li>Useful when structural/valvular information is helpful</li>
+        </ul>`,
+      stress_nuclear: `
+        <strong>Stress nuclear PET/SPECT</strong>
+        <ul>
+          <li>Vasodilator contraindications may limit use</li>
+          <li>PET preferred over SPECT when available in selected cases</li>
+        </ul>`,
+      stress_cmr: `
+        <strong>Stress CMR</strong>
+        <ul>
+          <li>MRI-unsafe devices or severe claustrophobia may limit use</li>
+          <li>No ionizing radiation</li>
+        </ul>`,
+    };
 
-function show(el, on) {
-  if (!el) return;
-  el.style.display = on ? "" : "none";
-}
-
-function v(el) {
-  return el?.value || "";
-}
-
-function readSpearInputs() {
-  return {
-    canExercise: v(rec.canExercise),
-    ecgInterpretable: v(rec.ecg),
-    renalConcern: v(rec.renal),
-    bronchospasm: v(rec.bronch),
-    mriContra: v(rec.mri),
-    poorEcho: v(rec.echo),
-  };
-}
-
-function applySpearRecommendation(apply) {
-  if (!apply) return;
-
-  if (riskCatEl && apply.riskCat) {
-    riskCatEl.value = apply.riskCat;
-    riskCatEl.dispatchEvent(new Event("change", { bubbles: true }));
+    stressAbbrevList.innerHTML =
+      content[mod] || `<strong>Abbreviated considerations will appear after selecting a modality.</strong>`;
   }
 
-  if (indexTestEl && apply.indexTest) {
-    indexTestEl.value = apply.indexTest;
-    indexTestEl.dispatchEvent(new Event("change", { bubbles: true }));
+  function readSpearInputs() {
+    return {
+      canExercise: v(rec.canExercise),
+      ecgInterpretable: v(rec.ecg),
+      renalConcern: v(rec.renal),
+    };
   }
 
-  if (stressModalityEl && apply.stressModality) {
-    stressModalityEl.value = apply.stressModality;
-    stressModalityEl.dispatchEvent(new Event("change", { bubbles: true }));
+  function applyRecommendation(apply) {
+    if (!apply) return;
+
+    if (apply.riskCat && riskCat) riskCat.value = apply.riskCat;
+    if (apply.lowRiskChoice && lowRiskChoice) lowRiskChoice.value = apply.lowRiskChoice;
+    if (apply.indexTest && indexTest) indexTest.value = apply.indexTest;
+    if (apply.stressModality && stressModality) stressModality.value = apply.stressModality;
+
+    normalize();
+
+    if (resultsContainer) {
+      resultsContainer.innerHTML = `<p class="results-placeholder">Recommendation applied. Complete downstream fields and tap “Run pathway.”</p>`;
+    }
   }
 
-  if (typeof normalize === "function") normalize();
-}
+  function renderRecommendationCard(test) {
+    const why = (test.why || []).slice(0, 5).map((x) => `<li>${escapeHtml(x)}</li>`).join("");
+    const evidence = (test.evidence || []).map((x) => `<li>${escapeHtml(x)}</li>`).join("");
 
-function renderSpearCard(test) {
-  const why = (test.why || []).slice(0, 5).map(x => `<li>${escapeHtml(x)}</li>`).join("");
-  const evidence = (test.evidence || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+    return `
+      <div class="callout" style="margin-top:0.75rem;">
+        <strong>${escapeHtml(test.category)}</strong>
+        <div style="font-size:1.05rem; margin-top:0.25rem;">
+          <strong>${escapeHtml(test.stars || "")} ${escapeHtml(test.label)}<sup>${escapeHtml(test.confidence)}</sup></strong>
+        </div>
 
-  return `
-    <div class="callout" style="margin-top:0.75rem;">
-      <strong>${escapeHtml(test.category)}</strong>
-      <div style="font-size:1.05rem; margin-top:0.25rem;">
-        <strong>${escapeHtml(test.label)}<sup>${escapeHtml(test.confidence)}</sup></strong>
+        <details style="margin-top:0.45rem;">
+          <summary><strong>Why?</strong></summary>
+          <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">${why}</ul>
+        </details>
+
+        <details style="margin-top:0.45rem;">
+          <summary><strong>How?</strong></summary>
+          <p class="micro-note" style="margin-top:0.35rem;">${escapeHtml(test.how || "")}</p>
+        </details>
+
+        <details style="margin-top:0.45rem;">
+          <summary><strong>Evidence?</strong></summary>
+          <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">${evidence}</ul>
+        </details>
+
+        <button type="button" class="btn-primary btn-primary--full" style="margin-top:0.75rem;" data-apply="${escapeHtml(test.key)}">
+          Apply ${escapeHtml(test.label)}
+        </button>
       </div>
-
-      <details style="margin-top:0.45rem;">
-        <summary><strong>Why?</strong></summary>
-        <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">${why}</ul>
-      </details>
-
-      <details style="margin-top:0.45rem;">
-        <summary><strong>How?</strong></summary>
-        <p class="micro-note" style="margin-top:0.35rem;">${escapeHtml(test.how || "")}</p>
-      </details>
-
-      <details style="margin-top:0.45rem;">
-        <summary><strong>Evidence?</strong></summary>
-        <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">${evidence}</ul>
-      </details>
-
-      <button type="button" class="btn-primary btn-primary--full" style="margin-top:0.75rem;" data-apply="${escapeHtml(test.key)}">
-        Apply ${escapeHtml(test.label)}
-      </button>
-    </div>
-  `;
-}
-
-function renderRec() {
-  const canEx = v(rec.canExercise);
-
-  show(rec.ecgWrap, canEx === "yes");
-
-  const ecgNeeded = canEx === "yes";
-  const ecgAns = v(rec.ecg);
-
-  const readyForRenal = !!canEx && (!ecgNeeded || !!ecgAns);
-  show(rec.renalWrap, readyForRenal);
-
-  const renalAns = v(rec.renal);
-
-  // Reveal practical limitations only after first 3 prompts
-  const gateOk = !!canEx && (!ecgNeeded || !!ecgAns) && !!renalAns;
-  show(rec.hardStopsWrap, gateOk);
-
-  if (!rec.output) return;
-
-  if (!canEx) {
-    rec.output.innerHTML = `
-      <strong>SPEAR Recommendation</strong>
-      <p class="micro-note">Answer the first question to begin.</p>
     `;
-    show(rec.applyRow, false);
-    return;
   }
 
-  if (!gateOk) {
+  function renderSpear() {
+    const canEx = v(rec.canExercise);
+
+    setDisplay(rec.ecgWrap, canEx === "yes");
+
+    const ecgNeeded = canEx === "yes";
+    const ecgAns = v(rec.ecg);
+
+    const readyForRenal = !!canEx && (!ecgNeeded || !!ecgAns);
+    setDisplay(rec.renalWrap, readyForRenal);
+
+    const renalAns = v(rec.renal);
+    const gateOk = !!canEx && (!ecgNeeded || !!ecgAns) && !!renalAns;
+
+    if (!rec.output) return;
+
+    if (!canEx) {
+      rec.output.innerHTML = `
+        <strong>Ranked recommendations</strong>
+        <p class="micro-note">Answer the first question to generate recommendations.</p>
+      `;
+      return;
+    }
+
+    if (!gateOk) {
+      rec.output.innerHTML = `
+        <strong>Ranked recommendations</strong>
+        <p class="micro-note">Answer the displayed prompts to generate recommendations.</p>
+      `;
+      return;
+    }
+
+    const result = recommendStableNoKnownCad(readSpearInputs());
+
     rec.output.innerHTML = `
-      <strong>SPEAR Recommendation</strong>
-      <p class="micro-note">Answer the first 3 prompts to generate ranked recommendations.</p>
+      <strong>Ranked recommendations</strong>
+      <p class="micro-note">
+        Internal scores are not shown. A = high confidence, B = moderate confidence, C = lower certainty / feasibility-driven.
+      </p>
+      ${result.rankedTests.map(renderRecommendationCard).join("")}
     `;
-    show(rec.applyRow, false);
-    return;
-  }
 
-  const result = recommendStableNoKnownCad(readSpearInputs());
-  const cards = result.rankedTests.map(renderSpearCard).join("");
-
-  rec.output.innerHTML = `
-    <strong>SPEAR Recommendation</strong>
-    <p class="micro-note">
-      Ranked among guideline-supported options. Internal scores are not shown.
-    </p>
-    ${cards}
-    <p class="micro-note" style="margin-top:0.75rem;">
-      Confidence grades: A = high, B = moderate, C = lower certainty / feasibility-driven.
-    </p>
-  `;
-
-  rec.output.querySelectorAll("[data-apply]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const key = btn.getAttribute("data-apply");
-      const test = result.rankedTests.find(t => t.key === key);
-      if (test) applySpearRecommendation(test.apply);
+    rec.output.querySelectorAll("[data-apply]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.getAttribute("data-apply");
+        const test = result.rankedTests.find((x) => x.key === key);
+        if (test) applyRecommendation(test.apply);
+      });
     });
-  });
-}
-
-[
-  rec.canExercise,
-  rec.ecg,
-  rec.renal,
-  rec.bronch,
-  rec.mri,
-  rec.echo,
-].forEach((el) => {
-  if (!el) return;
-  el.addEventListener("change", renderRec);
-});
-
-renderRec();
-// Initial render
-renderRec();
-  riskCat.addEventListener("change", () => {
-  if (rec.canExercise) rec.canExercise.value = "";
-  if (rec.ecg) rec.ecg.value = "";
-  if (rec.renal) rec.renal.value = "";
-  if (rec.bronch) rec.bronch.value = "";
-  if (rec.mri) rec.mri.value = "";
-  if (rec.echo) rec.echo.value = "";
-
-  if (rec.output) {
-    rec.output.innerHTML = `
-      <strong>SPEAR Recommendation</strong>
-      <p class="micro-note">Answer the first question to generate ranked recommendations.</p>
-    `;
   }
 
-  normalize();
-  renderRec();
-});
-  indexTest?.addEventListener("change", normalize);
-  stressModality?.addEventListener("change", normalize);
-  stressResult?.addEventListener("change", normalize);
-  cctaResult?.addEventListener("change", normalize);
+  applyNoTesting?.addEventListener("click", () => {
+    applyRecommendation({ riskCat: "low", lowRiskChoice: "no_testing" });
+  });
+
+  applyLowRiskSelected?.addEventListener("click", () => {
+    applyRecommendation({ riskCat: "low", lowRiskChoice: "selected_cac_execg" });
+  });
+
+  riskCat?.addEventListener("change", () => {
+    clearAppliedSelections();
+    clearSpearInputs();
+    normalize();
+    renderSpear();
+
+    if (resultsContainer) {
+      resultsContainer.innerHTML = `<p class="results-placeholder">Fill in inputs and tap “Run pathway” to see results.</p>`;
+    }
+    if (flagsContainer) {
+      flagsContainer.innerHTML = `<p class="results-placeholder">Warnings and suggested alternatives appear here after you run the pathway.</p>`;
+    }
+  });
+
+  [rec.canExercise, rec.ecg, rec.renal].forEach((el) => {
+    if (!el) return;
+    el.addEventListener("change", renderSpear);
+  });
+
+  [stressModality, stressResult, cctaResult].forEach((el) => {
+    if (!el) return;
+    el.addEventListener("change", normalize);
+  });
 
   normalize();
   setupModals();
@@ -726,9 +578,11 @@ renderRec();
 
   resetBtn?.addEventListener("click", () => {
     form.reset();
+    clearSpearInputs();
     normalize();
-    resultsContainer.innerHTML = `<p class="results-placeholder">Fill in inputs and tap “Run pathway” to see results.</p>`;
-    flagsContainer.innerHTML = `<p class="results-placeholder">Warnings and suggested alternatives appear here after you run the pathway.</p>`;
+    renderSpear();
+    if (resultsContainer) resultsContainer.innerHTML = `<p class="results-placeholder">Fill in inputs and tap “Run pathway” to see results.</p>`;
+    if (flagsContainer) flagsContainer.innerHTML = `<p class="results-placeholder">Warnings and suggested alternatives appear here after you run the pathway.</p>`;
   });
 });
 
@@ -740,15 +594,12 @@ function readInputs() {
     riskCat: get("riskCat") || null,
     lowRiskChoice: get("lowRiskChoice") || null,
     indexTest: get("indexTest") || null,
-
     stressModality: get("stressModality") || null,
     stressResult: get("stressResult") || null,
     persistentSymptoms: yesNoToBool(get("persistentSymptoms")),
-
     cctaResult: get("cctaResult") || null,
     stenosis4090: yesNoToBool(get("stenosis4090")),
     highRiskCad: yesNoToBool(get("highRiskCad")),
-
     layer3: {
       cctaAnyLimit: yesNoToBool(get("cctaAnyLimit")),
       cctaNotes: getText("cctaNotes"),
@@ -758,14 +609,6 @@ function readInputs() {
   };
 }
 
-function yesNoToBool(v) {
-  if (!v) return null;
-  if (v === "yes") return true;
-  if (v === "no") return false;
-  return null;
-}
-
-// Modal system (existing)
 function setupModals() {
   const backdrop = document.getElementById("modal-backdrop");
   const triggers = document.querySelectorAll("[data-modal]");
@@ -775,9 +618,9 @@ function setupModals() {
     const modal = document.getElementById(id);
     if (!modal) return;
     modal.classList.add("is-open");
-    backdrop.classList.add("is-open");
+    backdrop?.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
-    backdrop.setAttribute("aria-hidden", "false");
+    backdrop?.setAttribute("aria-hidden", "false");
   }
 
   function closeAll() {
@@ -785,8 +628,8 @@ function setupModals() {
       m.classList.remove("is-open");
       m.setAttribute("aria-hidden", "true");
     });
-    backdrop.classList.remove("is-open");
-    backdrop.setAttribute("aria-hidden", "true");
+    backdrop?.classList.remove("is-open");
+    backdrop?.setAttribute("aria-hidden", "true");
   }
 
   triggers.forEach((t) => t.addEventListener("click", () => openModal(t.getAttribute("data-modal"))));
@@ -798,80 +641,6 @@ function setupModals() {
   });
 }
 
-// NEW: dynamic info modal for Next Steps
-function openInfoModal(info) {
-  const backdrop = document.getElementById("modal-backdrop");
-  if (!backdrop) return;
-
-  // Create or reuse a dynamic modal container
-  let modal = document.getElementById("modal-dynamic-info");
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.className = "modal";
-    modal.id = "modal-dynamic-info";
-    modal.setAttribute("aria-hidden", "true");
-    modal.innerHTML = `
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3 id="modal-dynamic-title">Info</h3>
-          <button class="modal-close" id="modal-dynamic-close">×</button>
-        </div>
-        <div class="modal-body" id="modal-dynamic-body"></div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-
-    const closeBtn = modal.querySelector("#modal-dynamic-close");
-    closeBtn.addEventListener("click", () => closeDynamicModal());
-
-    backdrop.addEventListener("click", () => closeDynamicModal());
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeDynamicModal();
-    });
-  }
-
-  const titleEl = modal.querySelector("#modal-dynamic-title");
-  const bodyEl = modal.querySelector("#modal-dynamic-body");
-
-  titleEl.textContent = info?.title || "Info";
-
-  const bullets = Array.isArray(info?.bullets) ? info.bullets : [];
-  const link = info?.link;
-
-  const bulletHtml = bullets.length
-    ? `<ul>${bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join("")}</ul>`
-    : "";
-
-  const linkHtml =
-    link?.url && link?.label
-      ? `<div style="margin-top:0.6rem;">
-           <a class="link-btn" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
-             ${escapeHtml(link.label)}
-           </a>
-         </div>`
-      : "";
-
-  bodyEl.innerHTML = `${bulletHtml}${linkHtml}`;
-
-  // open
-  modal.classList.add("is-open");
-  backdrop.classList.add("is-open");
-  modal.setAttribute("aria-hidden", "false");
-  backdrop.setAttribute("aria-hidden", "false");
-}
-
-function closeDynamicModal() {
-  const backdrop = document.getElementById("modal-backdrop");
-  const modal = document.getElementById("modal-dynamic-info");
-  if (!modal || !backdrop) return;
-
-  modal.classList.remove("is-open");
-  modal.setAttribute("aria-hidden", "true");
-  backdrop.classList.remove("is-open");
-  backdrop.setAttribute("aria-hidden", "true");
-}
-
-// Rendering
 function renderResults(container, result) {
   if (!container) return;
 
@@ -880,19 +649,14 @@ function renderResults(container, result) {
   const branches = (result?.values?.branchesTaken || []).map((b) => `<li>${escapeHtml(b)}</li>`).join("");
 
   const steps = (result?.interpretation?.nextSteps || [])
-    .map((s, idx) => {
+    .map((s) => {
       const strength = s.strength
         ? `<div style="color: var(--color-text-secondary); margin-top: 0.15rem;">${escapeHtml(s.strength)}</div>`
         : "";
 
-      // NEW: info icon if step.info exists
-      const infoBtn = s.info
-        ? `<span class="info-chip info-chip--inline" data-stepinfo="${idx}" title="More info">i</span>`
-        : "";
-
       return `
         <div style="margin:0.6rem 0; padding-top:0.4rem; border-top:1px solid rgba(255,255,255,0.06);">
-          <div><strong>${escapeHtml(s.label)}</strong> ${infoBtn}</div>
+          <div><strong>${escapeHtml(s.label)}</strong></div>
           <div style="color: var(--color-text-secondary); margin-top: 0.15rem;">${escapeHtml(s.detail || "")}</div>
           ${strength}
         </div>
@@ -927,16 +691,6 @@ function renderResults(container, result) {
       </div>
     </div>
   `;
-
-  // NEW: wire up info buttons to dynamic modal
-  const allSteps = result?.interpretation?.nextSteps || [];
-  container.querySelectorAll("[data-stepinfo]").forEach((el) => {
-    el.addEventListener("click", () => {
-      const idx = Number(el.getAttribute("data-stepinfo"));
-      const info = allSteps[idx]?.info;
-      if (info) openInfoModal(info);
-    });
-  });
 }
 
 function renderFlags(container, flags) {
@@ -960,70 +714,31 @@ function renderFlags(container, flags) {
     .join("");
 }
 
+function yesNoToBool(v) {
+  if (!v) return null;
+  if (v === "yes") return true;
+  if (v === "no") return false;
+  return null;
+}
+
+function prettyMod(mod) {
+  const map = {
+    exercise_ecg: "Exercise ECG",
+    stress_echo: "Stress echocardiography",
+    stress_nuclear: "Stress nuclear PET/SPECT",
+    stress_cmr: "Stress CMR",
+  };
+  return map[mod] || mod || "Stress";
+}
+
+function formatNote(prefix, note) {
+  const trimmed = (note || "").trim();
+  return trimmed ? `${prefix} Note: ${trimmed}` : prefix;
+}
+
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (m) => {
     const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
     return map[m];
   });
 }
-
-// ------------------------------
-// Back stack (Brandon-style) for form modules
-// ------------------------------
-let historyStack = [];
-let isRestoring = false;
-
-function captureState(formEl) {
-  const data = new FormData(formEl);
-  const state = {};
-  for (const [k, v] of data.entries()) state[k] = v;
-  return state;
-}
-
-function restoreState(formEl, state) {
-  isRestoring = true;
-
-  // Reset first so cleared fields get cleared
-  formEl.reset();
-
-  // Restore known values
-  Object.entries(state || {}).forEach(([name, value]) => {
-    const el = formEl.elements.namedItem(name);
-    if (!el) return;
-
-    // Handles <select>, <input>, etc.
-    el.value = value;
-  });
-
-  isRestoring = false;
-}
-
-function pushHistory(formEl) {
-  if (isRestoring) return;
-  const snapshot = captureState(formEl);
-
-  // Prevent duplicates (optional but nice)
-  const last = historyStack[historyStack.length - 1];
-  if (last && JSON.stringify(last) === JSON.stringify(snapshot)) return;
-
-  historyStack.push(snapshot);
-}
-
-function backOne(formEl, normalizeFn, resultsContainer, flagsContainer) {
-  if (!historyStack.length) return;
-
-  const prev = historyStack.pop();
-  restoreState(formEl, prev);
-
-  // Re-run your UI visibility logic
-  normalizeFn();
-
-  // Optional: clear results so users don’t mistake old results for new
-  if (resultsContainer) {
-    resultsContainer.innerHTML = `<p class="results-placeholder">Adjusted inputs. Tap “Run pathway” to update results.</p>`;
-  }
-  if (flagsContainer) {
-    flagsContainer.innerHTML = `<p class="results-placeholder">Flags will update after you run the pathway.</p>`;
-  }
-}
-
