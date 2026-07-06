@@ -79,25 +79,6 @@
               </p>
             </div>
             
-            <!-- Low risk branch -->
-            <div class="form-field" id="lowRiskChoiceWrap" style="display:none;">
-              <label class="field-label" for="lowRiskChoice"><span>Low risk: testing strategy</span></label>
-              <select id="lowRiskChoice" class="field-input">
-                <option value="">Select…</option>
-                <option value="no_testing">No testing recommended (COR 1)</option>
-                <option value="selected_cac_execg">CAC or exercise ECG in selected cases (COR 2a)</option>
-              </select>
-            </div>
-
-            <!-- Intermediate/High risk branch -->
-            <div class="form-field" id="indexTestWrap" style="display:none;">
-              <label class="field-label" for="indexTest"><span>Intermediate/High risk: index test</span></label>
-              <select id="indexTest" class="field-input">
-                <option value="">Select…</option>
-                <option value="ccta">CCTA (COR 1)</option>
-                <option value="stress">Stress testing (COR 1)</option>
-              </select>
-            </div>
 <!-- OPTIONAL: Guided recommender (Wave 2 #1) -->
 <details class="callout" style="margin-top:0.25rem;">
   <summary>
@@ -183,6 +164,29 @@
 
   </div>
 </details>
+            
+            <!-- Low risk branch -->
+            <div class="form-field" id="lowRiskChoiceWrap" style="display:none;">
+              <label class="field-label" for="lowRiskChoice"><span>Low risk: testing strategy</span></label>
+              <select id="lowRiskChoice" class="field-input">
+                <option value="">Select…</option>
+                <option value="no_testing">No testing recommended (COR 1)</option>
+                <option value="selected_cac_execg">CAC or exercise ECG in selected cases (COR 2a)</option>
+              </select>
+            </div>
+
+<!-- Intermediate/High risk branch: SPEAR applies this automatically -->
+<div class="form-field" id="indexTestWrap" style="display:none;">
+  <label class="field-label" for="indexTest">
+    <span>Intermediate/High risk: index test</span>
+  </label>
+  <select id="indexTest" name="indexTest" class="field-input">
+    <option value="">Select…</option>
+    <option value="ccta">CCTA (COR 1)</option>
+    <option value="stress">Stress testing (COR 1)</option>
+  </select>
+</div>
+
             <!-- Layer 3 (abbreviated) — CCTA -->
             <div class="form-field" id="cctaLayer3Wrap" style="display:none;">
               <label class="field-label">
