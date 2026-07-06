@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Stable Chest Pain + No Known CAD – ClinicalToolsDEV</title>
+  <title>Stable Chest Pain + No Known CAD – SPEAR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#050810" />
 
@@ -27,7 +27,7 @@
           <span class="info-chip info-chip--warn" data-modal="modal-redflags" title="Red flags / exclusions">!</span>
         </h1>
         <p class="app-subtitle">
-          SPEAR provides ranked, guideline-supported test recommendations while preserving clinician autonomy.
+          SPEAR ranks guideline-supported diagnostic options while preserving clinician autonomy.
         </p>
       </div>
 
@@ -58,16 +58,96 @@
               <option value="intermediate_high">Intermediate / High risk</option>
             </select>
             <p class="micro-note">
-              If uncertain, use the info icon to open the CAD Consortium (PTP) link. Intermediate and high share the same branch in this pathway.
+              If uncertain, use the info icon to open the CAD Consortium pretest probability calculator.
             </p>
           </div>
 
-          <!-- SPEAR recommender: shown only for intermediate/high risk by script.js -->
-          <details class="callout" id="spearRecommenderWrap" style="display:none; margin-top:0.25rem;">
-            <summary>
-              <strong>Help me choose a test</strong>
-              <span class="micro-note">SPEAR ranks guideline-supported options.</span>
-            </summary>
+          <!-- Low-risk SPEAR-style recommendation cards -->
+          <div id="lowRiskRecommendationWrap" style="display:none;">
+            <div class="callout">
+              <strong>Low-risk recommendations</strong>
+              <p class="micro-note">
+                Stable low-risk chest pain generally does not require routine diagnostic testing.
+              </p>
+
+              <div class="callout" style="margin-top:0.75rem;">
+                <strong>Primary Test</strong>
+                <div style="font-size:1.05rem; margin-top:0.25rem;">
+                  <strong>No testing recommended<sup>A</sup></strong>
+                </div>
+
+                <details style="margin-top:0.45rem;">
+                  <summary><strong>Why?</strong></summary>
+                  <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">
+                    <li>Low-risk stable chest pain has a low likelihood of obstructive CAD.</li>
+                    <li>Routine testing may increase false positives and downstream testing.</li>
+                    <li>Contemporary pretest probability models can help confirm low-risk status.</li>
+                  </ul>
+                </details>
+
+                <details style="margin-top:0.45rem;">
+                  <summary><strong>How?</strong></summary>
+                  <p class="micro-note" style="margin-top:0.35rem;">
+                    No diagnostic cardiac test is ordered initially. The clinician focuses on clinical follow-up, risk-factor assessment, and reassessment if symptoms change.
+                  </p>
+                </details>
+
+                <details style="margin-top:0.45rem;">
+                  <summary><strong>Evidence?</strong></summary>
+                  <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">
+                    <li>2021 ACC/AHA Chest Pain Guideline: no testing recommended for low-risk stable chest pain.</li>
+                    <li>Contemporary pretest probability models reduce overestimation of obstructive CAD.</li>
+                  </ul>
+                </details>
+
+                <button type="button" id="applyNoTesting" class="btn-primary btn-primary--full" style="margin-top:0.75rem;">
+                  Apply No testing
+                </button>
+              </div>
+
+              <div class="callout" style="margin-top:0.75rem;">
+                <strong>Acceptable Alternative</strong>
+                <div style="font-size:1.05rem; margin-top:0.25rem;">
+                  <strong>CAC or Exercise ECG in selected cases<sup>B</sup></strong>
+                </div>
+
+                <details style="margin-top:0.45rem;">
+                  <summary><strong>Why?</strong></summary>
+                  <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">
+                    <li>CAC may help refine risk when uncertainty remains.</li>
+                    <li>Exercise ECG may be reasonable if the patient can exercise and ECG is interpretable.</li>
+                    <li>This is a selected-case strategy, not routine testing for all low-risk patients.</li>
+                  </ul>
+                </details>
+
+                <details style="margin-top:0.45rem;">
+                  <summary><strong>How?</strong></summary>
+                  <p class="micro-note" style="margin-top:0.35rem;">
+                    CAC uses noncontrast CT to quantify coronary calcification. Exercise ECG evaluates symptoms, exercise capacity, hemodynamics, and ECG changes during exercise.
+                  </p>
+                </details>
+
+                <details style="margin-top:0.45rem;">
+                  <summary><strong>Evidence?</strong></summary>
+                  <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">
+                    <li>2021 ACC/AHA Chest Pain Guideline: CAC or exercise ECG may be considered in selected low-risk patients.</li>
+                    <li>Exercise ECG requires adequate exercise capacity and interpretable baseline ECG.</li>
+                  </ul>
+                </details>
+
+                <button type="button" id="applyLowRiskSelected" class="btn-secondary btn-secondary--full" style="margin-top:0.75rem;">
+                  Apply CAC / Exercise ECG
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SPEAR recommender: intermediate/high risk only -->
+          <div class="callout" id="spearRecommenderWrap" style="display:none; margin-top:0.25rem;">
+            <strong>SPEAR Recommendation</strong>
+            <p class="micro-note">
+              Answer the prompts below. SPEAR will rank guideline-supported tests using patient context and practical feasibility.
+            </p>
 
             <div style="margin-top:0.75rem;" class="form-grid">
               <div class="form-field">
@@ -97,7 +177,7 @@
               <div class="form-field" id="rec_renalWrap" style="display:none;">
                 <label class="field-label" for="rec_renalConcern">
                   Renal impairment / contrast concern?
-                  <span class="micro-note">Affects contrast feasibility; does not override guideline-directed decisions.</span>
+                  <span class="micro-note">Affects contrast feasibility; local protocols apply.</span>
                 </label>
                 <select id="rec_renalConcern" name="rec_renalConcern" class="field-input">
                   <option value="">Select…</option>
@@ -109,36 +189,23 @@
 
               <div class="form-field">
                 <div id="rec_output" class="callout">
-                  <strong>SPEAR Recommendation</strong>
-                  <p class="micro-note">Answer the first question to generate ranked recommendations.</p>
+                  <strong>Ranked recommendations</strong>
+                  <p class="micro-note">Answer the first question to generate recommendations.</p>
                 </div>
               </div>
-
-              <div class="btn-row" id="rec_applyRow" style="display:none;">
-                <button type="button" id="rec_applyPrimary" class="btn-primary"></button>
-                <button type="button" id="rec_applyAlt1" class="btn-secondary" style="display:none;"></button>
-                <button type="button" id="rec_applyAlt2" class="btn-secondary" style="display:none;"></button>
-              </div>
             </div>
-          </details>
+          </div>
 
-          <!-- Low risk branch -->
+          <!-- Hidden selects used by Apply buttons -->
           <div class="form-field" id="lowRiskChoiceWrap" style="display:none;">
-            <label class="field-label" for="lowRiskChoice">
-              <span>Low risk: testing strategy</span>
-            </label>
-            <select id="lowRiskChoice" class="field-input">
+            <select id="lowRiskChoice" name="lowRiskChoice" class="field-input">
               <option value="">Select…</option>
               <option value="no_testing">No testing recommended (COR 1)</option>
               <option value="selected_cac_execg">CAC or exercise ECG in selected cases (COR 2a)</option>
             </select>
           </div>
 
-          <!-- Hidden: SPEAR applies this automatically -->
           <div class="form-field" id="indexTestWrap" style="display:none;">
-            <label class="field-label" for="indexTest">
-              <span>Intermediate/High risk: index test</span>
-            </label>
             <select id="indexTest" name="indexTest" class="field-input">
               <option value="">Select…</option>
               <option value="ccta">CCTA (COR 1)</option>
@@ -149,12 +216,12 @@
           <!-- CCTA downstream -->
           <div class="form-field" id="cctaLayer3Wrap" style="display:none;">
             <label class="field-label">
-              <span>Layer 3: CCTA practical screen</span>
+              <span>CCTA practical screen</span>
               <span class="info-chip info-chip--inline" data-modal="modal-contra-table" title="Full contraindications table">i</span>
             </label>
 
             <div class="callout">
-              <strong>Common limitations / contraindications (abbrev)</strong>
+              <strong>Common limitations / contraindications</strong>
               <ul>
                 <li>Iodinated contrast allergy</li>
                 <li>Renal impairment per local protocol</li>
@@ -214,7 +281,7 @@
           <!-- Stress downstream -->
           <div class="form-field" id="stressModalityWrap" style="display:none;">
             <label class="field-label" for="stressModality">
-              <span>Layer 3: stress modality</span>
+              <span>Stress modality</span>
               <span class="info-chip info-chip--inline" data-modal="modal-contra-table" title="Full contraindications table">i</span>
             </label>
             <select id="stressModality" class="field-input">
@@ -227,7 +294,7 @@
           </div>
 
           <div class="form-field" id="stressLayer3Wrap" style="display:none;">
-            <label class="field-label"><span>Layer 3: selected modality screen</span></label>
+            <label class="field-label"><span>Selected modality screen</span></label>
 
             <div class="callout" id="stressAbbrevList">
               <strong>Abbreviated considerations will appear after selecting a modality.</strong>
