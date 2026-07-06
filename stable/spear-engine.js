@@ -77,7 +77,7 @@ export function recommendStableNoKnownCad(inputs) {
       why: [
         "Guideline-supported stress imaging option.",
         "Widely available.",
-        "Reasonable alternative when PET is unavailable."
+        "Acceptable alternative when PET is unavailable."
       ],
       how: "Stress SPECT evaluates myocardial perfusion using radiotracer imaging during stress and rest. Modern attenuation correction and newer camera systems can improve image quality. It may be limited by attenuation artifact, especially in obesity.",
       evidence: [
@@ -107,7 +107,7 @@ export function recommendStableNoKnownCad(inputs) {
   const flags = [];
 
   function adjust(key, delta, reason) {
-    const c = candidates.find(x => x.key === key);
+    const c = candidates.find((x) => x.key === key);
     if (c) {
       c.score += delta;
       if (reason) c.why.push(reason);
@@ -115,7 +115,7 @@ export function recommendStableNoKnownCad(inputs) {
   }
 
   function exclude(key, reason) {
-    const c = candidates.find(x => x.key === key);
+    const c = candidates.find((x) => x.key === key);
     if (c) {
       c.excluded = true;
       c.excludeReason = reason;
@@ -123,44 +123,38 @@ export function recommendStableNoKnownCad(inputs) {
     }
   }
 
-  if (inputs.canExercise === "yes") adjust("exercise_ecg", 10, "Patient can exercise adequately.");
-  if (inputs.canExercise === "no") exclude("exercise_ecg", "Exercise ECG removed: patient cannot exercise adequately.");
+  if (inputs.canExercise === "yes") {
+    adjust("exercise_ecg", 10, "Patient can exercise adequately.");
+  }
 
-  if (inputs.ecgInterpretable === "yes") adjust("exercise_ecg", 10, "Baseline ECG is interpretable.");
-  if (inputs.ecgInterpretable === "no") exclude("exercise_ecg", "Exercise ECG removed: baseline ECG is not interpretable for ischemia.");
+  if (inputs.canExercise === "no") {
+    exclude("exercise_ecg", "Exercise ECG removed: patient cannot exercise adequately.");
+  }
+
+  if (inputs.ecgInterpretable === "yes") {
+    adjust("exercise_ecg", 10, "Baseline ECG is interpretable.");
+  }
+
+  if (inputs.ecgInterpretable === "no") {
+    exclude("exercise_ecg", "Exercise ECG removed: baseline ECG is not interpretable for ischemia.");
+  }
 
   if (inputs.renalConcern === "yes") {
     adjust("ccta", -10, "Renal/contrast concern lowers CCTA feasibility.");
-    flags.push({ severity: "warning", code: "RENAL_CONTRAST", message: "Renal/contrast concern should be interpreted using local protocols." });
-  }
-
-  if (inputs.bronchospasm === "yes") {
-    adjust("stress_pet", -4, "Bronchospasm may limit vasodilator stress.");
-    adjust("stress_spect", -4, "Bronchospasm may limit vasodilator stress.");
-    adjust("stress_cmr", -4, "Bronchospasm may limit vasodilator stress.");
-  }
-
-  if (inputs.mriContra === "yes") exclude("stress_cmr", "Stress CMR removed: MRI contraindication or severe MRI limitation.");
-
-  if (inputs.poorEcho === "yes") adjust("stress_echo", -8, "Poor acoustic windows may reduce stress echo performance.");
-
-  if (inputs.obesity === "yes") {
-    adjust("stress_pet", 6, "PET is favored in obesity because attenuation correction improves image quality.");
-    adjust("stress_spect", -5, "SPECT may be limited by attenuation artifact in obesity.");
-    adjust("stress_echo", -5, "Stress echo may be limited by acoustic windows in obesity.");
-  }
-
-  if (inputs.suspectedCmd === "yes") {
-    adjust("stress_pet", 10, "PET can quantify myocardial blood flow reserve when available.");
-    adjust("stress_cmr", 5, "Stress CMR may support microvascular assessment when available.");
+    flags.push({
+      severity: "warning",
+      code: "RENAL_CONTRAST",
+      message: "Renal/contrast concern should be interpreted using local protocols."
+    });
   }
 
   const ranked = candidates
-    .filter(c => !c.excluded)
+    .filter((c) => !c.excluded)
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
     .map((c, idx) => ({
       category: idx === 0 ? "Primary Test" : idx === 1 ? "Secondary Test" : "Acceptable Alternative",
+      stars: idx === 0 ? "★★★★★" : idx === 1 ? "★★★★☆" : "★★★☆☆",
       ...c
     }));
 
