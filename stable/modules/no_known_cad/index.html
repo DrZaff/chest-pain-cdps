@@ -2,357 +2,270 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Stable Chest Pain + No Known CAD – SPEAR</title>
+  <title>SPEAR – No Known CAD</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#050810" />
-
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
-  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-
+  <meta name="theme-color" content="#ffffff" />
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
   <div class="app-shell">
-    <header class="app-header">
+    <header class="topbar">
       <div>
-        <h1 class="app-title">
-          Stable Chest Pain + No Known CAD
-          <span class="info-chip" data-modal="modal-stable" title="What is stable chest pain?">i</span>
-          <span class="info-chip info-chip--warn" data-modal="modal-redflags" title="Red flags / exclusions">!</span>
-        </h1>
-        <p class="app-subtitle">
-          SPEAR ranks guideline-supported diagnostic options while preserving clinician autonomy.
-        </p>
+        <p class="eyebrow">Stable Chest Pain</p>
+        <h1>SPEAR</h1>
+        <p class="subtitle">No known CAD · guided test selection</p>
       </div>
 
-      <div class="app-meta">
-        <a href="/stable/definitions.html" class="definitions-heart" title="Definitions" aria-label="Definitions">
-          <svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true">
-            <path d="M12 21s-7.1-4.9-9.8-8.5C-.3 9.1 1.6 5 5.6 5c2.2 0 3.7 1.3 4.9 2.7C11.7 6.3 13.2 5 15.4 5c4 0 5.9 4.1 3.4 7.5C19.1 16.1 12 21 12 21z" fill="#d32f2f"/>
-            <text x="12" y="15.2" text-anchor="middle" font-size="11" font-weight="800" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif">?</text>
-          </svg>
-        </a>
-        <span class="app-badge">ClinicalToolsDEV</span>
-      </div>
+      <a href="/stable/definitions.html" class="heart-link" title="Definitions" aria-label="Definitions">
+        ♥<span>?</span>
+      </a>
     </header>
 
-    <main class="app-main">
-      <section class="card card-inputs">
-        <h2 class="card-title">Inputs</h2>
+    <div class="progress-wrap" aria-label="Progress">
+      <div class="progress-label">
+        <span id="stepLabel">Step 1 of 5</span>
+        <span id="pageTitleMini">Risk</span>
+      </div>
+      <div class="progress-track">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+    </div>
 
-        <form id="tool-form" class="form-grid">
-          <div class="form-field">
-            <label class="field-label" for="riskCat">
-              <span>Clinical risk category</span>
-              <span class="info-chip info-chip--inline" data-modal="modal-risk" title="Risk help / CAD Consortium link">i</span>
-            </label>
-            <select id="riskCat" name="riskCat" class="field-input">
-              <option value="">Select…</option>
-              <option value="low">Low risk</option>
-              <option value="intermediate_high">Intermediate / High risk</option>
-            </select>
-            <p class="micro-note">
-              If uncertain, use the info icon to open the CAD Consortium pretest probability calculator.
-            </p>
-          </div>
+    <main class="page-card">
+      <form id="tool-form">
 
-          <!-- Low-risk SPEAR-style recommendation cards -->
-          <div id="lowRiskRecommendationWrap" style="display:none;">
-            <div class="callout">
-              <strong>Low-risk recommendations</strong>
-              <p class="micro-note">
-                Stable low-risk chest pain generally does not require routine diagnostic testing.
-              </p>
+        <!-- PAGE 1 -->
+        <section class="flow-page active" data-page="risk">
+          <h2>Start with risk category</h2>
+          <p class="lead">Choose the clinical risk group. SPEAR will guide the next step.</p>
 
-              <div class="callout" style="margin-top:0.75rem;">
-                <strong>Primary Test</strong>
-                <div style="font-size:1.05rem; margin-top:0.25rem;">
-                  <strong>No testing recommended<sup>A</sup></strong>
-                </div>
+          <label class="field-label" for="riskCat">Clinical risk category</label>
+          <select id="riskCat" name="riskCat" class="field-input">
+            <option value="">Select…</option>
+            <option value="low">Low risk</option>
+            <option value="intermediate_high">Intermediate / High risk</option>
+          </select>
 
-                <details style="margin-top:0.45rem;">
-                  <summary><strong>Why?</strong></summary>
-                  <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">
-                    <li>Low-risk stable chest pain has a low likelihood of obstructive CAD.</li>
-                    <li>Routine testing may increase false positives and downstream testing.</li>
-                    <li>Contemporary pretest probability models can help confirm low-risk status.</li>
-                  </ul>
-                </details>
+          <button type="button" id="riskNextBtn" class="btn btn-primary btn-full">Continue</button>
 
-                <details style="margin-top:0.45rem;">
-                  <summary><strong>How?</strong></summary>
-                  <p class="micro-note" style="margin-top:0.35rem;">
-                    No diagnostic cardiac test is ordered initially. The clinician focuses on clinical follow-up, risk-factor assessment, and reassessment if symptoms change.
-                  </p>
-                </details>
+          <button type="button" class="info-link" data-modal="modal-risk">
+            How should I think about risk?
+          </button>
+        </section>
 
-                <details style="margin-top:0.45rem;">
-                  <summary><strong>Evidence?</strong></summary>
-                  <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">
-                    <li>2021 ACC/AHA Chest Pain Guideline: no testing recommended for low-risk stable chest pain.</li>
-                    <li>Contemporary pretest probability models reduce overestimation of obstructive CAD.</li>
-                  </ul>
-                </details>
+        <!-- PAGE 2 LOW -->
+        <section class="flow-page" data-page="low">
+          <h2>Low-risk options</h2>
+          <p class="lead">Choose one guideline-supported strategy.</p>
 
-                <button type="button" id="applyNoTesting" class="btn-primary btn-primary--full" style="margin-top:0.75rem;">
-                  Apply No testing
-                </button>
-              </div>
+          <div class="recommendation-card primary">
+            <p class="rank">Primary Test</p>
+            <h3>No testing recommended<sup>A</sup></h3>
 
-              <div class="callout" style="margin-top:0.75rem;">
-                <strong>Acceptable Alternative</strong>
-                <div style="font-size:1.05rem; margin-top:0.25rem;">
-                  <strong>CAC or Exercise ECG in selected cases<sup>B</sup></strong>
-                </div>
-
-                <details style="margin-top:0.45rem;">
-                  <summary><strong>Why?</strong></summary>
-                  <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">
-                    <li>CAC may help refine risk when uncertainty remains.</li>
-                    <li>Exercise ECG may be reasonable if the patient can exercise and ECG is interpretable.</li>
-                    <li>This is a selected-case strategy, not routine testing for all low-risk patients.</li>
-                  </ul>
-                </details>
-
-                <details style="margin-top:0.45rem;">
-                  <summary><strong>How?</strong></summary>
-                  <p class="micro-note" style="margin-top:0.35rem;">
-                    CAC uses noncontrast CT to quantify coronary calcification. Exercise ECG evaluates symptoms, exercise capacity, hemodynamics, and ECG changes during exercise.
-                  </p>
-                </details>
-
-                <details style="margin-top:0.45rem;">
-                  <summary><strong>Evidence?</strong></summary>
-                  <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">
-                    <li>2021 ACC/AHA Chest Pain Guideline: CAC or exercise ECG may be considered in selected low-risk patients.</li>
-                    <li>Exercise ECG requires adequate exercise capacity and interpretable baseline ECG.</li>
-                  </ul>
-                </details>
-
-                <button type="button" id="applyLowRiskSelected" class="btn-secondary btn-secondary--full" style="margin-top:0.75rem;">
-                  Apply CAC / Exercise ECG
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- SPEAR recommender: intermediate/high risk only -->
-          <div class="callout" id="spearRecommenderWrap" style="display:none; margin-top:0.25rem;">
-            <strong>SPEAR Recommendation</strong>
-            <p class="micro-note">
-              Answer the prompts below. SPEAR will rank guideline-supported tests using patient context and practical feasibility.
-            </p>
-
-            <div style="margin-top:0.75rem;" class="form-grid">
-              <div class="form-field">
-                <label class="field-label" for="rec_canExercise">
-                  Can the patient exercise adequately?
-                </label>
-                <select id="rec_canExercise" name="rec_canExercise" class="field-input">
-                  <option value="">Select…</option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                  <option value="unknown">Unsure</option>
-                </select>
-              </div>
-
-              <div class="form-field" id="rec_ecgWrap" style="display:none;">
-                <label class="field-label" for="rec_ecgInterpretable">
-                  Is baseline ECG interpretable for ischemia?
-                </label>
-                <select id="rec_ecgInterpretable" name="rec_ecgInterpretable" class="field-input">
-                  <option value="">Select…</option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                  <option value="unknown">Unsure</option>
-                </select>
-              </div>
-
-              <div class="form-field" id="rec_renalWrap" style="display:none;">
-                <label class="field-label" for="rec_renalConcern">
-                  Renal impairment / contrast concern?
-                  <span class="micro-note">Affects contrast feasibility; local protocols apply.</span>
-                </label>
-                <select id="rec_renalConcern" name="rec_renalConcern" class="field-input">
-                  <option value="">Select…</option>
-                  <option value="no">No</option>
-                  <option value="yes">Yes</option>
-                  <option value="unknown">Unsure</option>
-                </select>
-              </div>
-
-              <div class="form-field">
-                <div id="rec_output" class="callout">
-                  <strong>Ranked recommendations</strong>
-                  <p class="micro-note">Answer the first question to generate recommendations.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Hidden selects used by Apply buttons -->
-          <div class="form-field" id="lowRiskChoiceWrap" style="display:none;">
-            <select id="lowRiskChoice" name="lowRiskChoice" class="field-input">
-              <option value="">Select…</option>
-              <option value="no_testing">No testing recommended (COR 1)</option>
-              <option value="selected_cac_execg">CAC or exercise ECG in selected cases (COR 2a)</option>
-            </select>
-          </div>
-
-          <div class="form-field" id="indexTestWrap" style="display:none;">
-            <select id="indexTest" name="indexTest" class="field-input">
-              <option value="">Select…</option>
-              <option value="ccta">CCTA (COR 1)</option>
-              <option value="stress">Stress testing (COR 1)</option>
-            </select>
-          </div>
-
-          <!-- CCTA downstream -->
-          <div class="form-field" id="cctaLayer3Wrap" style="display:none;">
-            <label class="field-label">
-              <span>CCTA practical screen</span>
-              <span class="info-chip info-chip--inline" data-modal="modal-contra-table" title="Full contraindications table">i</span>
-            </label>
-
-            <div class="callout">
-              <strong>Common limitations / contraindications</strong>
+            <details><summary>Why?</summary>
               <ul>
-                <li>Iodinated contrast allergy</li>
-                <li>Renal impairment per local protocol</li>
-                <li>Unable to cooperate with scan/breath-hold</li>
-                <li>Clinical instability</li>
-                <li>HR variability/arrhythmia impacting image quality</li>
+                <li>Low-risk stable chest pain has low likelihood of obstructive CAD.</li>
+                <li>Routine testing may increase false positives and downstream testing.</li>
+                <li>Contemporary pretest probability models can help confirm low-risk status.</li>
               </ul>
-            </div>
+            </details>
 
-            <label class="toggle-row" for="cctaAnyLimit">
-              <span>Any major limitation/contraindication applies?</span>
-              <select id="cctaAnyLimit" class="field-input field-input--compact">
-                <option value="">Select…</option>
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
-            </label>
+            <details><summary>How?</summary>
+              <p>No diagnostic cardiac test is ordered initially. The clinician focuses on follow-up, risk-factor assessment, and reassessment if symptoms change.</p>
+            </details>
+
+            <details><summary>Evidence?</summary>
+              <ul>
+                <li>2021 ACC/AHA Chest Pain Guideline: no testing recommended for low-risk stable chest pain.</li>
+                <li>Contemporary pretest probability models reduce overestimation of obstructive CAD.</li>
+              </ul>
+            </details>
+
+            <button type="button" id="applyNoTesting" class="btn btn-primary btn-full">Apply No testing</button>
           </div>
 
-          <div class="form-field" id="cctaResultWrap" style="display:none;">
-            <label class="field-label" for="cctaResult"><span>CCTA result</span></label>
-            <select id="cctaResult" class="field-input">
+          <div class="recommendation-card gold">
+            <p class="rank">Acceptable Alternative</p>
+            <h3>CAC or Exercise ECG in selected cases<sup>B</sup></h3>
+
+            <details><summary>Why?</summary>
+              <ul>
+                <li>CAC may refine risk when uncertainty remains.</li>
+                <li>Exercise ECG may be reasonable if the patient can exercise and ECG is interpretable.</li>
+                <li>This is selected-case testing, not routine testing for all low-risk patients.</li>
+              </ul>
+            </details>
+
+            <details><summary>How?</summary>
+              <p>CAC uses noncontrast CT to quantify coronary calcification. Exercise ECG evaluates symptoms, functional capacity, hemodynamics, and ECG changes during exercise.</p>
+            </details>
+
+            <details><summary>Evidence?</summary>
+              <ul>
+                <li>2021 ACC/AHA Chest Pain Guideline: CAC or exercise ECG may be considered in selected low-risk patients.</li>
+                <li>Exercise ECG requires adequate exercise capacity and interpretable baseline ECG.</li>
+              </ul>
+            </details>
+
+            <button type="button" id="applyLowRiskSelected" class="btn btn-secondary btn-full">Apply CAC / Exercise ECG</button>
+          </div>
+        </section>
+
+        <!-- PAGE 2 SPEAR PROMPTS -->
+        <section class="flow-page" data-page="spear">
+          <h2>SPEAR</h2>
+          <p class="lead">Answer a few practical prompts. SPEAR will rank the tests.</p>
+
+          <div class="prompt-box">
+            <label class="field-label" for="rec_canExercise">Can the patient exercise adequately?</label>
+            <select id="rec_canExercise" name="rec_canExercise" class="field-input">
               <option value="">Select…</option>
-              <option value="no_cad">No CAD (no stenosis or plaque)</option>
-              <option value="nonobstructive_lt50">Nonobstructive CAD (&lt;50% stenosis)</option>
-              <option value="obstructive_ge50">Obstructive CAD (≥50% stenosis)</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="unknown">Unsure</option>
             </select>
           </div>
 
-          <div class="form-field" id="stenosis4090Wrap" style="display:none;">
-            <label class="field-label" for="stenosis4090">
-              <span>If nonobstructive: 40–90% stenosis present?</span>
-            </label>
-            <select id="stenosis4090" class="field-input">
+          <div class="prompt-box" id="rec_ecgWrap" style="display:none;">
+            <label class="field-label" for="rec_ecgInterpretable">Is baseline ECG interpretable for ischemia?</label>
+            <select id="rec_ecgInterpretable" name="rec_ecgInterpretable" class="field-input">
               <option value="">Select…</option>
-              <option value="no">No / not applicable</option>
-              <option value="yes">Yes (40–90% stenosis)</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="unknown">Unsure</option>
             </select>
           </div>
 
-          <div class="form-field" id="highRiskCadWrap" style="display:none;">
-            <label class="field-label" for="highRiskCad">
-              <span>High-risk CAD or frequent angina?</span>
-            </label>
-            <select id="highRiskCad" class="field-input">
+          <div class="prompt-box" id="rec_renalWrap" style="display:none;">
+            <label class="field-label" for="rec_renalConcern">Renal impairment / contrast concern?</label>
+            <select id="rec_renalConcern" name="rec_renalConcern" class="field-input">
               <option value="">Select…</option>
               <option value="no">No</option>
               <option value="yes">Yes</option>
+              <option value="unknown">Unsure</option>
             </select>
+            <p class="micro-note">This affects feasibility and local protocol considerations.</p>
           </div>
 
-          <!-- Stress downstream -->
-          <div class="form-field" id="stressModalityWrap" style="display:none;">
-            <label class="field-label" for="stressModality">
-              <span>Stress modality</span>
-              <span class="info-chip info-chip--inline" data-modal="modal-contra-table" title="Full contraindications table">i</span>
-            </label>
-            <select id="stressModality" class="field-input">
+          <button type="button" id="generateSpearBtn" class="btn btn-primary btn-full" disabled>
+            Generate ranked recommendations
+          </button>
+        </section>
+
+        <!-- PAGE 3 RANKED -->
+        <section class="flow-page" data-page="ranked">
+          <h2>Ranked recommendations</h2>
+          <p class="lead">Choose the test you want to apply. You can still override clinically.</p>
+          <div id="rankedCards"></div>
+          <p class="micro-note confidence-note">
+            Confidence: A = high, B = moderate, C = feasibility-driven / lower certainty.
+          </p>
+        </section>
+
+        <!-- PAGE 4 DOWNSTREAM -->
+        <section class="flow-page" data-page="downstream">
+          <h2 id="downstreamTitle">Pathway details</h2>
+          <p class="lead">Complete the result-specific fields, then run the pathway.</p>
+
+          <div id="appliedSummary" class="applied-summary"></div>
+
+          <!-- Hidden selects used by Apply buttons -->
+          <select id="lowRiskChoice" name="lowRiskChoice" style="display:none;">
+            <option value="">Select…</option>
+            <option value="no_testing">No testing recommended (COR 1)</option>
+            <option value="selected_cac_execg">CAC or exercise ECG in selected cases (COR 2a)</option>
+          </select>
+
+          <select id="indexTest" name="indexTest" style="display:none;">
+            <option value="">Select…</option>
+            <option value="ccta">CCTA (COR 1)</option>
+            <option value="stress">Stress testing (COR 1)</option>
+          </select>
+
+          <select id="stressModality" name="stressModality" style="display:none;">
+            <option value="">Select…</option>
+            <option value="exercise_ecg">Exercise ECG</option>
+            <option value="stress_echo">Stress echocardiography</option>
+            <option value="stress_nuclear">Stress nuclear PET/SPECT</option>
+            <option value="stress_cmr">Stress CMR</option>
+          </select>
+
+          <div id="cctaFields" style="display:none;">
+            <label class="field-label" for="cctaResult">CCTA result</label>
+            <select id="cctaResult" name="cctaResult" class="field-input">
               <option value="">Select…</option>
-              <option value="exercise_ecg">Exercise ECG</option>
-              <option value="stress_echo">Stress echocardiography</option>
-              <option value="stress_nuclear">Stress nuclear (PET/SPECT)</option>
-              <option value="stress_cmr">Stress CMR</option>
+              <option value="no_cad">No CAD</option>
+              <option value="nonobstructive_lt50">Nonobstructive CAD (&lt;50% stenosis)</option>
+              <option value="obstructive_ge50">Obstructive CAD (≥50% stenosis)</option>
             </select>
-          </div>
 
-          <div class="form-field" id="stressLayer3Wrap" style="display:none;">
-            <label class="field-label"><span>Selected modality screen</span></label>
-
-            <div class="callout" id="stressAbbrevList">
-              <strong>Abbreviated considerations will appear after selecting a modality.</strong>
+            <div id="stenosis4090Wrap" style="display:none;">
+              <label class="field-label" for="stenosis4090">If nonobstructive: 40–90% stenosis present?</label>
+              <select id="stenosis4090" name="stenosis4090" class="field-input">
+                <option value="">Select…</option>
+                <option value="no">No / not applicable</option>
+                <option value="yes">Yes</option>
+              </select>
             </div>
 
-            <label class="toggle-row" for="stressAnyLimit">
-              <span>Any major limitation/contraindication applies?</span>
-              <select id="stressAnyLimit" class="field-input field-input--compact">
+            <div id="highRiskCadWrap" style="display:none;">
+              <label class="field-label" for="highRiskCad">High-risk CAD or frequent angina?</label>
+              <select id="highRiskCad" name="highRiskCad" class="field-input">
                 <option value="">Select…</option>
                 <option value="no">No</option>
                 <option value="yes">Yes</option>
               </select>
-            </label>
+            </div>
           </div>
 
-          <div class="form-field" id="stressResultWrap" style="display:none;">
-            <label class="field-label" for="stressResult"><span>Stress testing result</span></label>
-            <select id="stressResult" class="field-input">
+          <div id="stressFields" style="display:none;">
+            <label class="field-label" for="stressResult">Stress testing result</label>
+            <select id="stressResult" name="stressResult" class="field-input">
               <option value="">Select…</option>
               <option value="inconclusive">Inconclusive</option>
               <option value="mild">Mild ischemia</option>
               <option value="modsev">Moderate–severe ischemia</option>
             </select>
+
+            <div id="persistentSymptomsWrap" style="display:none;">
+              <label class="field-label" for="persistentSymptoms">Persistent symptoms?</label>
+              <select id="persistentSymptoms" name="persistentSymptoms" class="field-input">
+                <option value="">Select…</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-field" id="persistentSymptomsWrap" style="display:none;">
-            <label class="field-label" for="persistentSymptoms"><span>Persistent symptoms?</span></label>
-            <select id="persistentSymptoms" class="field-input">
-              <option value="">Select…</option>
-              <option value="no">No</option>
-              <option value="yes">Yes</option>
-            </select>
+          <button type="submit" class="btn btn-primary btn-full">Run pathway</button>
+        </section>
+
+        <!-- PAGE 5 RESULTS -->
+        <section class="flow-page" data-page="results">
+          <h2>Results</h2>
+          <div id="results-container" class="results-body">
+            <p class="results-placeholder">Results will appear here.</p>
           </div>
 
-          <button type="button" id="backBtn" class="btn-secondary">Back</button>
-          <button type="submit" class="btn-primary btn-primary--full">Run pathway</button>
-          <button type="button" id="resetBtn" class="btn-secondary btn-secondary--full">Reset</button>
-        </form>
-      </section>
+          <div id="flags-container" class="flags-body"></div>
 
-      <section class="card card-results">
-        <h2 class="card-title">Results</h2>
-        <div id="results-container" class="results-body">
-          <p class="results-placeholder">Fill in inputs and tap “Run pathway” to see results.</p>
-        </div>
-      </section>
+          <button type="button" id="startOverBtn" class="btn btn-secondary btn-full">Start over</button>
+        </section>
 
-      <section class="card card-warnings">
-        <h2 class="card-title">Flags &amp; notes</h2>
-        <div id="flags-container" class="flags-body">
-          <p class="results-placeholder">Warnings and suggested alternatives appear here after you run the pathway.</p>
+        <div class="nav-row">
+          <button type="button" id="backBtn" class="btn btn-ghost">Back</button>
         </div>
-      </section>
+      </form>
     </main>
 
-    <footer class="app-footer">
-      <p class="disclaimer">
-        This tool is for educational and decision-support purposes only. It does not replace clinical judgment,
-        institutional guidelines, or specialist consultation.
-      </p>
+    <footer class="footer-note">
+      This tool is for educational and decision-support purposes only. It does not replace clinical judgment,
+      institutional guidelines, or specialist consultation.
     </footer>
   </div>
 
+  <!-- Modals -->
   <div class="modal-backdrop" id="modal-backdrop" aria-hidden="true"></div>
 
   <div class="modal" id="modal-stable" aria-hidden="true">
@@ -361,9 +274,7 @@
         <h3>Stable chest pain</h3>
         <button class="modal-close" data-close="true">×</button>
       </div>
-      <div class="modal-body">
-        <p>This module is intended for stable chest pain evaluation. Use acute pathways for suspected ACS or unstable features.</p>
-      </div>
+      <p>Use this module for non-acute stable chest pain evaluation. Use acute pathways for suspected ACS or unstable features.</p>
     </div>
   </div>
 
@@ -373,13 +284,12 @@
         <h3>Red flags / exclusions</h3>
         <button class="modal-close" data-close="true">×</button>
       </div>
-      <div class="modal-body">
-        <ul>
-          <li>Concern for ACS, hemodynamic instability, or high-risk ECG changes</li>
-          <li>Severe respiratory distress or severe hypotension</li>
-          <li>Use local institutional protocols</li>
-        </ul>
-      </div>
+      <ul>
+        <li>Concern for ACS</li>
+        <li>Hemodynamic instability</li>
+        <li>High-risk ECG changes</li>
+        <li>Severe respiratory distress or hypotension</li>
+      </ul>
     </div>
   </div>
 
@@ -389,27 +299,10 @@
         <h3>Risk help</h3>
         <button class="modal-close" data-close="true">×</button>
       </div>
-      <div class="modal-body">
-        <p>For stable chest pain, clinical risk assessment commonly uses pre-test probability models such as CAD Consortium.</p>
-        <div class="callout">
-          <a class="link-btn" href="https://qxmd.com/calculate/calculator_287/pre-test-probability-of-cad-cad-consortium" target="_blank" rel="noopener noreferrer">
-            Open CAD Consortium Score
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal" id="modal-contra-table" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>Full contraindications table</h3>
-        <button class="modal-close" data-close="true">×</button>
-      </div>
-      <div class="modal-body">
-        <p class="micro-note">Make sure this file exists: <code>assets/contraindications_table.jpg</code></p>
-        <img src="assets/contraindications_table.jpg" alt="Contraindications by modality table" style="width:100%; border-radius:10px; border:1px solid rgba(255,255,255,0.08);" />
-      </div>
+      <p>Stable chest pain risk assessment commonly uses pretest probability models such as CAD Consortium.</p>
+      <a class="btn btn-secondary btn-full" href="https://qxmd.com/calculate/calculator_287/pre-test-probability-of-cad-cad-consortium" target="_blank" rel="noopener noreferrer">
+        Open CAD Consortium Score
+      </a>
     </div>
   </div>
 
