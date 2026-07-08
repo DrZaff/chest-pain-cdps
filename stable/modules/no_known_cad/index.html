@@ -12,7 +12,7 @@
   <div class="app-shell">
     <header class="topbar">
       <div>
-        <p class="eyebrow">Stable Chest Pain</p>
+        <p class="eyebrow">Stable Chest Pain Evaluation and Assessment Recommendation</p>
         <h1>SPEAR</h1>
         <p class="subtitle">No known CAD · guided test selection</p>
       </div>
@@ -293,18 +293,35 @@
     </div>
   </div>
 
-  <div class="modal" id="modal-risk" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-header">
+<div class="modal" id="modal-risk" aria-hidden="true">
+  <div class="modal-card modal-card--risk">
+    <div class="modal-header">
+      <div class="modal-title-row">
+        <span class="modal-icon">?</span>
         <h3>Risk help</h3>
-        <button class="modal-close" data-close="true">×</button>
       </div>
-      <p>Stable chest pain risk assessment commonly uses pretest probability models such as CAD Consortium.</p>
-      <a class="btn btn-secondary btn-full" href="https://qxmd.com/calculate/calculator_287/pre-test-probability-of-cad-cad-consortium" target="_blank" rel="noopener noreferrer">
-        Open CAD Consortium Score
-      </a>
+      <button class="modal-close" data-close="true">×</button>
     </div>
+
+    <div class="modal-divider"></div>
+
+    <p>
+      Stable chest pain risk assessment commonly uses pretest probability models such as CAD Consortium.
+    </p>
+
+    <div class="modal-tip">
+      Use a validated pretest probability model to estimate the likelihood of obstructive CAD and guide test selection.
+    </div>
+
+    <a class="modal-link-card"
+       href="https://qxmd.com/calculate/calculator_287/pre-test-probability-of-cad-cad-consortium"
+       target="_blank"
+       rel="noopener noreferrer">
+      <span>Open CAD Consortium Score</span>
+      <small>qxmd.com/calculate/calculator_287</small>
+    </a>
   </div>
+</div>
 
   <script type="module" src="script.js"></script>
 </body>
