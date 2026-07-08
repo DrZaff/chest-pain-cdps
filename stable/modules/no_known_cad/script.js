@@ -3,7 +3,7 @@ import { recommendStableNoKnownCad } from "../../spear-engine.js";
 export function evaluatePathway(inputs) {
   const values = {
     pathwayId: "stable-no-known-cad",
-    version: "v1.4-spear",
+    version: "v1.5-spear-ui",
     inputSummary: { ...inputs },
     branchesTaken: [],
   };
@@ -12,21 +12,14 @@ export function evaluatePathway(inputs) {
   const nextSteps = [];
   const pushFlag = (severity, code, message) => flags.push({ severity, code, message });
 
-  const step = (label, detail, strength = null, level = "info", info = null) => ({
+  const step = (label, detail, strength = null, level = "info") => ({
     label,
     detail,
     strength,
     level,
-    info,
   });
 
-  pushFlag(
-    "info",
-    "SCOPE",
-    "Stable chest pain + no known CAD pathway module. Outputs mirror pathway boxes; does not replace clinical judgment or local protocols."
-  );
-
-  addLayer3Guidance(inputs, pushFlag, nextSteps);
+  pushFlag("info", "SCOPE", "Stable chest pain + no known CAD. Decision-support only.");
 
   const v = validateInputs(inputs);
   if (!v.ok) flags.push(...v.flags);
@@ -39,10 +32,7 @@ export function evaluatePathway(inputs) {
       return finalize(values, flags, {
         disposition: "No testing recommended",
         summary: "Low-risk stable chest pain: no testing recommended (COR 1).",
-        nextSteps: [
-          step("No testing recommended", "Low-risk stable chest pain branch.", "COR 1", "info"),
-          ...nextSteps,
-        ],
+        nextSteps: [step("No testing recommended", "Low-risk branch.", "COR 1", "info")],
       });
     }
 
@@ -51,10 +41,7 @@ export function evaluatePathway(inputs) {
       return finalize(values, flags, {
         disposition: "CAC or exercise ECG in selected cases",
         summary: "Low-risk stable chest pain: CAC or exercise ECG may be considered in selected cases (COR 2a).",
-        nextSteps: [
-          step("CAC or exercise ECG", "Selected low-risk cases.", "COR 2a", "info"),
-          ...nextSteps,
-        ],
+        nextSteps: [step("CAC or exercise ECG", "Selected low-risk cases.", "COR 2a", "info")],
       });
     }
 
@@ -74,7 +61,7 @@ export function evaluatePathway(inputs) {
       nextSteps.unshift(step("CCTA", "Index anatomic testing option in intermediate/high risk.", "COR 1", "info"));
 
       if (!inputs.cctaResult) {
-        pushFlag("warning", "MISSING_CCTA_RESULT", "Select the CCTA result to continue the pathway.");
+        pushFlag("warning", "MISSING_CCTA_RESULT", "Select the CCTA result to continue.");
         return finalize(values, flags, {
           disposition: "CCTA selected",
           summary: "Awaiting CCTA result selection.",
@@ -98,12 +85,12 @@ export function evaluatePathway(inputs) {
 
         if (inputs.stenosis4090 === true) {
           values.branchesTaken.push("stenosis4090=yes");
-          nextSteps.push(step("FFR-CT for 40–90% stenosis OR stress testing", "Consider add-on testing per figure.", "COR 2a", "info"));
+          nextSteps.push(step("FFR-CT for 40–90% stenosis OR stress testing", "Consider add-on testing per pathway.", "COR 2a", "info"));
         } else if (inputs.stenosis4090 === false) {
           values.branchesTaken.push("stenosis4090=no");
           nextSteps.push(step("Consider INOCA pathway", "For frequent or persistent symptoms.", null, "info"));
         } else {
-          pushFlag("warning", "MISSING_40_90", "For nonobstructive CAD, specify whether 40–90% stenosis is present.");
+          pushFlag("warning", "MISSING_40_90", "Specify whether 40–90% stenosis is present.");
         }
 
         return finalize(values, flags, {
@@ -136,7 +123,7 @@ export function evaluatePathway(inputs) {
           });
         }
 
-        pushFlag("warning", "MISSING_HIGH_RISK", "For obstructive CAD, indicate whether high-risk CAD or frequent angina is present.");
+        pushFlag("warning", "MISSING_HIGH_RISK", "Indicate whether high-risk CAD or frequent angina is present.");
         return finalize(values, flags, {
           disposition: "Obstructive CAD (≥50%)",
           summary: "Awaiting high-risk CAD/frequent angina selection.",
@@ -159,7 +146,7 @@ export function evaluatePathway(inputs) {
       );
 
       if (!inputs.stressResult) {
-        pushFlag("warning", "MISSING_STRESS_RESULT", "Select the stress testing result to continue the pathway.");
+        pushFlag("warning", "MISSING_STRESS_RESULT", "Select the stress testing result to continue.");
         return finalize(values, flags, {
           disposition: "Stress testing selected",
           summary: "Awaiting stress test result selection.",
@@ -197,12 +184,12 @@ export function evaluatePathway(inputs) {
           nextSteps.push(step("Continue preventive therapies", "No persistent symptoms branch.", "COR 1", "info"));
           return finalize(values, flags, {
             disposition: "Moderate–severe ischemia without persistent symptoms",
-            summary: "Optimize/continue preventive therapies; ICA reserved for persistent symptoms per figure.",
+            summary: "Optimize/continue preventive therapies; ICA reserved for persistent symptoms per pathway.",
             nextSteps,
           });
         }
 
-        pushFlag("warning", "MISSING_PERSISTENT_SYMPTOMS", "For moderate–severe ischemia, indicate whether persistent symptoms are present.");
+        pushFlag("warning", "MISSING_PERSISTENT_SYMPTOMS", "Indicate whether persistent symptoms are present.");
         return finalize(values, flags, {
           disposition: "Moderate–severe ischemia",
           summary: "Awaiting persistent symptoms selection.",
@@ -229,33 +216,8 @@ export function evaluatePathway(inputs) {
     });
   }
 
-  pushFlag("warning", "MISSING_RISK", "Select the clinical risk category to start the pathway.");
+  pushFlag("warning", "MISSING_RISK", "Select the clinical risk category to start.");
   return finalize(values, flags, { disposition: "Incomplete", summary: "Missing risk category.", nextSteps });
-}
-
-function addLayer3Guidance(inputs, pushFlag, nextSteps) {
-  const cctaLimited = inputs.layer3?.cctaAnyLimit === true;
-  const stressLimited = inputs.layer3?.stressAnyLimit === true;
-
-  if (inputs.indexTest === "ccta" && cctaLimited) {
-    pushFlag("warning", "CCTA_LIMITED", formatNote("CCTA may be limited by patient/site factors.", inputs.layer3?.cctaNotes));
-    nextSteps.push({
-      label: "Suggested alternatives",
-      detail: "Consider stress imaging when CCTA feasibility is limited; choose based on local availability and patient factors.",
-      strength: null,
-      level: "info",
-    });
-  }
-
-  if (inputs.indexTest === "stress" && inputs.stressModality && stressLimited) {
-    pushFlag("warning", "STRESS_MODALITY_LIMITED", formatNote(`Selected stress modality may be limited (${prettyMod(inputs.stressModality)}).`, inputs.layer3?.stressNotes));
-    nextSteps.push({
-      label: "Suggested alternatives",
-      detail: "Consider another stress modality or CCTA if feasible.",
-      strength: null,
-      level: "info",
-    });
-  }
 }
 
 function validateInputs(inputs) {
@@ -264,27 +226,27 @@ function validateInputs(inputs) {
 
   if (!inputs.riskCat) warn("REQ_RISKCAT", "Risk category is required.");
 
-  if (inputs.riskCat === "low") {
-    if (!inputs.lowRiskChoice) warn("REQ_LOWRISK_CHOICE", "Apply a low-risk recommendation before running the pathway.");
+  if (inputs.riskCat === "low" && !inputs.lowRiskChoice) {
+    warn("REQ_LOWRISK_CHOICE", "Apply a low-risk recommendation before running the pathway.");
   }
 
   if (inputs.riskCat === "intermediate_high") {
     if (!inputs.indexTest) warn("REQ_INDEX_TEST", "Apply a SPEAR recommendation before running the pathway.");
 
     if (inputs.indexTest === "stress") {
-      if (!inputs.stressResult) warn("REQ_STRESS_RESULT", "Stress testing result is required to complete branch.");
+      if (!inputs.stressResult) warn("REQ_STRESS_RESULT", "Stress testing result is required.");
       if (inputs.stressResult === "modsev" && inputs.persistentSymptoms === null) {
-        warn("REQ_PERSISTENT_SYMPTOMS", "Persistent symptoms selection is required for moderate–severe ischemia.");
+        warn("REQ_PERSISTENT_SYMPTOMS", "Persistent symptoms selection is required.");
       }
     }
 
     if (inputs.indexTest === "ccta") {
-      if (!inputs.cctaResult) warn("REQ_CCTA_RESULT", "CCTA result is required to complete branch.");
+      if (!inputs.cctaResult) warn("REQ_CCTA_RESULT", "CCTA result is required.");
       if (inputs.cctaResult === "nonobstructive_lt50" && inputs.stenosis4090 === null) {
         warn("REQ_40_90", "Specify whether 40–90% stenosis is present.");
       }
       if (inputs.cctaResult === "obstructive_ge50" && inputs.highRiskCad === null) {
-        warn("REQ_HIGH_RISK_CAD", "High-risk CAD/frequent angina selection is required for obstructive CAD branch.");
+        warn("REQ_HIGH_RISK_CAD", "High-risk CAD/frequent angina selection is required.");
       }
     }
   }
@@ -297,298 +259,231 @@ function finalize(values, flags, interpretation) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const pages = Array.from(document.querySelectorAll(".flow-page"));
+  const stepLabel = document.getElementById("stepLabel");
+  const pageTitleMini = document.getElementById("pageTitleMini");
+  const progressBar = document.getElementById("progressBar");
+
   const form = document.getElementById("tool-form");
-  const resetBtn = document.getElementById("resetBtn");
-  const resultsContainer = document.getElementById("results-container");
-  const flagsContainer = document.getElementById("flags-container");
-
   const riskCat = document.getElementById("riskCat");
-
-  const lowRiskRecommendationWrap = document.getElementById("lowRiskRecommendationWrap");
-  const spearRecommenderWrap = document.getElementById("spearRecommenderWrap");
-
-  const applyNoTesting = document.getElementById("applyNoTesting");
-  const applyLowRiskSelected = document.getElementById("applyLowRiskSelected");
+  const riskNextBtn = document.getElementById("riskNextBtn");
 
   const lowRiskChoice = document.getElementById("lowRiskChoice");
   const indexTest = document.getElementById("indexTest");
+  const stressModality = document.getElementById("stressModality");
 
-  const cctaLayer3Wrap = document.getElementById("cctaLayer3Wrap");
-  const cctaResultWrap = document.getElementById("cctaResultWrap");
+  const recCanExercise = document.getElementById("rec_canExercise");
+  const recEcgWrap = document.getElementById("rec_ecgWrap");
+  const recEcg = document.getElementById("rec_ecgInterpretable");
+  const recRenalWrap = document.getElementById("rec_renalWrap");
+  const recRenal = document.getElementById("rec_renalConcern");
+  const generateSpearBtn = document.getElementById("generateSpearBtn");
+  const rankedCards = document.getElementById("rankedCards");
+
+  const appliedSummary = document.getElementById("appliedSummary");
+  const downstreamTitle = document.getElementById("downstreamTitle");
+
+  const cctaFields = document.getElementById("cctaFields");
   const cctaResult = document.getElementById("cctaResult");
   const stenosis4090Wrap = document.getElementById("stenosis4090Wrap");
   const highRiskCadWrap = document.getElementById("highRiskCadWrap");
 
-  const stressModalityWrap = document.getElementById("stressModalityWrap");
-  const stressModality = document.getElementById("stressModality");
-  const stressLayer3Wrap = document.getElementById("stressLayer3Wrap");
-  const stressAbbrevList = document.getElementById("stressAbbrevList");
-  const stressResultWrap = document.getElementById("stressResultWrap");
+  const stressFields = document.getElementById("stressFields");
   const stressResult = document.getElementById("stressResult");
   const persistentSymptomsWrap = document.getElementById("persistentSymptomsWrap");
 
-  const rec = {
-    canExercise: document.getElementById("rec_canExercise"),
-    ecgWrap: document.getElementById("rec_ecgWrap"),
-    ecg: document.getElementById("rec_ecgInterpretable"),
-    renalWrap: document.getElementById("rec_renalWrap"),
-    renal: document.getElementById("rec_renalConcern"),
-    output: document.getElementById("rec_output"),
+  const resultsContainer = document.getElementById("results-container");
+  const flagsContainer = document.getElementById("flags-container");
+  const backBtn = document.getElementById("backBtn");
+  const startOverBtn = document.getElementById("startOverBtn");
+
+  let page = "risk";
+  let historyStack = [];
+  let lastSpearResult = null;
+
+  const pageMeta = {
+    risk: { step: 1, title: "Risk" },
+    low: { step: 2, title: "Low risk" },
+    spear: { step: 2, title: "SPEAR" },
+    ranked: { step: 3, title: "Ranked" },
+    downstream: { step: 4, title: "Pathway" },
+    results: { step: 5, title: "Results" },
   };
 
-  const backBtn = document.getElementById("backBtn");
-  if (backBtn) backBtn.addEventListener("click", () => window.history.back());
+  function go(nextPage, push = true) {
+    if (push && nextPage !== page) historyStack.push(page);
+    page = nextPage;
 
-  function setDisplay(el, show) {
-    if (!el) return;
-    el.style.display = show ? "" : "none";
+    pages.forEach((p) => p.classList.toggle("active", p.dataset.page === page));
+
+    const meta = pageMeta[page] || pageMeta.risk;
+    stepLabel.textContent = `Step ${meta.step} of 5`;
+    pageTitleMini.textContent = meta.title;
+    progressBar.style.width = `${meta.step * 20}%`;
+
+    backBtn.style.visibility = page === "risk" ? "hidden" : "visible";
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function v(el) {
-    return el?.value || "";
-  }
-
-  function clearSpearInputs() {
-    if (rec.canExercise) rec.canExercise.value = "";
-    if (rec.ecg) rec.ecg.value = "";
-    if (rec.renal) rec.renal.value = "";
-    if (rec.output) {
-      rec.output.innerHTML = `
-        <strong>Ranked recommendations</strong>
-        <p class="micro-note">Answer the first question to generate recommendations.</p>
-      `;
+  function backOne() {
+    if (!historyStack.length) {
+      go("risk", false);
+      return;
     }
+    go(historyStack.pop(), false);
   }
 
-  function clearAppliedSelections() {
-    if (lowRiskChoice) lowRiskChoice.value = "";
-    if (indexTest) indexTest.value = "";
-    if (stressModality) stressModality.value = "";
-    if (cctaResult) cctaResult.value = "";
-    if (stressResult) stressResult.value = "";
+  function resetAll() {
+    form.reset();
+    historyStack = [];
+    lastSpearResult = null;
+    rankedCards.innerHTML = "";
+    appliedSummary.innerHTML = "";
+    resultsContainer.innerHTML = `<p class="results-placeholder">Results will appear here.</p>`;
+    flagsContainer.innerHTML = "";
+    updatePromptVisibility();
+    updateDownstreamVisibility();
+    go("risk", false);
   }
 
-  function normalize() {
-    const rc = riskCat?.value || "";
-    const it = indexTest?.value || "";
+  function updatePromptVisibility() {
+    const canEx = recCanExercise.value || "";
+    recEcgWrap.style.display = canEx === "yes" ? "" : "none";
 
-    setDisplay(lowRiskRecommendationWrap, rc === "low");
-    setDisplay(spearRecommenderWrap, rc === "intermediate_high");
+    const ecgNeeded = canEx === "yes";
+    const ecgReady = !ecgNeeded || !!recEcg.value;
+    recRenalWrap.style.display = canEx && ecgReady ? "" : "none";
 
-    setDisplay(cctaResultWrap, rc === "intermediate_high" && it === "ccta");
-    setDisplay(cctaLayer3Wrap, rc === "intermediate_high" && it === "ccta");
-
-    setDisplay(stressResultWrap, rc === "intermediate_high" && it === "stress");
-    setDisplay(stressModalityWrap, rc === "intermediate_high" && it === "stress");
-    setDisplay(stressLayer3Wrap, rc === "intermediate_high" && it === "stress" && !!(stressModality?.value));
-
-    const sr = stressResult?.value || "";
-    setDisplay(persistentSymptomsWrap, rc === "intermediate_high" && it === "stress" && sr === "modsev");
-
-    const cr = cctaResult?.value || "";
-    setDisplay(stenosis4090Wrap, rc === "intermediate_high" && it === "ccta" && cr === "nonobstructive_lt50");
-    setDisplay(highRiskCadWrap, rc === "intermediate_high" && it === "ccta" && cr === "obstructive_ge50");
-
-    setStressAbbrev(stressModality?.value || "");
-  }
-
-  function setStressAbbrev(mod) {
-    if (!stressAbbrevList) return;
-
-    const content = {
-      exercise_ecg: `
-        <strong>Exercise ECG</strong>
-        <ul>
-          <li>Baseline ECG must be interpretable for ischemia</li>
-          <li>Requires adequate exercise capacity</li>
-        </ul>`,
-      stress_echo: `
-        <strong>Stress echocardiography</strong>
-        <ul>
-          <li>Limited acoustic windows can reduce performance</li>
-          <li>Useful when structural/valvular information is helpful</li>
-        </ul>`,
-      stress_nuclear: `
-        <strong>Stress nuclear PET/SPECT</strong>
-        <ul>
-          <li>Vasodilator contraindications may limit use</li>
-          <li>PET preferred over SPECT when available in selected cases</li>
-        </ul>`,
-      stress_cmr: `
-        <strong>Stress CMR</strong>
-        <ul>
-          <li>MRI-unsafe devices or severe claustrophobia may limit use</li>
-          <li>No ionizing radiation</li>
-        </ul>`,
-    };
-
-    stressAbbrevList.innerHTML =
-      content[mod] || `<strong>Abbreviated considerations will appear after selecting a modality.</strong>`;
+    const ready = !!canEx && ecgReady && !!recRenal.value;
+    generateSpearBtn.disabled = !ready;
   }
 
   function readSpearInputs() {
     return {
-      canExercise: v(rec.canExercise),
-      ecgInterpretable: v(rec.ecg),
-      renalConcern: v(rec.renal),
+      canExercise: recCanExercise.value || "",
+      ecgInterpretable: recEcg.value || "",
+      renalConcern: recRenal.value || "",
     };
-  }
-
-  function applyRecommendation(apply) {
-    if (!apply) return;
-
-    if (apply.riskCat && riskCat) riskCat.value = apply.riskCat;
-    if (apply.lowRiskChoice && lowRiskChoice) lowRiskChoice.value = apply.lowRiskChoice;
-    if (apply.indexTest && indexTest) indexTest.value = apply.indexTest;
-    if (apply.stressModality && stressModality) stressModality.value = apply.stressModality;
-
-    normalize();
-
-    if (resultsContainer) {
-      resultsContainer.innerHTML = `<p class="results-placeholder">Recommendation applied. Complete downstream fields and tap “Run pathway.”</p>`;
-    }
   }
 
   function renderRecommendationCard(test) {
     const why = (test.why || []).slice(0, 5).map((x) => `<li>${escapeHtml(x)}</li>`).join("");
     const evidence = (test.evidence || []).map((x) => `<li>${escapeHtml(x)}</li>`).join("");
 
+    const cardClass =
+      test.category === "Primary Test"
+        ? "recommendation-card primary"
+        : test.category === "Acceptable Alternative"
+        ? "recommendation-card gold"
+        : "recommendation-card";
+
     return `
-      <div class="callout" style="margin-top:0.75rem;">
-        <strong>${escapeHtml(test.category)}</strong>
-        <div style="font-size:1.05rem; margin-top:0.25rem;">
-              <strong>${escapeHtml(test.label)}<sup>${escapeHtml(test.confidence)}</sup></strong>
-        </div>
+      <div class="${cardClass}">
+        <p class="rank">${escapeHtml(test.category)}</p>
+        <h3>${escapeHtml(test.label)}<sup>${escapeHtml(test.confidence)}</sup></h3>
 
-        <details style="margin-top:0.45rem;">
-          <summary><strong>Why?</strong></summary>
-          <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">${why}</ul>
-        </details>
+        <details><summary>Why?</summary><ul>${why}</ul></details>
+        <details><summary>How?</summary><p>${escapeHtml(test.how || "")}</p></details>
+        <details><summary>Evidence?</summary><ul>${evidence}</ul></details>
 
-        <details style="margin-top:0.45rem;">
-          <summary><strong>How?</strong></summary>
-          <p class="micro-note" style="margin-top:0.35rem;">${escapeHtml(test.how || "")}</p>
-        </details>
-
-        <details style="margin-top:0.45rem;">
-          <summary><strong>Evidence?</strong></summary>
-          <ul style="margin:0.35rem 0 0; padding-left:1.15rem;">${evidence}</ul>
-        </details>
-
-        <button type="button" class="btn-primary btn-primary--full" style="margin-top:0.75rem;" data-apply="${escapeHtml(test.key)}">
+        <button type="button" class="btn btn-primary btn-full" data-apply="${escapeHtml(test.key)}">
           Apply ${escapeHtml(test.label)}
         </button>
       </div>
     `;
   }
 
-  function renderSpear() {
-    const canEx = v(rec.canExercise);
+  function applyRecommendation(apply, label) {
+    if (!apply) return;
 
-    setDisplay(rec.ecgWrap, canEx === "yes");
+    if (apply.riskCat) riskCat.value = apply.riskCat;
+    if (apply.lowRiskChoice) lowRiskChoice.value = apply.lowRiskChoice;
+    if (apply.indexTest) indexTest.value = apply.indexTest;
+    if (apply.stressModality) stressModality.value = apply.stressModality;
 
-    const ecgNeeded = canEx === "yes";
-    const ecgAns = v(rec.ecg);
+    appliedSummary.innerHTML = `Applied: ${escapeHtml(label)}`;
+    downstreamTitle.textContent =
+      apply.lowRiskChoice ? "Low-risk pathway" : apply.indexTest === "ccta" ? "CCTA pathway details" : "Stress pathway details";
 
-    const readyForRenal = !!canEx && (!ecgNeeded || !!ecgAns);
-    setDisplay(rec.renalWrap, readyForRenal);
-
-    const renalAns = v(rec.renal);
-    const gateOk = !!canEx && (!ecgNeeded || !!ecgAns) && !!renalAns;
-
-    if (!rec.output) return;
-
-    if (!canEx) {
-      rec.output.innerHTML = `
-        <strong>Ranked recommendations</strong>
-        <p class="micro-note">Answer the first question to generate recommendations.</p>
-      `;
-      return;
-    }
-
-    if (!gateOk) {
-      rec.output.innerHTML = `
-        <strong>Ranked recommendations</strong>
-        <p class="micro-note">Answer the displayed prompts to generate recommendations.</p>
-      `;
-      return;
-    }
-
-    const result = recommendStableNoKnownCad(readSpearInputs());
-
-    rec.output.innerHTML = `
-      <strong>Ranked recommendations</strong>
-      <p class="micro-note">
-        Internal scores are not shown. A = high confidence, B = moderate confidence, C = lower certainty / feasibility-driven.
-      </p>
-      ${result.rankedTests.map(renderRecommendationCard).join("")}
-    `;
-
-    rec.output.querySelectorAll("[data-apply]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const key = btn.getAttribute("data-apply");
-        const test = result.rankedTests.find((x) => x.key === key);
-        if (test) applyRecommendation(test.apply);
-      });
-    });
+    updateDownstreamVisibility();
+    go("downstream");
   }
 
-  applyNoTesting?.addEventListener("click", () => {
-    applyRecommendation({ riskCat: "low", lowRiskChoice: "no_testing" });
-  });
+  function updateDownstreamVisibility() {
+    const rc = riskCat.value || "";
+    const it = indexTest.value || "";
+    const cr = cctaResult.value || "";
+    const sr = stressResult.value || "";
 
-  applyLowRiskSelected?.addEventListener("click", () => {
-    applyRecommendation({ riskCat: "low", lowRiskChoice: "selected_cac_execg" });
-  });
+    cctaFields.style.display = rc === "intermediate_high" && it === "ccta" ? "" : "none";
+    stressFields.style.display = rc === "intermediate_high" && it === "stress" ? "" : "none";
 
-  riskCat?.addEventListener("change", () => {
-    clearAppliedSelections();
-    clearSpearInputs();
-    normalize();
-    renderSpear();
+    stenosis4090Wrap.style.display = cr === "nonobstructive_lt50" ? "" : "none";
+    highRiskCadWrap.style.display = cr === "obstructive_ge50" ? "" : "none";
+    persistentSymptomsWrap.style.display = sr === "modsev" ? "" : "none";
+  }
 
-    if (resultsContainer) {
-      resultsContainer.innerHTML = `<p class="results-placeholder">Fill in inputs and tap “Run pathway” to see results.</p>`;
+  riskNextBtn.addEventListener("click", () => {
+    const rc = riskCat.value || "";
+    if (!rc) {
+      alert("Please select a clinical risk category.");
+      return;
     }
-    if (flagsContainer) {
-      flagsContainer.innerHTML = `<p class="results-placeholder">Warnings and suggested alternatives appear here after you run the pathway.</p>`;
-    }
+
+    if (rc === "low") go("low");
+    if (rc === "intermediate_high") go("spear");
   });
 
-  [rec.canExercise, rec.ecg, rec.renal].forEach((el) => {
-    if (!el) return;
-    el.addEventListener("change", renderSpear);
+  document.getElementById("applyNoTesting").addEventListener("click", () => {
+    applyRecommendation({ riskCat: "low", lowRiskChoice: "no_testing" }, "No testing recommended");
   });
 
-  [stressModality, stressResult, cctaResult].forEach((el) => {
-    if (!el) return;
-    el.addEventListener("change", normalize);
+  document.getElementById("applyLowRiskSelected").addEventListener("click", () => {
+    applyRecommendation({ riskCat: "low", lowRiskChoice: "selected_cac_execg" }, "CAC or Exercise ECG in selected cases");
   });
 
-  normalize();
-  setupModals();
+  [recCanExercise, recEcg, recRenal].forEach((el) => {
+    el.addEventListener("change", updatePromptVisibility);
+  });
 
-  form?.addEventListener("submit", (e) => {
+  generateSpearBtn.addEventListener("click", () => {
+    lastSpearResult = recommendStableNoKnownCad(readSpearInputs());
+    rankedCards.innerHTML = lastSpearResult.rankedTests.map(renderRecommendationCard).join("");
+
+    rankedCards.querySelectorAll("[data-apply]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.getAttribute("data-apply");
+        const test = lastSpearResult.rankedTests.find((t) => t.key === key);
+        if (test) applyRecommendation(test.apply, test.label);
+      });
+    });
+
+    go("ranked");
+  });
+
+  [cctaResult, stressResult].forEach((el) => {
+    el.addEventListener("change", updateDownstreamVisibility);
+  });
+
+  backBtn.addEventListener("click", backOne);
+  startOverBtn.addEventListener("click", resetAll);
+
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const inputs = readInputs();
-    const result = evaluatePathway(inputs);
+    const result = evaluatePathway(readInputs());
     renderResults(resultsContainer, result);
     renderFlags(flagsContainer, result.flags);
+    go("results");
   });
 
-  resetBtn?.addEventListener("click", () => {
-    form.reset();
-    clearSpearInputs();
-    normalize();
-    renderSpear();
-    if (resultsContainer) resultsContainer.innerHTML = `<p class="results-placeholder">Fill in inputs and tap “Run pathway” to see results.</p>`;
-    if (flagsContainer) flagsContainer.innerHTML = `<p class="results-placeholder">Warnings and suggested alternatives appear here after you run the pathway.</p>`;
-  });
+  setupModals();
+  updatePromptVisibility();
+  updateDownstreamVisibility();
+  go("risk", false);
 });
 
 function readInputs() {
   const get = (id) => document.getElementById(id)?.value ?? "";
-  const getText = (id) => (document.getElementById(id)?.value ?? "").trim();
 
   return {
     riskCat: get("riskCat") || null,
@@ -600,12 +495,7 @@ function readInputs() {
     cctaResult: get("cctaResult") || null,
     stenosis4090: yesNoToBool(get("stenosis4090")),
     highRiskCad: yesNoToBool(get("highRiskCad")),
-    layer3: {
-      cctaAnyLimit: yesNoToBool(get("cctaAnyLimit")),
-      cctaNotes: getText("cctaNotes"),
-      stressAnyLimit: yesNoToBool(get("stressAnyLimit")),
-      stressNotes: getText("stressNotes"),
-    },
+    layer3: {},
   };
 }
 
@@ -646,18 +536,15 @@ function renderResults(container, result) {
 
   const disp = result?.interpretation?.disposition ?? "—";
   const summary = result?.interpretation?.summary ?? "";
-  const branches = (result?.values?.branchesTaken || []).map((b) => `<li>${escapeHtml(b)}</li>`).join("");
 
   const steps = (result?.interpretation?.nextSteps || [])
     .map((s) => {
-      const strength = s.strength
-        ? `<div style="color: var(--color-text-secondary); margin-top: 0.15rem;">${escapeHtml(s.strength)}</div>`
-        : "";
-
+      const strength = s.strength ? `<div class="micro-note">${escapeHtml(s.strength)}</div>` : "";
       return `
-        <div style="margin:0.6rem 0; padding-top:0.4rem; border-top:1px solid rgba(255,255,255,0.06);">
-          <div><strong>${escapeHtml(s.label)}</strong></div>
-          <div style="color: var(--color-text-secondary); margin-top: 0.15rem;">${escapeHtml(s.detail || "")}</div>
+        <div class="recommendation-card">
+          <p class="rank">${escapeHtml(s.level || "info")}</p>
+          <h3>${escapeHtml(s.label)}</h3>
+          <p>${escapeHtml(s.detail || "")}</p>
           ${strength}
         </div>
       `;
@@ -665,13 +552,12 @@ function renderResults(container, result) {
     .join("");
 
   container.innerHTML = `
-    <div>
-      <div style="margin-bottom: 0.6rem;">
-        <div style="color: var(--color-text-secondary); font-size: 0.9rem;">Disposition</div>
-        <div style="font-size: 1.05rem;"><strong>${escapeHtml(disp)}</strong></div>
-        ${summary ? `<div style="color: var(--color-text-secondary); margin-top:0.25rem;">${escapeHtml(summary)}</div>` : ""}
-      </div>
+    <div class="recommendation-card primary">
+      <p class="rank">Disposition</p>
+      <h3>${escapeHtml(disp)}</h3>
+      ${summary ? `<p>${escapeHtml(summary)}</p>` : ""}
     </div>
+    ${steps || `<p class="results-placeholder">No next steps.</p>`}
   `;
 }
 
@@ -679,7 +565,7 @@ function renderFlags(container, flags) {
   if (!container) return;
 
   if (!flags || flags.length === 0) {
-    container.innerHTML = `<p class="results-placeholder">No flags raised.</p>`;
+    container.innerHTML = "";
     return;
   }
 
@@ -703,24 +589,9 @@ function yesNoToBool(v) {
   return null;
 }
 
-function prettyMod(mod) {
-  const map = {
-    exercise_ecg: "Exercise ECG",
-    stress_echo: "Stress echocardiography",
-    stress_nuclear: "Stress nuclear PET/SPECT",
-    stress_cmr: "Stress CMR",
-  };
-  return map[mod] || mod || "Stress";
-}
-
-function formatNote(prefix, note) {
-  const trimmed = (note || "").trim();
-  return trimmed ? `${prefix} Note: ${trimmed}` : prefix;
-}
-
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (m) => {
-    const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
+    const map = { "&": "&amp;", "<": "&lt;", ">":"&gt;", '"': "&quot;", "'": "&#039;" };
     return map[m];
   });
 }
