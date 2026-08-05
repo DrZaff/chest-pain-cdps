@@ -381,8 +381,21 @@ function initializeChoiceCards(onChoiceChanged) {
   });
 }
 
+  function resetChoiceCards() {
+  document.querySelectorAll(".choice-card").forEach((button) => {
+    button.classList.remove("is-selected");
+    button.setAttribute("aria-pressed", "false");
+  });
+
+  document.querySelectorAll("[data-choice-group]").forEach((group) => {
+    const input = document.getElementById(group.dataset.choiceGroup);
+    if (input) input.value = "";
+  });
+}
+
   function resetAll() {
     form.reset();
+    resetChoiceCards();
     historyStack = [];
     lastSpearResult = null;
     rankedCards.innerHTML = "";
