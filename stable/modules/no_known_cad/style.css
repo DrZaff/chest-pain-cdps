@@ -1056,3 +1056,31 @@ details ul {
   }
 
 }
+
+/* Two-choice layout, used for larger clinical categories */
+.choice-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/*
+  Clinical category buttons:
+  green identifies an active SPEAR selection.
+  It does NOT indicate favorable vs unfavorable clinical status.
+*/
+.choice-card--clinical {
+  color: var(--green-dark);
+  min-height: 82px;
+}
+
+.choice-card--clinical.is-selected {
+  background: var(--green-soft);
+  border-color: var(--green);
+  color: var(--green-dark);
+  box-shadow: 0 0 0 3px rgba(31, 143, 95, 0.10);
+}
+
+@media (max-width: 600px) {
+  .choice-grid--two {
+    grid-template-columns: 1fr;
+  }
+}
