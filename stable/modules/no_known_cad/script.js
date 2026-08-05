@@ -353,9 +353,10 @@ riskIntermediateCard?.addEventListener("click", () => {
   const generateSpearBtn = document.getElementById("generateSpearBtn");
   const rankedCards = document.getElementById("rankedCards");
 
-    [recCanExercise, recEcg, recRenal].forEach((el) => {
-    el.addEventListener("change", updatePromptVisibility);
-  });
+[recCanExercise, recEcg, recRenal].forEach((el) => {
+  if (!el) return;
+  el.addEventListener("change", updatePromptVisibility);
+});
 
   const appliedSummary = document.getElementById("appliedSummary");
   const downstreamTitle = document.getElementById("downstreamTitle");
@@ -467,7 +468,16 @@ function updatePromptVisibility() {
     generateSpearBtn.disabled = !ready;
   }
 }
-  }
+
+function readSpearInputs() {
+  return {
+    canExercise: recCanExercise?.value || "",
+    ecgInterpretable: recEcg?.value || "",
+    renalConcern: recRenal?.value || "",
+  };
+}
+
+function renderRecommendationCard(test) {
 
   function renderRecommendationCard(test) {
     const why = (test.why || []).slice(0, 5).map((x) => `<li>${escapeHtml(x)}</li>`).join("");
