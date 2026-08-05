@@ -40,12 +40,43 @@
           <h2>Start with risk category</h2>
           <p class="lead">Choose the clinical risk group. SPEAR will guide the next step.</p>
 
-          <label class="field-label" for="riskCat">Clinical risk category</label>
-          <select id="riskCat" name="riskCat" class="field-input">
-            <option value="">Select…</option>
-            <option value="low">Low risk</option>
-            <option value="intermediate_high">Intermediate / High risk</option>
-          </select>
+<div class="spear-question">
+  <p class="spear-question-label">
+    Clinical risk category
+  </p>
+
+  <div
+    class="choice-grid choice-grid--two"
+    data-choice-group="riskCat"
+    role="group"
+    aria-label="Clinical risk category"
+  >
+    <button
+      type="button"
+      class="choice-card choice-card--clinical"
+      data-value="low"
+      aria-pressed="false"
+    >
+      Low risk
+    </button>
+
+    <button
+      type="button"
+      class="choice-card choice-card--clinical"
+      data-value="intermediate_high"
+      aria-pressed="false"
+    >
+      Intermediate / High risk
+    </button>
+  </div>
+
+  <input
+    type="hidden"
+    id="riskCat"
+    name="riskCat"
+    value=""
+  />
+</div>
 
           <button type="button" id="riskNextBtn" class="btn btn-primary btn-full">Continue</button>
 
