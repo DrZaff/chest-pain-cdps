@@ -308,6 +308,39 @@ document.addEventListener("DOMContentLoaded", () => {
   const riskCat = document.getElementById("riskCat");
   const riskNextBtn = document.getElementById("riskNextBtn");
 
+  const riskLowCard = document.getElementById("riskLowCard");
+const riskIntermediateCard = document.getElementById("riskIntermediateCard");
+
+function selectRiskCard(value) {
+  if (!riskCat) return;
+
+  riskCat.value = value;
+
+  const isLow = value === "low";
+  const isIntermediate = value === "intermediate_high";
+
+  riskLowCard?.classList.toggle("is-selected", isLow);
+  riskIntermediateCard?.classList.toggle("is-selected", isIntermediate);
+
+  riskLowCard?.setAttribute(
+    "aria-pressed",
+    isLow ? "true" : "false"
+  );
+
+  riskIntermediateCard?.setAttribute(
+    "aria-pressed",
+    isIntermediate ? "true" : "false"
+  );
+}
+
+riskLowCard?.addEventListener("click", () => {
+  selectRiskCard("low");
+});
+
+riskIntermediateCard?.addEventListener("click", () => {
+  selectRiskCard("intermediate_high");
+});
+
   const lowRiskChoice = document.getElementById("lowRiskChoice");
   const indexTest = document.getElementById("indexTest");
   const stressModality = document.getElementById("stressModality");
