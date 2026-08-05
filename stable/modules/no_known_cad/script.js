@@ -1,5 +1,45 @@
 import { recommendStableNoKnownCad } from "../../spear-engine.js";
 
+// =========================================================
+// SPEAR reusable tap-card controller
+// =========================================================
+document.addEventListener("click", (event) => {
+  const button = event.target.closest(".choice-card");
+  if (!button) return;
+
+  const group = button.closest("[data-choice-group]");
+  if (!group) return;
+
+  const inputId = group.dataset.choiceGroup;
+  const hiddenInput = document.getElementById(inputId);
+
+  if (!hiddenInput) {
+    console.warn(`SPEAR could not find hidden input: ${inputId}`);
+    return;
+  }
+
+  const buttons = group.querySelectorAll(".choice-card");
+
+  // Store selected clinical value
+  hiddenInput.value = button.dataset.value || "";
+
+  // Update appearance
+  buttons.forEach((btn) => {
+    const selected = btn === button;
+
+    btn.classList.toggle("is-selected", selected);
+    btn.setAttribute(
+      "aria-pressed",
+      selected ? "true" : "false"
+    );
+  });
+
+  // Tell the rest of SPEAR that this value changed
+  hiddenInput.dispatchEvent(
+    new Event("change", { bubbles: true })
+  );
+});
+
 export function evaluatePathway(inputs) {
   const values = {
     pathwayId: "stable-no-known-cad",
@@ -259,15 +299,6 @@ function finalize(values, flags, interpretation) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-initializeChoiceCards((inputId, value) => {
-  if (
-    inputId === "rec_canExercise" ||
-    inputId === "rec_ecgInterpretable" ||
-    inputId === "rec_renalConcern"
-  ) {
-    updatePromptVisibility();
-  }
-});
   const pages = Array.from(document.querySelectorAll(".flow-page"));
   const stepLabel = document.getElementById("stepLabel");
   const pageTitleMini = document.getElementById("pageTitleMini");
@@ -288,6 +319,10 @@ initializeChoiceCards((inputId, value) => {
   const recRenal = document.getElementById("rec_renalConcern");
   const generateSpearBtn = document.getElementById("generateSpearBtn");
   const rankedCards = document.getElementById("rankedCards");
+
+    [recCanExercise, recEcg, recRenal].forEach((el) => {
+    el.addEventListener("change", updatePromptVisibility);
+  });
 
   const appliedSummary = document.getElementById("appliedSummary");
   const downstreamTitle = document.getElementById("downstreamTitle");
@@ -341,46 +376,7 @@ initializeChoiceCards((inputId, value) => {
     }
     go(historyStack.pop(), false);
   }
-
-function initializeChoiceCards(onChoiceChanged) {
-  document.querySelectorAll("[data-choice-group]").forEach((group) => {
-    const inputId = group.dataset.choiceGroup;
-    const hiddenInput = document.getElementById(inputId);
-
-    if (!hiddenInput) {
-      console.warn(`SPEAR choice group could not find input: ${inputId}`);
-      return;
-    }
-
-    const buttons = Array.from(group.querySelectorAll(".choice-card"));
-
-    buttons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const value = button.dataset.value || "";
-
-        // Store actual clinical value
-        hiddenInput.value = value;
-
-        // Update visual selection
-        buttons.forEach((btn) => {
-          const selected = btn === button;
-          btn.classList.toggle("is-selected", selected);
-          btn.setAttribute("aria-pressed", selected ? "true" : "false");
-        });
-
-        // Notify the rest of the app immediately
-        hiddenInput.dispatchEvent(
-          new Event("change", { bubbles: true })
-        );
-
-        if (typeof onChoiceChanged === "function") {
-          onChoiceChanged(inputId, value);
-        }
-      });
-    });
-  });
-}
-
+  
   function resetChoiceCards() {
   document.querySelectorAll(".choice-card").forEach((button) => {
     button.classList.remove("is-selected");
@@ -514,10 +510,6 @@ function updatePromptVisibility() {
 
   document.getElementById("applyLowRiskSelected").addEventListener("click", () => {
     applyRecommendation({ riskCat: "low", lowRiskChoice: "selected_cac_execg" }, "CAC or Exercise ECG in selected cases");
-  });
-
-  [recCanExercise, recEcg, recRenal].forEach((el) => {
-    el.addEventListener("change", updatePromptVisibility);
   });
 
   generateSpearBtn.addEventListener("click", () => {
