@@ -996,40 +996,43 @@ details ul {
 
 /* YES */
 
-.choice-card--yes {
-  color: #17734d;
+.choice-card--yes
+  color: var(--green-dark);
 }
 
-.choice-card--yes.is-selected {
-  background: #edf8f2;
-  border-color: #17734d;
-  box-shadow: 0 0 0 3px rgba(23, 115, 77, 0.10);
+.choice-card--yes.is-selected,{
+  background: var(--green-soft);
+  border-color: var(--green);
+  color: var(--green-dark);
+  box-shadow: 0 0 0 3px rgba(31, 143, 95, 0.10);
 }
 
 
 /* UNSURE */
 
-.choice-card--unsure {
-  color: #b47b0b;
+.choice-card--unsure, {
+  color: var(--green-dark);
 }
 
-.choice-card--unsure.is-selected {
-  background: #fff7df;
-  border-color: #c88b10;
-  box-shadow: 0 0 0 3px rgba(200, 139, 16, 0.10);
+.choice-card--unsure.is-selected,
+  background: var(--green-soft);
+  border-color: var(--green);
+  color: var(--green-dark);
+  box-shadow: 0 0 0 3px rgba(31, 143, 95, 0.10);
 }
 
 
 /* NO */
 
 .choice-card--no {
-  color: #cc2929;
+  color: var(--green-dark);
 }
 
 .choice-card--no.is-selected {
-  background: #fff0ef;
-  border-color: #cc2929;
-  box-shadow: 0 0 0 3px rgba(204, 41, 41, 0.09);
+  background: var(--green-soft);
+  border-color: var(--green);
+  color: var(--green-dark);
+  box-shadow: 0 0 0 3px rgba(31, 143, 95, 0.10);
 }
 
 
