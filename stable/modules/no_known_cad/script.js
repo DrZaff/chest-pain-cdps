@@ -259,6 +259,7 @@ function finalize(values, flags, interpretation) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  initializeChoiceCards();
   const pages = Array.from(document.querySelectorAll(".flow-page"));
   const stepLabel = document.getElementById("stepLabel");
   const pageTitleMini = document.getElementById("pageTitleMini");
@@ -332,6 +333,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     go(historyStack.pop(), false);
   }
+
+  function initializeChoiceCards() {
+  const groups = document.querySelectorAll("[data-choice-group]");
+
+  groups.forEach((group) => {
+    const inputId = group.dataset.choiceGroup;
+    const hiddenInput = document.getElementById(inputId);
+
+    if (!hiddenInput) return;
+
+    const buttons = group.querySelectorAll(".choice-card");
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const value = button.dataset.value;
+
+        hiddenInput.value = value;
+
+        buttons.forEach((btn) => {
+          const selected = btn === button;
+
+          btn.classList.toggle("is-selected", selected);
+          btn.setAttribute(
+            "aria-pressed",
+            selected ? "true" : "false"
+          );
+        });
+
+        hiddenInput.dispatchEvent(
+          new Event("change", { bubbles: true })
+        );
+      });
+    });
+  });
+}
 
   function resetAll() {
     form.reset();
