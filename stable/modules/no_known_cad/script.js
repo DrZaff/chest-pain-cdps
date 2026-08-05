@@ -259,7 +259,15 @@ function finalize(values, flags, interpretation) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  initializeChoiceCards();
+initializeChoiceCards((inputId, value) => {
+  if (
+    inputId === "rec_canExercise" ||
+    inputId === "rec_ecgInterpretable" ||
+    inputId === "rec_renalConcern"
+  ) {
+    updatePromptVisibility();
+  }
+});
   const pages = Array.from(document.querySelectorAll(".flow-page"));
   const stepLabel = document.getElementById("stepLabel");
   const pageTitleMini = document.getElementById("pageTitleMini");
@@ -334,36 +342,40 @@ document.addEventListener("DOMContentLoaded", () => {
     go(historyStack.pop(), false);
   }
 
-  function initializeChoiceCards() {
-  const groups = document.querySelectorAll("[data-choice-group]");
-
-  groups.forEach((group) => {
+function initializeChoiceCards(onChoiceChanged) {
+  document.querySelectorAll("[data-choice-group]").forEach((group) => {
     const inputId = group.dataset.choiceGroup;
     const hiddenInput = document.getElementById(inputId);
 
-    if (!hiddenInput) return;
+    if (!hiddenInput) {
+      console.warn(`SPEAR choice group could not find input: ${inputId}`);
+      return;
+    }
 
-    const buttons = group.querySelectorAll(".choice-card");
+    const buttons = Array.from(group.querySelectorAll(".choice-card"));
 
     buttons.forEach((button) => {
       button.addEventListener("click", () => {
-        const value = button.dataset.value;
+        const value = button.dataset.value || "";
 
+        // Store actual clinical value
         hiddenInput.value = value;
 
+        // Update visual selection
         buttons.forEach((btn) => {
           const selected = btn === button;
-
           btn.classList.toggle("is-selected", selected);
-          btn.setAttribute(
-            "aria-pressed",
-            selected ? "true" : "false"
-          );
+          btn.setAttribute("aria-pressed", selected ? "true" : "false");
         });
 
+        // Notify the rest of the app immediately
         hiddenInput.dispatchEvent(
           new Event("change", { bubbles: true })
         );
+
+        if (typeof onChoiceChanged === "function") {
+          onChoiceChanged(inputId, value);
+        }
       });
     });
   });
@@ -382,24 +394,37 @@ document.addEventListener("DOMContentLoaded", () => {
     go("risk", false);
   }
 
-  function updatePromptVisibility() {
-    const canEx = recCanExercise.value || "";
-    recEcgWrap.style.display = canEx === "yes" ? "" : "none";
+function updatePromptVisibility() {
+  const canExercise = recCanExercise?.value || "";
+  const ecgAnswer = recEcg?.value || "";
+  const renalAnswer = recRenal?.value || "";
 
-    const ecgNeeded = canEx === "yes";
-    const ecgReady = !ecgNeeded || !!recEcg.value;
-    recRenalWrap.style.display = canEx && ecgReady ? "" : "none";
-
-    const ready = !!canEx && ecgReady && !!recRenal.value;
-    generateSpearBtn.disabled = !ready;
+  // Question 2 appears only when exercise = yes
+  if (recEcgWrap) {
+    recEcgWrap.style.display =
+      canExercise === "yes" ? "" : "none";
   }
 
-  function readSpearInputs() {
-    return {
-      canExercise: recCanExercise.value || "",
-      ecgInterpretable: recEcg.value || "",
-      renalConcern: recRenal.value || "",
-    };
+  // If exercise is not yes, ECG is not required
+  const ecgRequired = canExercise === "yes";
+  const ecgComplete = !ecgRequired || !!ecgAnswer;
+
+  // Question 3 appears after question 1
+  // and after ECG if ECG was required
+  if (recRenalWrap) {
+    recRenalWrap.style.display =
+      canExercise && ecgComplete ? "" : "none";
+  }
+
+  const ready =
+    !!canExercise &&
+    ecgComplete &&
+    !!renalAnswer;
+
+  if (generateSpearBtn) {
+    generateSpearBtn.disabled = !ready;
+  }
+}
   }
 
   function renderRecommendationCard(test) {
