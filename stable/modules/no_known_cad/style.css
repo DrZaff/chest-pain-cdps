@@ -933,3 +933,126 @@ details ul {
   color: var(--muted);
   font-weight: 600;
 }
+
+/* =========================================================
+   SPEAR CHOICE CARDS
+   Standard categorical input component
+   ========================================================= */
+
+.spear-question {
+  padding: 1.25rem;
+  background: #fffdfa;
+  border: 1px solid #eadfce;
+  border-radius: 20px;
+}
+
+.spear-question-label {
+  margin: 0 0 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+  color: #20252a;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.choice-card {
+  appearance: none;
+  min-height: 72px;
+
+  border: 2px solid #e7dfd4;
+  border-radius: 16px;
+
+  background: #ffffff;
+  color: #17734d;
+
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.choice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(32, 37, 42, 0.08);
+}
+
+.choice-card:active {
+  transform: scale(0.98);
+}
+
+
+/* YES */
+
+.choice-card--yes {
+  color: #17734d;
+}
+
+.choice-card--yes.is-selected {
+  background: #edf8f2;
+  border-color: #17734d;
+  box-shadow: 0 0 0 3px rgba(23, 115, 77, 0.10);
+}
+
+
+/* UNSURE */
+
+.choice-card--unsure {
+  color: #b47b0b;
+}
+
+.choice-card--unsure.is-selected {
+  background: #fff7df;
+  border-color: #c88b10;
+  box-shadow: 0 0 0 3px rgba(200, 139, 16, 0.10);
+}
+
+
+/* NO */
+
+.choice-card--no {
+  color: #cc2929;
+}
+
+.choice-card--no.is-selected {
+  background: #fff0ef;
+  border-color: #cc2929;
+  box-shadow: 0 0 0 3px rgba(204, 41, 41, 0.09);
+}
+
+
+.question-helper {
+  margin: 0.85rem 0 0;
+  color: #657085;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+
+/* Mobile */
+
+@media (max-width: 600px) {
+
+  .choice-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .choice-card {
+    min-height: 62px;
+    font-size: 1rem;
+  }
+
+}
