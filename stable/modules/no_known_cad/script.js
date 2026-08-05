@@ -467,8 +467,7 @@ function updatePromptVisibility() {
   if (generateSpearBtn) {
     generateSpearBtn.disabled = !ready;
   }
-}
-
+  
 function readSpearInputs() {
   return {
     canExercise: recCanExercise?.value || "",
