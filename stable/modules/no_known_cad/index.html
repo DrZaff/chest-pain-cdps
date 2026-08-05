@@ -119,32 +119,156 @@
 
           <div class="prompt-box">
             <label class="field-label" for="rec_canExercise">Can the patient exercise adequately?</label>
-            <select id="rec_canExercise" name="rec_canExercise" class="field-input">
-              <option value="">Select…</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-              <option value="unknown">Unsure</option>
-            </select>
+<div class="spear-question">
+  <p class="spear-question-label">
+    Can the patient exercise adequately?
+  </p>
+
+  <div
+    class="choice-grid"
+    data-choice-group="rec_canExercise"
+    role="group"
+    aria-label="Can the patient exercise adequately?"
+  >
+    <button
+      type="button"
+      class="choice-card choice-card--yes"
+      data-value="yes"
+      aria-pressed="false"
+    >
+      Yes
+    </button>
+
+    <button
+      type="button"
+      class="choice-card choice-card--unsure"
+      data-value="unknown"
+      aria-pressed="false"
+    >
+      Unsure
+    </button>
+
+    <button
+      type="button"
+      class="choice-card choice-card--no"
+      data-value="no"
+      aria-pressed="false"
+    >
+      No
+    </button>
+  </div>
+
+  <input
+    type="hidden"
+    id="rec_canExercise"
+    name="rec_canExercise"
+    value=""
+  />
+</div>
           </div>
 
           <div class="prompt-box" id="rec_ecgWrap" style="display:none;">
             <label class="field-label" for="rec_ecgInterpretable">Is baseline ECG interpretable for ischemia?</label>
-            <select id="rec_ecgInterpretable" name="rec_ecgInterpretable" class="field-input">
-              <option value="">Select…</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-              <option value="unknown">Unsure</option>
-            </select>
+<div class="spear-question" id="rec_ecgWrap">
+  <p class="spear-question-label">
+    Is baseline ECG interpretable for ischemia?
+  </p>
+
+  <div
+    class="choice-grid"
+    data-choice-group="rec_ecgInterpretable"
+    role="group"
+    aria-label="Is baseline ECG interpretable for ischemia?"
+  >
+    <button
+      type="button"
+      class="choice-card choice-card--yes"
+      data-value="yes"
+      aria-pressed="false"
+    >
+      Yes
+    </button>
+
+    <button
+      type="button"
+      class="choice-card choice-card--unsure"
+      data-value="unknown"
+      aria-pressed="false"
+    >
+      Unsure
+    </button>
+
+    <button
+      type="button"
+      class="choice-card choice-card--no"
+      data-value="no"
+      aria-pressed="false"
+    >
+      No
+    </button>
+  </div>
+
+  <input
+    type="hidden"
+    id="rec_ecgInterpretable"
+    name="rec_ecgInterpretable"
+    value=""
+  />
+</div>
           </div>
 
           <div class="prompt-box" id="rec_renalWrap" style="display:none;">
             <label class="field-label" for="rec_renalConcern">Renal impairment / contrast concern?</label>
-            <select id="rec_renalConcern" name="rec_renalConcern" class="field-input">
-              <option value="">Select…</option>
-              <option value="no">No</option>
-              <option value="yes">Yes</option>
-              <option value="unknown">Unsure</option>
-            </select>
+<div class="spear-question">
+  <p class="spear-question-label">
+    Renal impairment / contrast concern?
+  </p>
+
+  <div
+    class="choice-grid"
+    data-choice-group="rec_renalConcern"
+    role="group"
+    aria-label="Renal impairment or contrast concern?"
+  >
+    <button
+      type="button"
+      class="choice-card choice-card--yes"
+      data-value="yes"
+      aria-pressed="false"
+    >
+      Yes
+    </button>
+
+    <button
+      type="button"
+      class="choice-card choice-card--unsure"
+      data-value="unknown"
+      aria-pressed="false"
+    >
+      Unsure
+    </button>
+
+    <button
+      type="button"
+      class="choice-card choice-card--no"
+      data-value="no"
+      aria-pressed="false"
+    >
+      No
+    </button>
+  </div>
+
+  <input
+    type="hidden"
+    id="rec_renalConcern"
+    name="rec_renalConcern"
+    value=""
+  />
+
+  <p class="question-helper">
+    This affects feasibility and local protocol considerations.
+  </p>
+</div>
             <p class="micro-note">This affects feasibility and local protocol considerations.</p>
           </div>
 
