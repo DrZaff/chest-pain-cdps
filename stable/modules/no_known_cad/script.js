@@ -453,11 +453,10 @@ function updatePromptVisibility() {
       canExercise === "yes" ? "" : "none";
   }
 
-  // ECG only needs an answer when exercise = yes
   const ecgRequired = canExercise === "yes";
   const ecgComplete = !ecgRequired || !!ecgAnswer;
 
-  // Renal/contrast question appears after preceding required answers
+  // Renal/contrast question appears after required preceding answers
   if (recRenalWrap) {
     recRenalWrap.style.display =
       canExercise && ecgComplete ? "" : "none";
@@ -468,8 +467,41 @@ function updatePromptVisibility() {
     ecgComplete &&
     !!renalAnswer;
 
+  // Hide the old generate button if it still exists
   if (generateSpearBtn) {
-    generateSpearBtn.disabled = !ready;
+    generateSpearBtn.style.display = "none";
+  }
+
+  // As soon as the final required answer is complete,
+  // generate ranked recommendations and move to Page 3.
+  if (ready) {
+    lastSpearResult = recommendStableNoKnownCad(readSpearInputs());
+
+    if (rankedCards) {
+      rankedCards.innerHTML =
+        lastSpearResult.rankedTests
+          .map(renderRecommendationCard)
+          .join("");
+
+      rankedCards
+        .querySelectorAll("[data-apply]")
+        .forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const key = btn.getAttribute("data-apply");
+
+            const test =
+              lastSpearResult.rankedTests.find(
+                (t) => t.key === key
+              );
+
+            if (test) {
+              applyRecommendation(test.apply, test.label);
+            }
+          });
+        });
+    }
+
+    go("ranked");
   }
 }
 
