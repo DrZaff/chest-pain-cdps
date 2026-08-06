@@ -447,7 +447,7 @@ function updatePromptVisibility() {
   const ecgAnswer = recEcg?.value || "";
   const renalAnswer = recRenal?.value || "";
 
-  // ECG question appears only if the patient can exercise
+  // Show ECG question only if patient can exercise
   if (recEcgWrap) {
     recEcgWrap.style.display =
       canExercise === "yes" ? "" : "none";
@@ -456,7 +456,7 @@ function updatePromptVisibility() {
   const ecgRequired = canExercise === "yes";
   const ecgComplete = !ecgRequired || !!ecgAnswer;
 
-  // Renal/contrast question appears after required preceding answers
+  // Show renal/contrast question after required prior answers
   if (recRenalWrap) {
     recRenalWrap.style.display =
       canExercise && ecgComplete ? "" : "none";
@@ -467,42 +467,36 @@ function updatePromptVisibility() {
     ecgComplete &&
     !!renalAnswer;
 
-  // Hide the old generate button if it still exists
-  if (generateSpearBtn) {
-    generateSpearBtn.style.display = "none";
-  }
+  if (!ready) return;
 
-  // As soon as the final required answer is complete,
-  // generate ranked recommendations and move to Page 3.
-  if (ready) {
-    lastSpearResult = recommendStableNoKnownCad(readSpearInputs());
+  // Automatically generate ranked recommendations
+  lastSpearResult = recommendStableNoKnownCad(readSpearInputs());
 
-    if (rankedCards) {
-      rankedCards.innerHTML =
-        lastSpearResult.rankedTests
-          .map(renderRecommendationCard)
-          .join("");
+  if (rankedCards) {
+    rankedCards.innerHTML =
+      lastSpearResult.rankedTests
+        .map(renderRecommendationCard)
+        .join("");
 
-      rankedCards
-        .querySelectorAll("[data-apply]")
-        .forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const key = btn.getAttribute("data-apply");
+    rankedCards
+      .querySelectorAll("[data-apply]")
+      .forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const key = btn.getAttribute("data-apply");
+          const test =
+            lastSpearResult.rankedTests.find((t) => t.key === key);
 
-            const test =
-              lastSpearResult.rankedTests.find(
-                (t) => t.key === key
-              );
-
-            if (test) {
-              applyRecommendation(test.apply, test.label);
-            }
-          });
+          if (test) {
+            applyRecommendation(test.apply, test.label);
+          }
         });
-    }
-
-    go("ranked");
+      });
   }
+
+  // Short delay so the last tap visually registers
+  setTimeout(() => {
+    go("ranked");
+  }, 180);
 }
 
 function readSpearInputs() {
