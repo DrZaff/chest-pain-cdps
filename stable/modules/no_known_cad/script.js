@@ -442,18 +442,17 @@ function updatePromptVisibility() {
   const ecgAnswer = recEcg?.value || "";
   const renalAnswer = recRenal?.value || "";
 
-  // Question 2 appears only when exercise = yes
+  // ECG question appears only if the patient can exercise
   if (recEcgWrap) {
     recEcgWrap.style.display =
       canExercise === "yes" ? "" : "none";
   }
 
-  // If exercise is not yes, ECG is not required
+  // ECG only needs an answer when exercise = yes
   const ecgRequired = canExercise === "yes";
   const ecgComplete = !ecgRequired || !!ecgAnswer;
 
-  // Question 3 appears after question 1
-  // and after ECG if ECG was required
+  // Renal/contrast question appears after preceding required answers
   if (recRenalWrap) {
     recRenalWrap.style.display =
       canExercise && ecgComplete ? "" : "none";
@@ -467,7 +466,8 @@ function updatePromptVisibility() {
   if (generateSpearBtn) {
     generateSpearBtn.disabled = !ready;
   }
-  
+}
+
 function readSpearInputs() {
   return {
     canExercise: recCanExercise?.value || "",
@@ -477,33 +477,56 @@ function readSpearInputs() {
 }
 
 function renderRecommendationCard(test) {
+  const why = (test.why || [])
+    .slice(0, 5)
+    .map((x) => `<li>${escapeHtml(x)}</li>`)
+    .join("");
 
-  function renderRecommendationCard(test) {
-    const why = (test.why || []).slice(0, 5).map((x) => `<li>${escapeHtml(x)}</li>`).join("");
-    const evidence = (test.evidence || []).map((x) => `<li>${escapeHtml(x)}</li>`).join("");
+  const evidence = (test.evidence || [])
+    .map((x) => `<li>${escapeHtml(x)}</li>`)
+    .join("");
 
-    const cardClass =
-      test.category === "Primary Test"
-        ? "recommendation-card primary"
-        : test.category === "Acceptable Alternative"
-        ? "recommendation-card gold"
-        : "recommendation-card";
+  const cardClass =
+    test.category === "Primary Test"
+      ? "recommendation-card primary"
+      : test.category === "Acceptable Alternative"
+      ? "recommendation-card gold"
+      : "recommendation-card";
 
-    return `
-      <div class="${cardClass}">
-        <p class="rank">${escapeHtml(test.category)}</p>
-        <h3>${escapeHtml(test.label)}<sup>${escapeHtml(test.confidence)}</sup></h3>
+  return `
+    <div class="${cardClass}">
+      <p class="rank">${escapeHtml(test.category)}</p>
 
-        <details><summary>Why?</summary><ul>${why}</ul></details>
-        <details><summary>How?</summary><p>${escapeHtml(test.how || "")}</p></details>
-        <details><summary>Evidence?</summary><ul>${evidence}</ul></details>
+      <h3>
+        ${escapeHtml(test.label)}
+        <sup>${escapeHtml(test.confidence)}</sup>
+      </h3>
 
-        <button type="button" class="btn btn-primary btn-full" data-apply="${escapeHtml(test.key)}">
-          Apply ${escapeHtml(test.label)}
-        </button>
-      </div>
-    `;
-  }
+      <details>
+        <summary>Why?</summary>
+        <ul>${why}</ul>
+      </details>
+
+      <details>
+        <summary>How?</summary>
+        <p>${escapeHtml(test.how || "")}</p>
+      </details>
+
+      <details>
+        <summary>Evidence?</summary>
+        <ul>${evidence}</ul>
+      </details>
+
+      <button
+        type="button"
+        class="btn btn-primary btn-full"
+        data-apply="${escapeHtml(test.key)}"
+      >
+        Apply ${escapeHtml(test.label)}
+      </button>
+    </div>
+  `;
+}
 
   function applyRecommendation(apply, label) {
     if (!apply) return;
