@@ -585,19 +585,23 @@ function renderRecommendationCard(test) {
     persistentSymptomsWrap.style.display = sr === "modsev" ? "" : "none";
   }
 
-  document.getElementById("applyNoTesting").addEventListener("click", () => {
-    applyRecommendation({ riskCat: "low", lowRiskChoice: "no_testing" }, "No testing recommended");
-  });
+document.getElementById("applyNoTesting").addEventListener("click", () => {
+  applyRecommendation(
+    { riskCat: "low", lowRiskChoice: "no_testing" },
+    "No testing recommended"
+  );
+});
 
-  document.getElementById("applyLowRiskSelected").addEventListener("click", () => {
-    applyRecommendation({ riskCat: "low", lowRiskChoice: "selected_cac_execg" }, "CAC or Exercise ECG in selected cases");
-  });
-    go("ranked");
-  });
+document.getElementById("applyLowRiskSelected").addEventListener("click", () => {
+  applyRecommendation(
+    { riskCat: "low", lowRiskChoice: "selected_cac_execg" },
+    "CAC or Exercise ECG in selected cases"
+  );
+});
 
-  [cctaResult, stressResult].forEach((el) => {
-    el.addEventListener("change", updateDownstreamVisibility);
-  });
+[cctaResult, stressResult].forEach((el) => {
+  el.addEventListener("change", updateDownstreamVisibility);
+});
 
   backBtn.addEventListener("click", backOne);
   startOverBtn.addEventListener("click", resetAll);
