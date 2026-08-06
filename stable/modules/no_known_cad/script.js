@@ -306,7 +306,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const form = document.getElementById("tool-form");
   const riskCat = document.getElementById("riskCat");
-  const riskNextBtn = document.getElementById("riskNextBtn");
 
   const riskLowCard = document.getElementById("riskLowCard");
 const riskIntermediateCard = document.getElementById("riskIntermediateCard");
@@ -563,17 +562,6 @@ function renderRecommendationCard(test) {
     highRiskCadWrap.style.display = cr === "obstructive_ge50" ? "" : "none";
     persistentSymptomsWrap.style.display = sr === "modsev" ? "" : "none";
   }
-
-  riskNextBtn.addEventListener("click", () => {
-    const rc = riskCat.value || "";
-    if (!rc) {
-      alert("Please select a clinical risk category.");
-      return;
-    }
-
-    if (rc === "low") go("low");
-    if (rc === "intermediate_high") go("spear");
-  });
 
   document.getElementById("applyNoTesting").addEventListener("click", () => {
     applyRecommendation({ riskCat: "low", lowRiskChoice: "no_testing" }, "No testing recommended");
