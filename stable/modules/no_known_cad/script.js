@@ -602,19 +602,6 @@ function renderRecommendationCard(test) {
   document.getElementById("applyLowRiskSelected").addEventListener("click", () => {
     applyRecommendation({ riskCat: "low", lowRiskChoice: "selected_cac_execg" }, "CAC or Exercise ECG in selected cases");
   });
-
-  generateSpearBtn.addEventListener("click", () => {
-    lastSpearResult = recommendStableNoKnownCad(readSpearInputs());
-    rankedCards.innerHTML = lastSpearResult.rankedTests.map(renderRecommendationCard).join("");
-
-    rankedCards.querySelectorAll("[data-apply]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const key = btn.getAttribute("data-apply");
-        const test = lastSpearResult.rankedTests.find((t) => t.key === key);
-        if (test) applyRecommendation(test.apply, test.label);
-      });
-    });
-
     go("ranked");
   });
 
