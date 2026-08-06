@@ -634,22 +634,43 @@ function renderRecommendationCard(test) {
     </div>
   `;
 }
+function applyRecommendation(apply, label) {
+  if (!apply) return;
 
-  function applyRecommendation(apply, label) {
-    if (!apply) return;
+  if (apply.riskCat) riskCat.value = apply.riskCat;
+  if (apply.lowRiskChoice) lowRiskChoice.value = apply.lowRiskChoice;
+  if (apply.indexTest) indexTest.value = apply.indexTest;
+  if (apply.stressModality) stressModality.value = apply.stressModality;
 
-    if (apply.riskCat) riskCat.value = apply.riskCat;
-    if (apply.lowRiskChoice) lowRiskChoice.value = apply.lowRiskChoice;
-    if (apply.indexTest) indexTest.value = apply.indexTest;
-    if (apply.stressModality) stressModality.value = apply.stressModality;
+  appliedSummary.innerHTML = `Applied: ${escapeHtml(label)}`;
 
-    appliedSummary.innerHTML = `Applied: ${escapeHtml(label)}`;
-    downstreamTitle.textContent =
-      apply.lowRiskChoice ? "Low-risk pathway" : apply.indexTest === "ccta" ? "CCTA pathway details" : "Stress pathway details";
+  // LOW RISK:
+  // No downstream information is required.
+  // Evaluate immediately and move straight to results.
+  if (apply.riskCat === "low" && apply.lowRiskChoice) {
+    const result = evaluatePathway(readInputs());
 
-    updateDownstreamVisibility();
-    go("downstream");
+    renderResults(resultsContainer, result);
+    renderFlags(flagsContainer, result.flags);
+
+    setTimeout(() => {
+      go("results");
+    }, 180);
+
+    return;
   }
+
+  // INTERMEDIATE / HIGH RISK:
+  // Continue to Page 4 because test-result information is still required.
+  downstreamTitle.textContent =
+    apply.indexTest === "ccta"
+      ? "CCTA pathway details"
+      : "Stress pathway details";
+
+  updateDownstreamVisibility();
+
+  go("downstream");
+}
 
   function updateDownstreamVisibility() {
     const rc = riskCat.value || "";
