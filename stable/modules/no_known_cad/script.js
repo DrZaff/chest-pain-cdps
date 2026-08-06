@@ -334,15 +334,11 @@ function selectRiskCard(value) {
 
 riskLowCard?.addEventListener("click", () => {
   selectRiskCard("low");
-
-  // Move directly to the low-risk recommendation page
   go("low");
 });
 
 riskIntermediateCard?.addEventListener("click", () => {
   selectRiskCard("intermediate_high");
-
-  // Move directly to the SPEAR prompt page
   go("spear");
 });
 
