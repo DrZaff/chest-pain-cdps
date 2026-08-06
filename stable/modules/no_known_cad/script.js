@@ -438,6 +438,87 @@ riskIntermediateCard?.addEventListener("click", () => {
     go("risk", false);
   }
 
+  function maybeAutoRunPathway() {
+  const rc = riskCat?.value || "";
+  const it = indexTest?.value || "";
+
+  // Low-risk branch: Apply already fully defines the pathway
+  if (rc === "low" && lowRiskChoice?.value) {
+    runPathwayAndShowResults();
+    return;
+  }
+
+  // CCTA branch
+  if (rc === "intermediate_high" && it === "ccta") {
+    const cr = cctaResult?.value || "";
+
+    if (!cr) return;
+
+    // No CAD needs no additional answer
+    if (cr === "no_cad") {
+      runPathwayAndShowResults();
+      return;
+    }
+
+    // Nonobstructive CAD requires 40–90% stenosis answer
+    if (cr === "nonobstructive_lt50") {
+      const stenosis4090 =
+        document.getElementById("stenosis4090")?.value || "";
+
+      if (!stenosis4090) return;
+
+      runPathwayAndShowResults();
+      return;
+    }
+
+    // Obstructive CAD requires high-risk CAD / frequent angina answer
+    if (cr === "obstructive_ge50") {
+      const highRiskCad =
+        document.getElementById("highRiskCad")?.value || "";
+
+      if (!highRiskCad) return;
+
+      runPathwayAndShowResults();
+      return;
+    }
+  }
+
+  // Stress branch
+  if (rc === "intermediate_high" && it === "stress") {
+    const sr = stressResult?.value || "";
+
+    if (!sr) return;
+
+    // Mild or inconclusive requires no additional answer
+    if (sr === "mild" || sr === "inconclusive") {
+      runPathwayAndShowResults();
+      return;
+    }
+
+    // Moderate–severe requires persistent symptoms
+    if (sr === "modsev") {
+      const persistent =
+        document.getElementById("persistentSymptoms")?.value || "";
+
+      if (!persistent) return;
+
+      runPathwayAndShowResults();
+    }
+  }
+}
+
+  function runPathwayAndShowResults() {
+  const inputs = readInputs();
+  const result = evaluatePathway(inputs);
+
+  renderResults(resultsContainer, result);
+  renderFlags(flagsContainer, result.flags);
+
+  setTimeout(() => {
+    go("results");
+  }, 180);
+}
+
 function updatePromptVisibility() {
   const canExercise = recCanExercise?.value || "";
   const ecgAnswer = recEcg?.value || "";
@@ -598,9 +679,26 @@ document.getElementById("applyLowRiskSelected").addEventListener("click", () => 
     "CAC or Exercise ECG in selected cases"
   );
 });
-
 [cctaResult, stressResult].forEach((el) => {
-  el.addEventListener("change", updateDownstreamVisibility);
+  if (!el) return;
+
+  el.addEventListener("change", () => {
+    updateDownstreamVisibility();
+    maybeAutoRunPathway();
+  });
+});
+
+  [
+  document.getElementById("stenosis4090"),
+  document.getElementById("highRiskCad"),
+  document.getElementById("persistentSymptoms"),
+].forEach((el) => {
+  if (!el) return;
+
+  el.addEventListener("change", () => {
+    updateDownstreamVisibility();
+    maybeAutoRunPathway();
+  });
 });
 
   backBtn.addEventListener("click", backOne);
