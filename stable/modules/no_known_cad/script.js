@@ -438,84 +438,83 @@ riskIntermediateCard?.addEventListener("click", () => {
     go("risk", false);
   }
 
-  function maybeAutoRunPathway() {
+function maybeAutoRunPathway() {
   const rc = riskCat?.value || "";
   const it = indexTest?.value || "";
 
-  // Low-risk branch: Apply already fully defines the pathway
-  if (rc === "low" && lowRiskChoice?.value) {
-    runPathwayAndShowResults();
-    return;
-  }
+  // We are only auto-running the intermediate/high pathway for now.
+  if (rc !== "intermediate_high") return;
 
+  // -------------------------
   // CCTA branch
-  if (rc === "intermediate_high" && it === "ccta") {
+  // -------------------------
+  if (it === "ccta") {
     const cr = cctaResult?.value || "";
 
     if (!cr) return;
 
-    // No CAD needs no additional answer
+    // No CAD: result is complete immediately
     if (cr === "no_cad") {
-      runPathwayAndShowResults();
+      submitCompletedPathway();
       return;
     }
 
-    // Nonobstructive CAD requires 40–90% stenosis answer
+    // Nonobstructive CAD requires stenosis question
     if (cr === "nonobstructive_lt50") {
-      const stenosis4090 =
+      const stenosis =
         document.getElementById("stenosis4090")?.value || "";
 
-      if (!stenosis4090) return;
+      if (!stenosis) return;
 
-      runPathwayAndShowResults();
+      submitCompletedPathway();
       return;
     }
 
-    // Obstructive CAD requires high-risk CAD / frequent angina answer
+    // Obstructive CAD requires high-risk/frequent-angina question
     if (cr === "obstructive_ge50") {
-      const highRiskCad =
+      const highRisk =
         document.getElementById("highRiskCad")?.value || "";
 
-      if (!highRiskCad) return;
+      if (!highRisk) return;
 
-      runPathwayAndShowResults();
+      submitCompletedPathway();
       return;
     }
   }
 
+  // -------------------------
   // Stress branch
-  if (rc === "intermediate_high" && it === "stress") {
+  // -------------------------
+  if (it === "stress") {
     const sr = stressResult?.value || "";
 
     if (!sr) return;
 
-    // Mild or inconclusive requires no additional answer
+    // These outcomes require no additional question
     if (sr === "mild" || sr === "inconclusive") {
-      runPathwayAndShowResults();
+      submitCompletedPathway();
       return;
     }
 
-    // Moderate–severe requires persistent symptoms
+    // Moderate/severe ischemia requires symptom question
     if (sr === "modsev") {
       const persistent =
         document.getElementById("persistentSymptoms")?.value || "";
 
       if (!persistent) return;
 
-      runPathwayAndShowResults();
+      submitCompletedPathway();
     }
   }
 }
 
-  function runPathwayAndShowResults() {
-  const inputs = readInputs();
-  const result = evaluatePathway(inputs);
-
-  renderResults(resultsContainer, result);
-  renderFlags(flagsContainer, result.flags);
-
+  function submitCompletedPathway() {
+  // Let the user's final selection visibly register,
+  // then use the EXISTING form submit pathway.
   setTimeout(() => {
-    go("results");
+    if (form) {
+      form.requestSubmit();
+    }
   }, 180);
 }
 
@@ -688,7 +687,7 @@ document.getElementById("applyLowRiskSelected").addEventListener("click", () => 
   });
 });
 
-  [
+[
   document.getElementById("stenosis4090"),
   document.getElementById("highRiskCad"),
   document.getElementById("persistentSymptoms"),
