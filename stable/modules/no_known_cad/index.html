@@ -39,45 +39,49 @@
         <section class="flow-page active" data-page="risk">
           <h2>Start with risk category</h2>
           <p class="lead">Choose the clinical risk group. SPEAR will guide the next step.</p>
-
 <div class="spear-question">
-  <p class="spear-question-label">
-    Clinical risk category
-  </p>
+  <p class="spear-question-label">Stress testing result</p>
 
-<div
-  class="choice-grid choice-grid--two"
-  data-choice-group="riskCat"
-  role="group"
-  aria-label="Clinical risk category"
->
-  <button
-    type="button"
-    id="riskLowCard"
-    class="choice-card choice-card--clinical"
-    data-value="low"
-    aria-pressed="false"
+  <div
+    class="choice-grid choice-grid--three"
+    data-choice-group="stressResult"
+    role="group"
+    aria-label="Stress testing result"
   >
-    Low risk
-  </button>
+    <button
+      type="button"
+      class="choice-card choice-card--clinical"
+      data-value="inconclusive"
+      aria-pressed="false"
+    >
+      Inconclusive
+    </button>
 
-  <button
-    type="button"
-    id="riskIntermediateCard"
-    class="choice-card choice-card--clinical"
-    data-value="intermediate_high"
-    aria-pressed="false"
-  >
-    Intermediate / High risk
-  </button>
-</div>
+    <button
+      type="button"
+      class="choice-card choice-card--clinical"
+      data-value="mild"
+      aria-pressed="false"
+    >
+      Mild ischemia
+    </button>
 
-<input
-  type="hidden"
-  id="riskCat"
-  name="riskCat"
-  value=""
-/>
+    <button
+      type="button"
+      class="choice-card choice-card--clinical"
+      data-value="modsev"
+      aria-pressed="false"
+    >
+      Moderate–severe ischemia
+    </button>
+  </div>
+
+  <input
+    type="hidden"
+    id="stressResult"
+    name="stressResult"
+    value=""
+  />
 </div>
 
           <button type="button" class="info-link" data-modal="modal-risk">
@@ -343,32 +347,131 @@
           </select>
 
           <div id="cctaFields" style="display:none;">
-            <label class="field-label" for="cctaResult">CCTA result</label>
-            <select id="cctaResult" name="cctaResult" class="field-input">
-              <option value="">Select…</option>
-              <option value="no_cad">No CAD</option>
-              <option value="nonobstructive_lt50">Nonobstructive CAD (&lt;50% stenosis)</option>
-              <option value="obstructive_ge50">Obstructive CAD (≥50% stenosis)</option>
-            </select>
+<div class="spear-question">
+  <p class="spear-question-label">CCTA result</p>
 
-            <div id="stenosis4090Wrap" style="display:none;">
-              <label class="field-label" for="stenosis4090">If nonobstructive: 40–90% stenosis present?</label>
-              <select id="stenosis4090" name="stenosis4090" class="field-input">
-                <option value="">Select…</option>
-                <option value="no">No / not applicable</option>
-                <option value="yes">Yes</option>
-              </select>
-            </div>
+  <div
+    class="choice-grid choice-grid--three"
+    data-choice-group="cctaResult"
+    role="group"
+    aria-label="CCTA result"
+  >
+    <button
+      type="button"
+      class="choice-card choice-card--clinical"
+      data-value="no_cad"
+      aria-pressed="false"
+    >
+      No CAD
+    </button>
 
-            <div id="highRiskCadWrap" style="display:none;">
-              <label class="field-label" for="highRiskCad">High-risk CAD or frequent angina?</label>
-              <select id="highRiskCad" name="highRiskCad" class="field-input">
-                <option value="">Select…</option>
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
-            </div>
-          </div>
+    <button
+      type="button"
+      class="choice-card choice-card--clinical"
+      data-value="nonobstructive_lt50"
+      aria-pressed="false"
+    >
+      Nonobstructive CAD
+      <span class="choice-subtext">&lt;50% stenosis</span>
+    </button>
+
+    <button
+      type="button"
+      class="choice-card choice-card--clinical"
+      data-value="obstructive_ge50"
+      aria-pressed="false"
+    >
+      Obstructive CAD
+      <span class="choice-subtext">≥50% stenosis</span>
+    </button>
+  </div>
+
+  <input
+    type="hidden"
+    id="cctaResult"
+    name="cctaResult"
+    value=""
+  />
+</div>
+<div id="stenosis4090Wrap" style="display:none;">
+  <div class="spear-question">
+    <p class="spear-question-label">
+      40–90% stenosis present?
+    </p>
+
+    <div
+      class="choice-grid choice-grid--two"
+      data-choice-group="stenosis4090"
+      role="group"
+      aria-label="40 to 90 percent stenosis present?"
+    >
+      <button
+        type="button"
+        class="choice-card choice-card--clinical"
+        data-value="yes"
+        aria-pressed="false"
+      >
+        Yes
+      </button>
+
+      <button
+        type="button"
+        class="choice-card choice-card--clinical"
+        data-value="no"
+        aria-pressed="false"
+      >
+        No
+      </button>
+    </div>
+
+    <input
+      type="hidden"
+      id="stenosis4090"
+      name="stenosis4090"
+      value=""
+    />
+  </div>
+</div>
+
+<div id="highRiskCadWrap" style="display:none;">
+  <div class="spear-question">
+    <p class="spear-question-label">
+      High-risk CAD or frequent angina?
+    </p>
+
+    <div
+      class="choice-grid choice-grid--two"
+      data-choice-group="highRiskCad"
+      role="group"
+      aria-label="High-risk CAD or frequent angina?"
+    >
+      <button
+        type="button"
+        class="choice-card choice-card--clinical"
+        data-value="yes"
+        aria-pressed="false"
+      >
+        Yes
+      </button>
+
+      <button
+        type="button"
+        class="choice-card choice-card--clinical"
+        data-value="no"
+        aria-pressed="false"
+      >
+        No
+      </button>
+    </div>
+
+    <input
+      type="hidden"
+      id="highRiskCad"
+      name="highRiskCad"
+      value=""
+    />
+  </div>
+</div>
 
           <div id="stressFields" style="display:none;">
             <label class="field-label" for="stressResult">Stress testing result</label>
@@ -378,16 +481,43 @@
               <option value="mild">Mild ischemia</option>
               <option value="modsev">Moderate–severe ischemia</option>
             </select>
+<div id="persistentSymptomsWrap" style="display:none;">
+  <div class="spear-question">
+    <p class="spear-question-label">Persistent symptoms?</p>
 
-            <div id="persistentSymptomsWrap" style="display:none;">
-              <label class="field-label" for="persistentSymptoms">Persistent symptoms?</label>
-              <select id="persistentSymptoms" name="persistentSymptoms" class="field-input">
-                <option value="">Select…</option>
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
-            </div>
-          </div>
+    <div
+      class="choice-grid choice-grid--two"
+      data-choice-group="persistentSymptoms"
+      role="group"
+      aria-label="Persistent symptoms?"
+    >
+      <button
+        type="button"
+        class="choice-card choice-card--clinical"
+        data-value="yes"
+        aria-pressed="false"
+      >
+        Yes
+      </button>
+
+      <button
+        type="button"
+        class="choice-card choice-card--clinical"
+        data-value="no"
+        aria-pressed="false"
+      >
+        No
+      </button>
+    </div>
+
+    <input
+      type="hidden"
+      id="persistentSymptoms"
+      name="persistentSymptoms"
+      value=""
+    />
+  </div>
+</div>
 
           </section>
 
