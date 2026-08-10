@@ -790,52 +790,153 @@ function setupModals() {
 function renderResults(container, result) {
   if (!container) return;
 
-  const disp = result?.interpretation?.disposition ?? "—";
-  const summary = result?.interpretation?.summary ?? "";
+  const interpretation = result?.interpretation || {};
+  const disposition = interpretation.disposition || "Result unavailable";
+  const summary = interpretation.summary || "";
+  const allSteps = Array.isArray(interpretation.nextSteps)
+    ? interpretation.nextSteps
+    : [];
 
-  const steps = (result?.interpretation?.nextSteps || [])
-    .map((s) => {
-      const strength = s.strength ? `<div class="micro-note">${escapeHtml(s.strength)}</div>` : "";
-      return `
-        <div class="recommendation-card">
-          <p class="rank">${escapeHtml(s.level || "info")}</p>
-          <h3>${escapeHtml(s.label)}</h3>
-          <p>${escapeHtml(s.detail || "")}</p>
-          ${strength}
-        </div>
-      `;
+  // These steps describe how we arrived at the result
+  // but do not represent a new clinician action.
+  const redundantLabels = new Set([
+    "CCTA",
+    "Stress testing",
+    "No CAD",
+    "No testing recommended"
+  ]);
+
+  const actionableSteps = allSteps
+    .filter((step) => {
+      const label = (step?.label || "").trim();
+      return label && !redundantLabels.has(label);
     })
-    .join("");
+    .filter((step, index, array) => {
+      // Remove duplicate labels while preserving order
+      return (
+        array.findIndex(
+          (candidate) => candidate?.label === step?.label
+        ) === index
+      );
+    })
+    .slice(0, 2);
+
+  const actionsHtml = actionableSteps.length
+    ? `
+      <section class="result-section">
+        <p class="result-section-label result-section-label--gold">
+          Next step${actionableSteps.length > 1 ? "s" : ""}
+        </p>
+
+        <div class="next-step-stack">
+          ${actionableSteps.map(renderResultAction).join("")}
+        </div>
+      </section>
+    `
+    : "";
 
   container.innerHTML = `
-    <div class="recommendation-card primary">
-      <p class="rank">Disposition</p>
-      <h3>${escapeHtml(disp)}</h3>
-      ${summary ? `<p>${escapeHtml(summary)}</p>` : ""}
-    </div>
-    ${steps || `<p class="results-placeholder">No next steps.</p>`}
+    <section class="result-hero">
+      <p class="result-section-label result-section-label--green">
+        Result
+      </p>
+
+      <h3 class="result-title">
+        ${escapeHtml(disposition)}
+      </h3>
+
+      ${
+        summary
+          ? `<p class="result-summary">${escapeHtml(summary)}</p>`
+          : ""
+      }
+    </section>
+
+    ${actionsHtml}
+  `;
+}
+
+function renderResultAction(step) {
+  const label = step?.label || "Next step";
+  const detail = step?.detail || "";
+  const strength = step?.strength || "";
+
+  const whyHtml = detail
+    ? `
+      <details class="result-detail">
+        <summary>Why?</summary>
+        <p>${escapeHtml(detail)}</p>
+      </details>
+    `
+    : "";
+
+  const evidenceHtml = strength
+    ? `
+      <details class="result-detail">
+        <summary>Evidence?</summary>
+        <p>
+          Recommendation strength:
+          <strong>${escapeHtml(strength)}</strong>
+        </p>
+      </details>
+    `
+    : "";
+
+  return `
+    <article class="next-step-card">
+      <h4>${escapeHtml(label)}</h4>
+
+      ${
+        detail
+          ? `<p class="next-step-preview">${escapeHtml(detail)}</p>`
+          : ""
+      }
+
+      <div class="result-detail-row">
+        ${whyHtml}
+        ${evidenceHtml}
+      </div>
+    </article>
   `;
 }
 
 function renderFlags(container, flags) {
   if (!container) return;
 
-  if (!flags || flags.length === 0) {
+  // Page 5 should show only clinically meaningful warnings.
+  // Routine informational flags such as SCOPE stay out of the
+  // completed-result experience.
+  const importantFlags = (flags || []).filter(
+    (flag) =>
+      flag?.severity === "warning" ||
+      flag?.severity === "high"
+  );
+
+  if (importantFlags.length === 0) {
     container.innerHTML = "";
     return;
   }
 
-  container.innerHTML = flags
-    .map((f) => {
-      const cls =
-        f.severity === "high"
-          ? "flag-pill flag-pill--danger"
-          : f.severity === "warning"
-          ? "flag-pill flag-pill--warning"
-          : "flag-pill flag-pill--info";
-      return `<div class="${cls}"><strong>${escapeHtml(f.code)}:</strong> ${escapeHtml(f.message)}</div>`;
-    })
-    .join("");
+  container.innerHTML = `
+    <section class="result-warning-section">
+      <p class="result-section-label result-section-label--red">
+        Important considerations
+      </p>
+
+      ${importantFlags
+        .map((flag) => {
+          return `
+            <div class="result-warning">
+              <span class="result-warning-icon">!</span>
+              <div>
+                <strong>${escapeHtml(flag.message)}</strong>
+              </div>
+            </div>
+          `;
+        })
+        .join("")}
+    </section>
+  `;
 }
 
 function yesNoToBool(v) {
