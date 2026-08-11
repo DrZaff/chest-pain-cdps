@@ -22,7 +22,11 @@ export function recommendStableNoKnownCad(inputs) {
       label: "Stress PET",
       confidence: "A",
       score: 95,
-      apply: { riskCat: "intermediate_high", indexTest: "stress", stressModality: "stress_nuclear" },
+apply: {
+  riskCat: "intermediate_high",
+  indexTest: "stress",
+  stressModality: "stress_pet"
+},
       why: [
         "Guideline-supported stress imaging option.",
         "High diagnostic performance.",
@@ -73,7 +77,11 @@ export function recommendStableNoKnownCad(inputs) {
       label: "Stress SPECT",
       confidence: "B",
       score: 84,
-      apply: { riskCat: "intermediate_high", indexTest: "stress", stressModality: "stress_nuclear" },
+apply: {
+  riskCat: "intermediate_high",
+  indexTest: "stress",
+  stressModality: "stress_spect"
+},
       why: [
         "Guideline-supported stress imaging option.",
         "Widely available.",
