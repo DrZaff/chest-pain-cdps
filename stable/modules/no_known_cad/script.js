@@ -662,10 +662,22 @@ function applyRecommendation(apply, label) {
 
   // INTERMEDIATE / HIGH RISK:
   // Continue to Page 4 because test-result information is still required.
-  downstreamTitle.textContent =
-    apply.indexTest === "ccta"
-      ? "CCTA pathway details"
-      : "Stress pathway details";
+const downstreamTitles = {
+  ccta: "CCTA Results",
+  stress_pet: "Stress PET Results",
+  stress_spect: "Stress SPECT Results",
+  stress_cmr: "Stress CMR Results",
+  stress_echo: "Stress Echocardiography Results",
+  exercise_ecg: "Exercise ECG Results",
+};
+
+const downstreamKey =
+  apply.indexTest === "ccta"
+    ? "ccta"
+    : apply.stressModality;
+
+downstreamTitle.textContent =
+  downstreamTitles[downstreamKey] || "Test Results";
 
   updateDownstreamVisibility();
 
