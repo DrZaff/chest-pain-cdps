@@ -36,59 +36,61 @@
       <form id="tool-form">
 
         <!-- PAGE 1 -->
-        <section class="flow-page active" data-page="risk">
-          <h2>Start with risk category</h2>
-          <p class="lead">Choose the clinical risk group. SPEAR will guide the next step.</p>
-<div class="spear-question">
-  <p class="spear-question-label">Stress testing result</p>
+<section class="flow-page active" data-page="risk">
+  <h2>Start with risk category</h2>
+  <p class="lead">
+    Choose the clinical risk group. SPEAR will guide the next step.
+  </p>
 
-  <div
-    class="choice-grid choice-grid--three"
-    data-choice-group="stressResult"
-    role="group"
-    aria-label="Stress testing result"
-  >
-    <button
-      type="button"
-      class="choice-card choice-card--clinical"
-      data-value="inconclusive"
-      aria-pressed="false"
-    >
-      Inconclusive
-    </button>
+  <div class="spear-question">
+    <p class="spear-question-label">
+      Clinical risk category
+    </p>
 
-    <button
-      type="button"
-      class="choice-card choice-card--clinical"
-      data-value="mild"
-      aria-pressed="false"
+    <div
+      class="choice-grid choice-grid--two"
+      data-choice-group="riskCat"
+      role="group"
+      aria-label="Clinical risk category"
     >
-      Mild ischemia
-    </button>
+      <button
+        type="button"
+        id="riskLowCard"
+        class="choice-card choice-card--clinical"
+        data-value="low"
+        aria-pressed="false"
+      >
+        Low risk
+      </button>
 
-    <button
-      type="button"
-      class="choice-card choice-card--clinical"
-      data-value="modsev"
-      aria-pressed="false"
-    >
-      Moderate–severe ischemia
-    </button>
+      <button
+        type="button"
+        id="riskIntermediateCard"
+        class="choice-card choice-card--clinical"
+        data-value="intermediate_high"
+        aria-pressed="false"
+      >
+        Intermediate / High risk
+      </button>
+    </div>
+
+    <input
+      type="hidden"
+      id="riskCat"
+      name="riskCat"
+      value=""
+    />
   </div>
 
-  <input
-    type="hidden"
-    id="stressResult"
-    name="stressResult"
-    value=""
-  />
-</div>
-
-          <button type="button" class="info-link" data-modal="modal-risk">
-            How should I think about risk?
-          </button>
-        </section>
-
+  <button
+    type="button"
+    class="info-link"
+    data-modal="modal-risk"
+  >
+    How should I think about risk?
+  </button>
+</section>
+        
         <!-- PAGE 2 LOW -->
         <section class="flow-page" data-page="low">
           <h2>Low-risk options</h2>
