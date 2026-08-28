@@ -1,4 +1,17 @@
+function normalizeChestPainAssessment(value) {
+  const allowed = [
+    "cardiac",
+    "possible_cardiac",
+    "noncardiac"
+  ];
+
+  return allowed.includes(value) ? value : null;
+}
+
 export function recommendStableNoKnownCad(inputs) {
+  const chestPainAssessment =
+  normalizeChestPainAssessment(inputs.chestPainAssessment);
+  
   const candidates = [
     {
       key: "ccta",
@@ -166,5 +179,15 @@ apply: {
       ...c
     }));
 
-  return { rankedTests: ranked, flags };
+return {
+  rankedTests: ranked,
+  flags,
+  inputContext: {
+    chestPainAssessment,
+    canExercise: inputs.canExercise || null,
+    ecgInterpretable: inputs.ecgInterpretable || null,
+    renalConcern: inputs.renalConcern || null
+  }
 }
+
+
