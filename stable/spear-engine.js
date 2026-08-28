@@ -12,10 +12,39 @@ function getChestPainAssessmentModifier(
   testKey,
   chestPainAssessment
 ) {
-  // Neutral placeholder for now.
-  // We will add evidence-based weights later.
+
+  /*
+    FUTURE:
+    This modifier will adjust test ranking
+    using evidence extracted from the
+    2021 ACC/AHA Chest Pain Guideline
+    and approved project references.
+
+    No weighting is applied yet.
+  */
+
   return 0;
 }
+
+const CHEST_PAIN_EVIDENCE = {
+  cardiac: {
+    status: "pending",
+    rationale:
+      "Evidence review pending using the 2021 ACC/AHA Chest Pain Guideline."
+  },
+
+  possible_cardiac: {
+    status: "pending",
+    rationale:
+      "Evidence review pending using the 2021 ACC/AHA Chest Pain Guideline."
+  },
+
+  noncardiac: {
+    status: "pending",
+    rationale:
+      "Evidence review pending using the 2021 ACC/AHA Chest Pain Guideline."
+  }
+};
 
 export function recommendStableNoKnownCad(inputs) {
   const chestPainAssessment =
@@ -135,6 +164,15 @@ apply: {
   ];
 
   const flags = [];
+
+  if (chestPainAssessment) {
+  flags.push({
+    severity: "info",
+    code: "CHEST_PAIN_MODEL",
+    message:
+      "Chest pain assessment captured. Evidence-based weighting not yet implemented."
+  });
+}
 
   function adjust(key, delta, reason) {
     const c = candidates.find((x) => x.key === key);
