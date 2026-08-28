@@ -8,6 +8,15 @@ function normalizeChestPainAssessment(value) {
   return allowed.includes(value) ? value : null;
 }
 
+function getChestPainAssessmentModifier(
+  testKey,
+  chestPainAssessment
+) {
+  // Neutral placeholder for now.
+  // We will add evidence-based weights later.
+  return 0;
+}
+
 export function recommendStableNoKnownCad(inputs) {
   const chestPainAssessment =
   normalizeChestPainAssessment(inputs.chestPainAssessment);
@@ -134,6 +143,13 @@ apply: {
       if (reason) c.why.push(reason);
     }
   }
+
+  candidates.forEach((candidate) => {
+  candidate.score += getChestPainAssessmentModifier(
+    candidate.key,
+    chestPainAssessment
+  );
+});
 
   function exclude(key, reason) {
     const c = candidates.find((x) => x.key === key);
