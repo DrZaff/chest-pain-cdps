@@ -339,7 +339,7 @@ riskLowCard?.addEventListener("click", () => {
 
 riskIntermediateCard?.addEventListener("click", () => {
   selectRiskCard("intermediate_high");
-  go("spear");
+  go("chest-pain");
 });
 
   const lowRiskChoice = document.getElementById("lowRiskChoice");
