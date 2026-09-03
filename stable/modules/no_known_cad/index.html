@@ -149,6 +149,180 @@
           </div>
         </section>
 
+        <!-- PAGE 2: CLINICAL ASSESSMENT OF CHEST PAIN -->
+<section class="flow-page" data-page="chest-pain">
+
+  <div class="assessment-heading">
+    <p class="assessment-eyebrow">Clinical Assessment</p>
+    <h2>How likely is the chest pain to be cardiac?</h2>
+
+    <p class="lead">
+      Use the symptom pattern and clinical context to classify the suspected
+      cause of chest pain.
+    </p>
+  </div>
+
+  <!-- Guideline likelihood continuum -->
+  <details class="guideline-reference">
+    <summary>
+      View 2021 Chest Pain Guideline likelihood scale
+    </summary>
+
+    <div class="guideline-image-wrap">
+      <img
+        src="./assets/chest_pain_likelihood_scale.png"
+        alt="2021 Chest Pain Guideline index of suspicion that chest pain is ischemic in origin based on commonly used descriptors"
+        class="guideline-image"
+      />
+
+      <p class="micro-note">
+        Adapted from the 2021 AHA/ACC Chest Pain Guideline symptom-likelihood
+        continuum. This figure supports clinical assessment but is not a
+        validated numeric scoring system.
+      </p>
+    </div>
+  </details>
+
+
+  <!-- Three guideline categories -->
+  <div class="spear-question chest-pain-question">
+
+    <p class="spear-question-label">
+      Clinical assessment of chest pain
+    </p>
+
+    <div
+      class="choice-grid choice-grid--three"
+      data-choice-group="chestPainAssessment"
+      role="group"
+      aria-label="Clinical assessment of chest pain"
+    >
+
+      <button
+        type="button"
+        class="choice-card choice-card--clinical chest-pain-choice"
+        data-value="noncardiac"
+        aria-pressed="false"
+      >
+        <span class="choice-main">
+          Noncardiac chest pain
+        </span>
+
+        <span class="choice-subtext">
+          Features make myocardial ischemia less likely
+        </span>
+      </button>
+
+
+      <button
+        type="button"
+        class="choice-card choice-card--clinical chest-pain-choice"
+        data-value="possible_cardiac"
+        aria-pressed="false"
+      >
+        <span class="choice-main">
+          Possible cardiac chest pain
+        </span>
+
+        <span class="choice-subtext">
+          Mixed or indeterminate ischemic features
+        </span>
+      </button>
+
+
+      <button
+        type="button"
+        class="choice-card choice-card--clinical chest-pain-choice"
+        data-value="cardiac"
+        aria-pressed="false"
+      >
+        <span class="choice-main">
+          Cardiac chest pain
+        </span>
+
+        <span class="choice-subtext">
+          Features strongly support myocardial ischemia
+        </span>
+      </button>
+
+    </div>
+
+
+    <input
+      type="hidden"
+      id="chestPainAssessment"
+      name="chestPainAssessment"
+      value=""
+    />
+
+  </div>
+
+
+  <!-- Minimal descriptor assistance -->
+  <details class="assessment-help">
+    <summary>
+      Symptom clues
+    </summary>
+
+    <div class="symptom-grid">
+
+      <div class="symptom-column">
+        <p class="symptom-column-title">
+          Higher likelihood of ischemia
+        </p>
+
+        <ul>
+          <li>Central or retrosternal discomfort</li>
+          <li>Pressure, squeezing, heaviness, or tightness</li>
+          <li>Provoked by physical exertion or emotional stress</li>
+          <li>Gradually builds over several minutes</li>
+        </ul>
+      </div>
+
+
+      <div class="symptom-column">
+        <p class="symptom-column-title">
+          Lower likelihood of ischemia
+        </p>
+
+        <ul>
+          <li>Sharp or fleeting discomfort</li>
+          <li>Pleuritic symptoms</li>
+          <li>Positional symptoms</li>
+          <li>Shifting location</li>
+          <li>Very focal tenderness</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <p class="micro-note">
+      Symptoms exist on a continuum. Age, cardiovascular risk factors,
+      duration, provoking factors, relieving factors, and associated symptoms
+      remain important to the overall clinical assessment.
+    </p>
+  </details>
+
+
+  <!-- Reserved for the reference you are collecting -->
+  <details class="assessment-help assessment-help--secondary">
+    <summary>
+      Consider alternative diagnoses
+    </summary>
+
+    <div class="future-evidence-note">
+      <strong>Evidence section in development</strong>
+
+      <p>
+        Associated symptoms suggesting common alternative cardiopulmonary
+        diagnoses will be added here after review of the project-approved
+        reference material.
+      </p>
+    </div>
+  </details>
+
+</section>
+
         <!-- PAGE 2 SPEAR PROMPTS -->
         <section class="flow-page" data-page="spear">
           <h2>SPEAR</h2>
