@@ -307,6 +307,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("tool-form");
   const riskCat = document.getElementById("riskCat");
 
+  const chestPainAssessment =
+  document.getElementById("chestPainAssessment");
+
+  chestPainAssessment?.addEventListener("change", () => {
+  if (!chestPainAssessment.value) return;
+
+  setTimeout(() => {
+    go("spear");
+  }, 180);
+});
+  
   const riskLowCard = document.getElementById("riskLowCard");
 const riskIntermediateCard = document.getElementById("riskIntermediateCard");
 
@@ -380,14 +391,42 @@ riskIntermediateCard?.addEventListener("click", () => {
   let historyStack = [];
   let lastSpearResult = null;
 
-  const pageMeta = {
-    risk: { step: 1, title: "Risk" },
-    low: { step: 2, title: "Low risk" },
-    spear: { step: 2, title: "SPEAR" },
-    ranked: { step: 3, title: "Ranked" },
-    downstream: { step: 4, title: "Pathway" },
-    results: { step: 5, title: "Results" },
-  };
+const pageMeta = {
+  risk: {
+    step: 1,
+    title: "Risk"
+  },
+
+  low: {
+    step: 2,
+    title: "Low risk"
+  },
+
+  "chest-pain": {
+    step: 2,
+    title: "Clinical assessment"
+  },
+
+  spear: {
+    step: 3,
+    title: "SPEAR"
+  },
+
+  ranked: {
+    step: 4,
+    title: "Ranked"
+  },
+
+  downstream: {
+    step: 5,
+    title: "Test result"
+  },
+
+  results: {
+    step: 6,
+    title: "Results"
+  }
+};
 
   function go(nextPage, push = true) {
     if (push && nextPage !== page) historyStack.push(page);
@@ -396,9 +435,16 @@ riskIntermediateCard?.addEventListener("click", () => {
     pages.forEach((p) => p.classList.toggle("active", p.dataset.page === page));
 
     const meta = pageMeta[page] || pageMeta.risk;
-    stepLabel.textContent = `Step ${meta.step} of 5`;
+  stepLabel.textContent =
+  `Step ${meta.step} of ${totalSteps}`;
     pageTitleMini.textContent = meta.title;
-    progressBar.style.width = `${meta.step * 20}%`;
+    const totalSteps =
+  riskCat?.value === "intermediate_high"
+    ? 6
+    : 3;
+
+progressBar.style.width =
+  `${(meta.step / totalSteps) * 100}%`;
 
     backBtn.style.visibility = page === "risk" ? "hidden" : "visible";
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -574,12 +620,20 @@ function updatePromptVisibility() {
     go("ranked");
   }, 180);
 }
-
+  
 function readSpearInputs() {
   return {
-    canExercise: recCanExercise?.value || "",
-    ecgInterpretable: recEcg?.value || "",
-    renalConcern: recRenal?.value || "",
+    chestPainAssessment:
+      chestPainAssessment?.value || "",
+
+    canExercise:
+      recCanExercise?.value || "",
+
+    ecgInterpretable:
+      recEcg?.value || "",
+
+    renalConcern:
+      recRenal?.value || "",
   };
 }
 
