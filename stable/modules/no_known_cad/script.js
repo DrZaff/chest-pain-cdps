@@ -428,27 +428,48 @@ const pageMeta = {
   }
 };
 
-  function go(nextPage, push = true) {
-    if (push && nextPage !== page) historyStack.push(page);
-    page = nextPage;
-
-    pages.forEach((p) => p.classList.toggle("active", p.dataset.page === page));
-
-    const meta = pageMeta[page] || pageMeta.risk;
-  stepLabel.textContent =
-  `Step ${meta.step} of ${totalSteps}`;
-    pageTitleMini.textContent = meta.title;
-    const totalSteps =
-  riskCat?.value === "intermediate_high"
-    ? 6
-    : 3;
-
-progressBar.style.width =
-  `${(meta.step / totalSteps) * 100}%`;
-
-    backBtn.style.visibility = page === "risk" ? "hidden" : "visible";
-    window.scrollTo({ top: 0, behavior: "smooth" });
+function go(nextPage, push = true) {
+  if (push && nextPage !== page) {
+    historyStack.push(page);
   }
+
+  page = nextPage;
+
+  pages.forEach((p) => {
+    p.classList.toggle(
+      "active",
+      p.dataset.page === page
+    );
+  });
+
+  const meta =
+    pageMeta[page] || pageMeta.risk;
+
+  // Calculate total steps BEFORE using it
+  const totalSteps =
+    riskCat?.value === "intermediate_high"
+      ? 6
+      : 3;
+
+  stepLabel.textContent =
+    `Step ${meta.step} of ${totalSteps}`;
+
+  pageTitleMini.textContent =
+    meta.title;
+
+  progressBar.style.width =
+    `${(meta.step / totalSteps) * 100}%`;
+
+  backBtn.style.visibility =
+    page === "risk"
+      ? "hidden"
+      : "visible";
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
 
   function backOne() {
     if (!historyStack.length) {
