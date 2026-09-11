@@ -445,7 +445,6 @@ function go(nextPage, push = true) {
   const meta =
     pageMeta[page] || pageMeta.risk;
 
-  // Calculate total steps BEFORE using it
   const totalSteps =
     riskCat?.value === "intermediate_high"
       ? 6
