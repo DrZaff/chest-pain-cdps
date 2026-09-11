@@ -242,6 +242,7 @@ return {
     ecgInterpretable: inputs.ecgInterpretable || null,
     renalConcern: inputs.renalConcern || null
   }
+};
 }
 
 
