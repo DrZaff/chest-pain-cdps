@@ -445,24 +445,32 @@ function go(nextPage, push = true) {
   const meta =
     pageMeta[page] || pageMeta.risk;
 
+  // Must be declared BEFORE it is used
   const totalSteps =
     riskCat?.value === "intermediate_high"
       ? 6
       : 3;
 
-  stepLabel.textContent =
-    `Step ${meta.step} of ${totalSteps}`;
+  if (stepLabel) {
+    stepLabel.textContent =
+      `Step ${meta.step} of ${totalSteps}`;
+  }
 
-  pageTitleMini.textContent =
-    meta.title;
+  if (pageTitleMini) {
+    pageTitleMini.textContent = meta.title;
+  }
 
-  progressBar.style.width =
-    `${(meta.step / totalSteps) * 100}%`;
+  if (progressBar) {
+    progressBar.style.width =
+      `${(meta.step / totalSteps) * 100}%`;
+  }
 
-  backBtn.style.visibility =
-    page === "risk"
-      ? "hidden"
-      : "visible";
+  if (backBtn) {
+    backBtn.style.visibility =
+      page === "risk"
+        ? "hidden"
+        : "visible";
+  }
 
   window.scrollTo({
     top: 0,
