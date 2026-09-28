@@ -486,21 +486,19 @@ function backOne() {
 
   const previousPage = historyStack.pop();
 
-
   // -----------------------------------------
-  // Leaving Test Result page → Ranked page
+  // Step 4 → Step 3
   //
-  // Clear the previously applied test and
-  // all result-specific answers so a different
-  // recommendation can be chosen cleanly.
+  // Returning from ranked recommendations
+  // should restart the SPEAR practical prompts
+  // instead of immediately auto-advancing.
   // -----------------------------------------
   if (
-    page === "downstream" &&
-    previousPage === "ranked"
+    page === "ranked" &&
+    previousPage === "spear"
   ) {
-    resetDownstreamState();
+    resetSpearPromptState();
   }
-
 
   go(previousPage, false);
 }
@@ -534,6 +532,61 @@ function backOne() {
     button.classList.remove("is-selected");
     button.setAttribute("aria-pressed", "false");
   });
+}
+
+  function clearChoiceGroup(inputId) {
+  const input = document.getElementById(inputId);
+
+  if (input) {
+    input.value = "";
+  }
+
+  const group = document.querySelector(
+    `[data-choice-group="${inputId}"]`
+  );
+
+  if (!group) return;
+
+  group.querySelectorAll(".choice-card").forEach((button) => {
+    button.classList.remove("is-selected");
+    button.setAttribute("aria-pressed", "false");
+  });
+}
+
+  function resetSpearPromptState() {
+  // Clear Step 3 hidden values + card selections
+  clearChoiceGroup("rec_canExercise");
+  clearChoiceGroup("rec_ecgInterpretable");
+  clearChoiceGroup("rec_renalConcern");
+
+  // Hide conditional prompts until they are needed again
+  if (recEcgWrap) {
+    recEcgWrap.style.display = "none";
+  }
+
+  if (recRenalWrap) {
+    recRenalWrap.style.display = "none";
+  }
+
+  // Clear old generated ranking
+  lastSpearResult = null;
+
+  if (rankedCards) {
+    rankedCards.innerHTML = "";
+  }
+
+  // Clear any previously applied test
+  if (indexTest) {
+    indexTest.value = "";
+  }
+
+  if (stressModality) {
+    stressModality.value = "";
+  }
+
+  if (appliedSummary) {
+    appliedSummary.innerHTML = "";
+  }
 }
 
 
