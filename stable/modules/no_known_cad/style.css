@@ -1000,11 +1000,37 @@ details ul {
   color: var(--green-dark);
 }
 
-.choice-card--yes.is-selected,{
-  background: var(--green-soft);
-  border-color: var(--green);
-  color: var(--green-dark);
-  box-shadow: 0 0 0 3px rgba(31, 143, 95, 0.10);
+.choice-card.is-selected {
+
+    background: linear-gradient(
+        135deg,
+        #e9f7ef,
+        #d4f3df
+    );
+
+    border: 2px solid #2e8b57;
+
+    color: #1f6f46;
+
+    font-weight: 700;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 10px 20px rgba(46,139,87,.18);
+}
+
+.choice-card.is-selected:hover{
+
+    background: linear-gradient(
+        135deg,
+        #e9f7ef,
+        #d4f3df
+    );
+
+    border-color:#2e8b57;
+
+    color:#1f6f46;
 }
 
 
