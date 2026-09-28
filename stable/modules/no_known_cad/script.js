@@ -477,14 +477,33 @@ function go(nextPage, push = true) {
     behavior: "smooth"
   });
 }
-
-  function backOne() {
-    if (!historyStack.length) {
-      go("risk", false);
-      return;
-    }
-    go(historyStack.pop(), false);
+  
+function backOne() {
+  if (!historyStack.length) {
+    go("risk", false);
+    return;
   }
+
+  const previousPage = historyStack.pop();
+
+
+  // -----------------------------------------
+  // Leaving Test Result page → Ranked page
+  //
+  // Clear the previously applied test and
+  // all result-specific answers so a different
+  // recommendation can be chosen cleanly.
+  // -----------------------------------------
+  if (
+    page === "downstream" &&
+    previousPage === "ranked"
+  ) {
+    resetDownstreamState();
+  }
+
+
+  go(previousPage, false);
+}
   
   function resetChoiceCards() {
   document.querySelectorAll(".choice-card").forEach((button) => {
@@ -496,6 +515,85 @@ function go(nextPage, push = true) {
     const input = document.getElementById(group.dataset.choiceGroup);
     if (input) input.value = "";
   });
+}
+
+  function clearChoiceGroup(inputId) {
+  const input = document.getElementById(inputId);
+
+  if (input) {
+    input.value = "";
+  }
+
+  const group = document.querySelector(
+    `[data-choice-group="${inputId}"]`
+  );
+
+  if (!group) return;
+
+  group.querySelectorAll(".choice-card").forEach((button) => {
+    button.classList.remove("is-selected");
+    button.setAttribute("aria-pressed", "false");
+  });
+}
+
+
+function resetDownstreamState() {
+  // -----------------------------------------
+  // Clear selected test
+  // -----------------------------------------
+  if (indexTest) {
+    indexTest.value = "";
+  }
+
+  if (stressModality) {
+    stressModality.value = "";
+  }
+
+
+  // -----------------------------------------
+  // Clear CCTA-result state
+  // -----------------------------------------
+  clearChoiceGroup("cctaResult");
+  clearChoiceGroup("stenosis4090");
+  clearChoiceGroup("highRiskCad");
+
+
+  // -----------------------------------------
+  // Clear stress-result state
+  // -----------------------------------------
+  if (stressResult) {
+    stressResult.value = "";
+  }
+
+  clearChoiceGroup("persistentSymptoms");
+
+
+  // -----------------------------------------
+  // Clear visual/application summary
+  // -----------------------------------------
+  if (appliedSummary) {
+    appliedSummary.innerHTML = "";
+  }
+
+
+  // -----------------------------------------
+  // Hide conditional follow-up fields
+  // -----------------------------------------
+  if (stenosis4090Wrap) {
+    stenosis4090Wrap.style.display = "none";
+  }
+
+  if (highRiskCadWrap) {
+    highRiskCadWrap.style.display = "none";
+  }
+
+  if (persistentSymptomsWrap) {
+    persistentSymptomsWrap.style.display = "none";
+  }
+
+
+  // Recalculate which downstream sections should show
+  updateDownstreamVisibility();
 }
 
   function resetAll() {
@@ -746,14 +844,23 @@ function applyRecommendation(apply, label) {
   // Continue to Page 4 because test-result information is still required.
 const downstreamTitles = {
   ccta: "CCTA Results",
+
   stress_pet: "Stress PET Results",
 
-  exercise_spect: "Exercise SPECT Results",
-  pharmacologic_spect: "Pharmacologic SPECT Results",
+  exercise_spect:
+    "Exercise SPECT Results",
 
-  stress_cmr: "Stress CMR Results",
-  stress_echo: "Stress Echocardiography Results",
-  exercise_ecg: "Exercise ECG Results",
+  pharmacologic_spect:
+    "Pharmacologic SPECT Results",
+
+  stress_cmr:
+    "Stress CMR Results",
+
+  stress_echo:
+    "Stress Echocardiography Results",
+
+  exercise_ecg:
+    "Exercise ECG Results",
 };
 
 const downstreamKey =
