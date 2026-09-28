@@ -477,28 +477,95 @@ function go(nextPage, push = true) {
     behavior: "smooth"
   });
 }
+
+  function resetSpearPromptState() {
+  // Clear the actual hidden input values
+  if (recCanExercise) recCanExercise.value = "";
+  if (recEcg) recEcg.value = "";
+  if (recRenal) recRenal.value = "";
+
+  // Clear selected styling from all three Step 3 card groups
+  [
+    "rec_canExercise",
+    "rec_ecgInterpretable",
+    "rec_renalConcern"
+  ].forEach((inputId) => {
+    const group = document.querySelector(
+      `[data-choice-group="${inputId}"]`
+    );
+
+    if (!group) return;
+
+    group.querySelectorAll(".choice-card").forEach((button) => {
+      button.classList.remove("is-selected");
+      button.setAttribute("aria-pressed", "false");
+    });
+  });
+
+  // Hide conditional questions
+  if (recEcgWrap) {
+    recEcgWrap.style.display = "none";
+  }
+
+  if (recRenalWrap) {
+    recRenalWrap.style.display = "none";
+  }
+
+  // Clear generated recommendation state
+  lastSpearResult = null;
+
+  if (rankedCards) {
+    rankedCards.innerHTML = "";
+  }
+
+  // Clear any previously applied test
+  if (indexTest) {
+    indexTest.value = "";
+  }
+
+  if (stressModality) {
+    stressModality.value = "";
+  }
+
+  if (appliedSummary) {
+    appliedSummary.innerHTML = "";
+  }
+}
   
 function backOne() {
+
+  // -----------------------------------------
+  // SPECIAL CASE:
+  // Ranked recommendations → SPEAR prompts
+  //
+  // Always restart Step 3 from blank.
+  // Do not rely on saved history state.
+  // -----------------------------------------
+  if (page === "ranked") {
+
+    resetSpearPromptState();
+
+    // Remove "spear" from history if it is on top,
+    // because we are navigating there explicitly.
+    if (
+      historyStack.length &&
+      historyStack[historyStack.length - 1] === "spear"
+    ) {
+      historyStack.pop();
+    }
+
+    go("spear", false);
+    return;
+  }
+
+
+  // Normal back behavior everywhere else
   if (!historyStack.length) {
     go("risk", false);
     return;
   }
 
   const previousPage = historyStack.pop();
-
-  // -----------------------------------------
-  // Step 4 → Step 3
-  //
-  // Returning from ranked recommendations
-  // should restart the SPEAR practical prompts
-  // instead of immediately auto-advancing.
-  // -----------------------------------------
-  if (
-    page === "ranked" &&
-    previousPage === "spear"
-  ) {
-    resetSpearPromptState();
-  }
 
   go(previousPage, false);
 }
