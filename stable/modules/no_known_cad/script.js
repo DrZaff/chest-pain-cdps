@@ -747,7 +747,10 @@ function applyRecommendation(apply, label) {
 const downstreamTitles = {
   ccta: "CCTA Results",
   stress_pet: "Stress PET Results",
-  stress_spect: "Stress SPECT Results",
+
+  exercise_spect: "Exercise SPECT Results",
+  pharmacologic_spect: "Pharmacologic SPECT Results",
+
   stress_cmr: "Stress CMR Results",
   stress_echo: "Stress Echocardiography Results",
   exercise_ecg: "Exercise ECG Results",
