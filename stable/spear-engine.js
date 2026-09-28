@@ -147,6 +147,8 @@ function addDecisionTrace(
     rationale
   }
 ) {
+  if (!candidate) return;
+
   candidate.decisionTrace.push({
     domain,
     variable,
@@ -305,36 +307,67 @@ export function recommendStableNoKnownCad(inputs) {
     },
 
 
-    {
-      key: "stress_spect",
-      label: "Stress SPECT",
-      confidence: "B",
+{
+  key: "exercise_spect",
+  label: "Exercise SPECT",
+  confidence: "B",
 
-      scoreComponents:
-        createScoreComponents(84),
+  scoreComponents:
+    createScoreComponents(84),
 
-      decisionTrace: [],
+  decisionTrace: [],
 
-      apply: {
-        riskCat: "intermediate_high",
-        indexTest: "stress",
-        stressModality: "stress_spect"
-      },
+  apply: {
+    riskCat: "intermediate_high",
+    indexTest: "stress",
+    stressModality: "exercise_spect"
+  },
 
-      why: [
-        "Guideline-supported stress imaging option.",
-        "Widely available.",
-        "Acceptable alternative when PET is unavailable."
-      ],
+  why: [
+    "Guideline-supported stress imaging option.",
+    "Combines physiologic exercise assessment with myocardial perfusion imaging.",
+    "Useful when the patient can exercise adequately and imaging is desired."
+  ],
 
-      how:
-        "Stress SPECT evaluates myocardial perfusion using radiotracer imaging during stress and rest. Modern attenuation correction and newer camera systems can improve image quality. It may be limited by attenuation artifact, especially in obesity.",
+  how:
+    "Exercise SPECT evaluates myocardial perfusion at rest and after physiologic exercise using radiotracer imaging. Exercise also provides information about functional capacity, symptoms, heart-rate response, and blood-pressure response. Image quality and diagnostic performance depend on acquisition technique and patient factors.",
 
-      evidence: [
-        "2021 ACC/AHA Chest Pain Guideline: stress SPECT included among COR 1 stress imaging options.",
-        "ASNC guidance supports contemporary SPECT best practices."
-      ]
-    },
+  evidence: [
+    "2021 ACC/AHA Chest Pain Guideline: SPECT is included among COR 1 stress imaging options.",
+    "Exercise stress may be paired with myocardial perfusion imaging when the patient can exercise adequately."
+  ]
+},
+
+{
+  key: "pharmacologic_spect",
+  label: "Pharmacologic SPECT",
+  confidence: "B",
+
+  scoreComponents:
+    createScoreComponents(84),
+
+  decisionTrace: [],
+
+  apply: {
+    riskCat: "intermediate_high",
+    indexTest: "stress",
+    stressModality: "pharmacologic_spect"
+  },
+
+  why: [
+    "Guideline-supported stress imaging option.",
+    "Provides myocardial perfusion assessment when exercise stress is not feasible or appropriate.",
+    "Widely available at many institutions."
+  ],
+
+  how:
+    "Pharmacologic SPECT evaluates myocardial perfusion during pharmacologic stress and rest using radiotracer imaging. It does not require adequate exercise capacity. Choice of stress agent depends on patient characteristics and local protocols.",
+
+  evidence: [
+    "2021 ACC/AHA Chest Pain Guideline: SPECT is included among COR 1 stress imaging options.",
+    "Pharmacologic stress provides an alternative when adequate exercise stress cannot be performed."
+  ]
+},
 
 
     {
@@ -500,6 +533,21 @@ export function recommendStableNoKnownCad(inputs) {
     );
   }
 
+  if (inputs.canExercise === "yes") {
+
+  addDecisionTrace(
+    candidates.find((x) => x.key === "exercise_spect"),
+    {
+      domain: "Feasibility",
+      variable: "Exercise capacity",
+      direction: "eligible",
+      delta: 0,
+      rationale:
+        "Patient can exercise adequately, making exercise SPECT feasible."
+    }
+  );
+}
+
 
   if (inputs.canExercise === "no") {
 
@@ -515,6 +563,21 @@ export function recommendStableNoKnownCad(inputs) {
       }
     );
   }
+
+  if (inputs.canExercise === "no") {
+
+  exclude(
+    "exercise_spect",
+    "Exercise SPECT removed: patient cannot exercise adequately.",
+    {
+      domain: "Feasibility",
+      variable: "Exercise capacity",
+      direction: "exclude",
+      rationale:
+        "Exercise SPECT requires adequate exercise capacity."
+    }
+  );
+}
 
 
   // -------------------------------------------------------
